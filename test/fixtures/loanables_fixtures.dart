@@ -19,16 +19,16 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
           "is_blocking": false,
           "start_at": "2026-09-15 10:00:00",
           "loan_id": null,
-          "loanable_id": 1
-        }
+          "loanable_id": 1,
+        },
       ],
       "library": {
         "id": 5,
         "name": "Bibliothèque LocoMotion Ahuntsic",
         "phone_number": "514-555-0100",
         "created_at": "2025-01-01 10:00:00",
-        "updated_at": "2025-01-01 10:00:00"
-      }
+        "updated_at": "2025-01-01 10:00:00",
+      },
     },
     {
       "id": 2,
@@ -44,15 +44,15 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
         "name": "Bibliothèque Petite-Patrie",
         "phone_number": "514-555-0101",
         "created_at": "2025-01-01 10:00:00",
-        "updated_at": "2025-01-01 10:00:00"
-      }
-    }
+        "updated_at": "2025-01-01 10:00:00",
+      },
+    },
   ],
   "links": {
     "first": "http://localhost:8000/api/v1/loanables?page=1",
     "last": "http://localhost:8000/api/v1/loanables?page=1",
     "prev": null,
-    "next": null
+    "next": null,
   },
   "meta": {
     "current_page": 1,
@@ -60,8 +60,8 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
     "last_page": 1,
     "per_page": 15,
     "to": 2,
-    "total": 2
-  }
+    "total": 2,
+  },
 };
 
 /// Exact representation of Laravel's `GET /loanables/{id}` (`LoanableResource`)
@@ -74,14 +74,12 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
   "availability_status": "available",
   "timezone": "America/Montreal",
   "position": [45.5532, -73.6543],
-  "position_google": {
-    "lat": 45.5532,
-    "lng": -73.6543
-  },
+  "position_google": {"lat": 45.5532, "lng": -73.6543},
   "location_description": "Stationnement réservé rue Lajeunesse",
   "comments": "Véhicule propre et non-fumeur.",
   "instructions": "La clé se trouve dans la boîte à gants sécurisée.",
-  "return_instructions": "Verrouiller les portes et remettre la clé dans le boîtier.",
+  "return_instructions":
+      "Verrouiller les portes et remettre la clé dans le boîtier.",
   "min_loan_duration_in_minutes": 30,
   "max_loan_duration_in_minutes": 2880,
   "community_ids": [10],
@@ -91,7 +89,7 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
     "filename": "prius.jpg",
     "original_filename": "toyota_prius.jpg",
     "width": 1200,
-    "height": 800
+    "height": 800,
   },
   "images": [
     {
@@ -100,7 +98,7 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
       "filename": "prius.jpg",
       "original_filename": "toyota_prius.jpg",
       "width": 1200,
-      "height": 800
+      "height": 800,
     },
     {
       "id": 43,
@@ -108,8 +106,8 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
       "filename": "prius_interior.jpg",
       "original_filename": "interieur.jpg",
       "width": 1200,
-      "height": 800
-    }
+      "height": 800,
+    },
   ],
   "active_incidents": [
     {
@@ -120,16 +118,16 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
       "is_blocking": false,
       "start_at": "2026-09-15 10:00:00",
       "loan_id": null,
-      "loanable_id": 1
-    }
+      "loanable_id": 1,
+    },
   ],
   "details": {
     "brand": "Toyota",
     "model": "Prius",
     "year": 2021,
     "seats": 5,
-    "transmission": "automatic"
-  }
+    "transmission": "automatic",
+  },
 };
 
 /// Exact representation of Laravel's `LoanableController@availability` (`formatAvailabilities`)
@@ -138,24 +136,18 @@ const List<Map<String, dynamic>> laravelAvailabilityEventsJson = [
     "type": "availability",
     "start": "2026-10-01 08:00:00",
     "end": "2026-10-01 12:00:00",
-    "data": {
-      "available": true
-    }
+    "data": {"available": true},
   },
   {
     "type": "availability",
     "start": "2026-10-01 12:00:00",
     "end": "2026-10-01 14:00:00",
-    "data": {
-      "available": false
-    }
+    "data": {"available": false},
   },
   {
     "type": "availability",
     "start": "2026-10-01 14:00:00",
     "end": "2026-10-01 18:00:00",
-    "data": {
-      "available": true
-    }
-  }
+    "data": {"available": true},
+  },
 ];

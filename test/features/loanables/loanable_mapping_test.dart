@@ -40,32 +40,41 @@ void main() {
       expect(bike.image, isNull);
     });
 
-    test('parses full LoanableResource detail correctly with images and details', () {
-      final detail = Loanable.fromJson(laravelLoanableDetailJson);
+    test(
+      'parses full LoanableResource detail correctly with images and details',
+      () {
+        final detail = Loanable.fromJson(laravelLoanableDetailJson);
 
-      expect(detail.id, 1);
-      expect(detail.type, 'car');
-      expect(detail.name, 'Toyota Prius Hybride');
-      expect(detail.sharingMode, 'self_service');
-      expect(detail.minLoanDurationInMinutes, 30);
-      expect(detail.maxLoanDurationInMinutes, 2880);
-      expect(detail.instructions, contains('boîte à gants'));
-      expect(detail.returnInstructions, contains('Verrouiller'));
-      expect(detail.locationDescription, 'Stationnement réservé rue Lajeunesse');
-      expect(detail.comments, contains('propre'));
-      expect(detail.image, isNotNull);
-      expect(detail.image!.id, 42);
-      expect(
-        detail.image!.buildUrl('http://localhost:8000/api/v1', size: 'thumbnail'),
-        'http://localhost:8000/api/v1/images/42?size=thumbnail',
-      );
-      expect(detail.images.length, 2);
-      expect(detail.images[0].id, 42);
-      expect(detail.images[1].id, 43);
-      expect(detail.details?['seats'], 5);
-      expect(detail.latitude, 45.5532);
-      expect(detail.longitude, -73.6543);
-    });
+        expect(detail.id, 1);
+        expect(detail.type, 'car');
+        expect(detail.name, 'Toyota Prius Hybride');
+        expect(detail.sharingMode, 'self_service');
+        expect(detail.minLoanDurationInMinutes, 30);
+        expect(detail.maxLoanDurationInMinutes, 2880);
+        expect(detail.instructions, contains('boîte à gants'));
+        expect(detail.returnInstructions, contains('Verrouiller'));
+        expect(
+          detail.locationDescription,
+          'Stationnement réservé rue Lajeunesse',
+        );
+        expect(detail.comments, contains('propre'));
+        expect(detail.image, isNotNull);
+        expect(detail.image!.id, 42);
+        expect(
+          detail.image!.buildUrl(
+            'http://localhost:8000/api/v1',
+            size: 'thumbnail',
+          ),
+          'http://localhost:8000/api/v1/images/42?size=thumbnail',
+        );
+        expect(detail.images.length, 2);
+        expect(detail.images[0].id, 42);
+        expect(detail.images[1].id, 43);
+        expect(detail.details?['seats'], 5);
+        expect(detail.latitude, 45.5532);
+        expect(detail.longitude, -73.6543);
+      },
+    );
 
     test('tolerates missing optional fields without inventing fake data', () {
       final minimalJson = <String, dynamic>{
@@ -111,37 +120,40 @@ void main() {
       expect(intervals[2].end, DateTime(2026, 10, 1, 18, 0, 0));
     });
 
-    test('throws FormatException on malformed availability event (P1 check)', () {
-      // Missing data.available
-      expect(
-        () => LoanableAvailabilityInterval.fromJson({
-          'type': 'availability',
-          'start': '2026-10-01 08:00:00',
-          'end': '2026-10-01 12:00:00',
-        }),
-        throwsFormatException,
-      );
+    test(
+      'throws FormatException on malformed availability event (P1 check)',
+      () {
+        // Missing data.available
+        expect(
+          () => LoanableAvailabilityInterval.fromJson({
+            'type': 'availability',
+            'start': '2026-10-01 08:00:00',
+            'end': '2026-10-01 12:00:00',
+          }),
+          throwsFormatException,
+        );
 
-      // Missing start or end
-      expect(
-        () => LoanableAvailabilityInterval.fromJson({
-          'type': 'availability',
-          'end': '2026-10-01 12:00:00',
-          'data': {'available': true},
-        }),
-        throwsFormatException,
-      );
+        // Missing start or end
+        expect(
+          () => LoanableAvailabilityInterval.fromJson({
+            'type': 'availability',
+            'end': '2026-10-01 12:00:00',
+            'data': {'available': true},
+          }),
+          throwsFormatException,
+        );
 
-      // Invalid date format
-      expect(
-        () => LoanableAvailabilityInterval.fromJson({
-          'type': 'availability',
-          'start': 'not-a-date',
-          'end': '2026-10-01 12:00:00',
-          'data': {'available': true},
-        }),
-        throwsFormatException,
-      );
-    });
+        // Invalid date format
+        expect(
+          () => LoanableAvailabilityInterval.fromJson({
+            'type': 'availability',
+            'start': 'not-a-date',
+            'end': '2026-10-01 12:00:00',
+            'data': {'available': true},
+          }),
+          throwsFormatException,
+        );
+      },
+    );
   });
 }

@@ -3,7 +3,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'loanable_availability.freezed.dart';
 
 @freezed
-abstract class LoanableAvailabilityInterval with _$LoanableAvailabilityInterval {
+abstract class LoanableAvailabilityInterval
+    with _$LoanableAvailabilityInterval {
   const LoanableAvailabilityInterval._();
 
   const factory LoanableAvailabilityInterval({
@@ -33,7 +34,10 @@ abstract class LoanableAvailabilityInterval with _$LoanableAvailabilityInterval 
 
     final startStr = json['start'];
     final endStr = json['end'];
-    if (startStr is! String || endStr is! String || startStr.isEmpty || endStr.isEmpty) {
+    if (startStr is! String ||
+        endStr is! String ||
+        startStr.isEmpty ||
+        endStr.isEmpty) {
       throw const FormatException(
         'Événement de disponibilité mal formé: start ou end manquant ou vide',
       );

@@ -15,7 +15,10 @@ void main() {
       expect(dashboard.started.loans.first.id, 10);
       expect(dashboard.started.loans.first.status, 'ongoing');
       expect(dashboard.started.loans.first.parsedStatus, LoanStatus.ongoing);
-      expect(dashboard.started.loans.first.displayLoanableName, 'Toyota Prius Hybride');
+      expect(
+        dashboard.started.loans.first.displayLoanableName,
+        'Toyota Prius Hybride',
+      );
       expect(dashboard.started.loans.first.borrowerUserName, 'Jean Dupont');
 
       expect(dashboard.waiting.total, 1);
@@ -66,7 +69,11 @@ void main() {
         });
 
         expect(loan.status, raw);
-        expect(loan.parsedStatus, expectedEnum, reason: 'Status $raw should parse as $expectedEnum');
+        expect(
+          loan.parsedStatus,
+          expectedEnum,
+          reason: 'Status $raw should parse as $expectedEnum',
+        );
       }
     });
 
@@ -83,70 +90,76 @@ void main() {
       expect(loan.parsedStatus, LoanStatus.unknown);
     });
 
-    test('throws FormatException on missing required loan fields (P1 check)', () {
-      // Missing id
-      expect(
-        () => Loan.fromJson({
-          'departure_at': '2026-10-01 10:00:00',
-          'duration_in_minutes': 60,
-          'status': 'requested',
-        }),
-        throwsFormatException,
-      );
+    test(
+      'throws FormatException on missing required loan fields (P1 check)',
+      () {
+        // Missing id
+        expect(
+          () => Loan.fromJson({
+            'departure_at': '2026-10-01 10:00:00',
+            'duration_in_minutes': 60,
+            'status': 'requested',
+          }),
+          throwsFormatException,
+        );
 
-      // Missing departure_at
-      expect(
-        () => Loan.fromJson({
-          'id': 1,
-          'duration_in_minutes': 60,
-          'status': 'requested',
-        }),
-        throwsFormatException,
-      );
+        // Missing departure_at
+        expect(
+          () => Loan.fromJson({
+            'id': 1,
+            'duration_in_minutes': 60,
+            'status': 'requested',
+          }),
+          throwsFormatException,
+        );
 
-      // Missing duration_in_minutes
-      expect(
-        () => Loan.fromJson({
-          'id': 1,
-          'departure_at': '2026-10-01 10:00:00',
-          'status': 'requested',
-        }),
-        throwsFormatException,
-      );
+        // Missing duration_in_minutes
+        expect(
+          () => Loan.fromJson({
+            'id': 1,
+            'departure_at': '2026-10-01 10:00:00',
+            'status': 'requested',
+          }),
+          throwsFormatException,
+        );
 
-      // Missing status
-      expect(
-        () => Loan.fromJson({
-          'id': 1,
-          'departure_at': '2026-10-01 10:00:00',
-          'duration_in_minutes': 60,
-        }),
-        throwsFormatException,
-      );
-    });
+        // Missing status
+        expect(
+          () => Loan.fromJson({
+            'id': 1,
+            'departure_at': '2026-10-01 10:00:00',
+            'duration_in_minutes': 60,
+          }),
+          throwsFormatException,
+        );
+      },
+    );
 
-    test('serializes LoanCreationRequest with exact keys required by Laravel', () {
-      const request = LoanCreationRequest(
-        loanableId: 123,
-        borrowerUserId: 456,
-        departureAt: '2026-10-01 09:00:00',
-        durationInMinutes: 120,
-        estimatedDistance: 20,
-        alternativeTo: 'public_transit',
-        alternativeToOther: null,
-        messageForOwner: 'Merci de prêter votre véhicule !',
-      );
+    test(
+      'serializes LoanCreationRequest with exact keys required by Laravel',
+      () {
+        const request = LoanCreationRequest(
+          loanableId: 123,
+          borrowerUserId: 456,
+          departureAt: '2026-10-01 09:00:00',
+          durationInMinutes: 120,
+          estimatedDistance: 20,
+          alternativeTo: 'public_transit',
+          alternativeToOther: null,
+          messageForOwner: 'Merci de prêter votre véhicule !',
+        );
 
-      final json = request.toJson();
+        final json = request.toJson();
 
-      expect(json['loanable_id'], 123);
-      expect(json['borrower_user_id'], 456);
-      expect(json['departure_at'], '2026-10-01 09:00:00');
-      expect(json['duration_in_minutes'], 120);
-      expect(json['estimated_distance'], 20);
-      expect(json['alternative_to'], 'public_transit');
-      expect(json['alternative_to_other'], isNull);
-      expect(json['message_for_owner'], 'Merci de prêter votre véhicule !');
-    });
+        expect(json['loanable_id'], 123);
+        expect(json['borrower_user_id'], 456);
+        expect(json['departure_at'], '2026-10-01 09:00:00');
+        expect(json['duration_in_minutes'], 120);
+        expect(json['estimated_distance'], 20);
+        expect(json['alternative_to'], 'public_transit');
+        expect(json['alternative_to_other'], isNull);
+        expect(json['message_for_owner'], 'Merci de prêter votre véhicule !');
+      },
+    );
   });
 }

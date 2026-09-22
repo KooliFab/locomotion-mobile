@@ -5,7 +5,8 @@ import 'loan_status.dart';
 part 'loan.freezed.dart';
 part 'loan.g.dart';
 
-class LoanableConverter implements JsonConverter<Loanable?, Map<String, dynamic>?> {
+class LoanableConverter
+    implements JsonConverter<Loanable?, Map<String, dynamic>?> {
   const LoanableConverter();
 
   @override
@@ -40,8 +41,12 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'needs_validation') @Default(false) bool needsValidation,
     @JsonKey(name: 'borrower_total') double? borrowerTotal,
     @JsonKey(name: 'owner_total') double? ownerTotal,
-    @JsonKey(name: 'owner_action_required') @Default(false) bool ownerActionRequired,
-    @JsonKey(name: 'borrower_action_required') @Default(false) bool borrowerActionRequired,
+    @JsonKey(name: 'owner_action_required')
+    @Default(false)
+    bool ownerActionRequired,
+    @JsonKey(name: 'borrower_action_required')
+    @Default(false)
+    bool borrowerActionRequired,
     @JsonKey(name: 'is_self_service') @Default(false) bool isSelfService,
     @JsonKey(name: 'estimated_distance') int? estimatedDistance,
     @JsonKey(name: 'actual_distance') int? actualDistance,
@@ -73,13 +78,18 @@ abstract class Loan with _$Loan {
 
     // departure_at: required
     final rawDeparture = copy['departure_at'] ?? copy['start_at'];
-    if (rawDeparture == null || (rawDeparture is String && rawDeparture.trim().isEmpty)) {
-      throw FormatException('Champ requis "departure_at" manquant pour le prêt #$id');
+    if (rawDeparture == null ||
+        (rawDeparture is String && rawDeparture.trim().isEmpty)) {
+      throw FormatException(
+        'Champ requis "departure_at" manquant pour le prêt #$id',
+      );
     }
     if (rawDeparture is String) {
       final parsed = DateTime.tryParse(rawDeparture.replaceAll(' ', 'T'));
       if (parsed == null) {
-        throw FormatException('Format de date invalide pour "departure_at" ($rawDeparture) sur le prêt #$id');
+        throw FormatException(
+          'Format de date invalide pour "departure_at" ($rawDeparture) sur le prêt #$id',
+        );
       }
       copy['departure_at'] = parsed.toIso8601String();
     }
@@ -87,20 +97,27 @@ abstract class Loan with _$Loan {
     // duration_in_minutes: required
     if (copy['duration_in_minutes'] == null) {
       if (copy['end_at'] != null && copy['start_at'] != null) {
-        final start = DateTime.tryParse(copy['start_at'].toString().replaceAll(' ', 'T'));
-        final end = DateTime.tryParse(copy['end_at'].toString().replaceAll(' ', 'T'));
+        final start = DateTime.tryParse(
+          copy['start_at'].toString().replaceAll(' ', 'T'),
+        );
+        final end = DateTime.tryParse(
+          copy['end_at'].toString().replaceAll(' ', 'T'),
+        );
         if (start != null && end != null) {
           copy['duration_in_minutes'] = end.difference(start).inMinutes;
         }
       }
     }
     if (copy['duration_in_minutes'] == null) {
-      throw FormatException('Champ requis "duration_in_minutes" manquant pour le prêt #$id');
+      throw FormatException(
+        'Champ requis "duration_in_minutes" manquant pour le prêt #$id',
+      );
     }
 
     // status: required
     final rawStatus = copy['status'];
-    if (rawStatus == null || (rawStatus is String && rawStatus.trim().isEmpty)) {
+    if (rawStatus == null ||
+        (rawStatus is String && rawStatus.trim().isEmpty)) {
       throw FormatException('Champ requis "status" manquant pour le prêt #$id');
     }
     copy['status'] = rawStatus.toString().trim();
@@ -124,7 +141,8 @@ abstract class Loan with _$Loan {
       final uMap = copy['borrower_user'] as Map<String, dynamic>;
       copy['borrower_user_id'] ??= uMap['id'];
       copy['borrower_user_name'] ??=
-          uMap['full_name'] ?? '${uMap['name'] ?? ''} ${uMap['last_name'] ?? ''}'.trim();
+          uMap['full_name'] ??
+          '${uMap['name'] ?? ''} ${uMap['last_name'] ?? ''}'.trim();
     }
 
     // Parse total

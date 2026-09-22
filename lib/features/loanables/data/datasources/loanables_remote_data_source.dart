@@ -67,8 +67,8 @@ class LoanablesRemoteDataSourceImpl implements LoanablesRemoteDataSource {
       final item = data['loanable'] is Map<String, dynamic>
           ? data['loanable'] as Map<String, dynamic>
           : (data['data'] is Map<String, dynamic>
-              ? data['data'] as Map<String, dynamic>
-              : data);
+                ? data['data'] as Map<String, dynamic>
+                : data);
       return Loanable.fromJson(item);
     }
     throw FormatException('Format de réponse invalide pour le véhicule #$id');
