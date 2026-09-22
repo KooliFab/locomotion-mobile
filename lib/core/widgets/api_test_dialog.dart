@@ -127,7 +127,10 @@ class _ApiTestDialogState extends ConsumerState<ApiTestDialog> {
               // Status Bar
               if (_statusCode != null || _errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: _errorMessage != null
                         ? AppColors.dangerBg
@@ -179,36 +182,41 @@ class _ApiTestDialogState extends ConsumerState<ApiTestDialog> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircularProgressIndicator(color: AppColors.primary),
+                              CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
                               SizedBox(height: 12),
                               Text(
                                 'Requête en cours...',
-                                style: TextStyle(color: Colors.white70, fontSize: 13),
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
                               ),
                             ],
                           ),
                         )
                       : _errorMessage != null
-                          ? SingleChildScrollView(
-                              child: Text(
-                                _errorMessage!,
-                                style: const TextStyle(
-                                  color: Color(0xFFFF7B72),
-                                  fontFamily: 'monospace',
-                                  fontSize: 12,
-                                ),
-                              ),
-                            )
-                          : SingleChildScrollView(
-                              child: SelectableText(
-                                _prettyJson(_responseData),
-                                style: const TextStyle(
-                                  color: Color(0xFF7EE787),
-                                  fontFamily: 'monospace',
-                                  fontSize: 12,
-                                ),
-                              ),
+                      ? SingleChildScrollView(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Color(0xFFFF7B72),
+                              fontFamily: 'monospace',
+                              fontSize: 12,
                             ),
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          child: SelectableText(
+                            _prettyJson(_responseData),
+                            style: const TextStyle(
+                              color: Color(0xFF7EE787),
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),

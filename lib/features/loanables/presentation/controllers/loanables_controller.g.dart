@@ -183,7 +183,7 @@ final class LoanablesListControllerProvider
 }
 
 String _$loanablesListControllerHash() =>
-    r'b093de9e6163e940d95c38793e49b0967e18e45d';
+    r'8ffd26182d4afbe985774872fa0fd8d478dafbab';
 
 abstract class _$LoanablesListController
     extends $AsyncNotifier<List<Loanable>> {

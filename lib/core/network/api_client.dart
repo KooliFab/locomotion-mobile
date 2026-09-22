@@ -45,7 +45,11 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await dio.get<T>(path, queryParameters: queryParameters, options: options);
+      return await dio.get<T>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
@@ -60,7 +64,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await dio.post<T>(path, data: data, queryParameters: queryParameters, options: options);
+      return await dio.post<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
@@ -75,7 +84,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await dio.put<T>(path, data: data, queryParameters: queryParameters, options: options);
+      return await dio.put<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
@@ -90,7 +104,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options);
+      return await dio.delete<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
@@ -116,7 +135,8 @@ class ApiClient {
         error.type == DioExceptionType.sendTimeout ||
         error.type == DioExceptionType.connectionError) {
       return NetworkException(
-        message: 'Impossible de joindre le serveur LocoMotion. Vérifiez votre connexion.',
+        message:
+            'Impossible de joindre le serveur LocoMotion. Vérifiez votre connexion.',
         statusCode: statusCode,
       );
     }

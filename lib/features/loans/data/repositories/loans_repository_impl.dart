@@ -1,4 +1,6 @@
 import '../../domain/entities/loan.dart';
+import '../../domain/entities/loan_creation_request.dart';
+import '../../domain/entities/loans_dashboard.dart';
 import '../../domain/repositories/loans_repository.dart';
 import '../datasources/loans_remote_data_source.dart';
 
@@ -8,30 +10,17 @@ class LoansRepositoryImpl implements LoansRepository {
   const LoansRepositoryImpl(this._remoteDataSource);
 
   @override
+  Future<LoansDashboard> getDashboard() {
+    return _remoteDataSource.getDashboard();
+  }
+
+  @override
+  Future<Loan> createLoan(LoanCreationRequest request) {
+    return _remoteDataSource.createLoan(request);
+  }
+
+  @override
   Future<List<Loan>> getMyLoans() {
     return _remoteDataSource.getMyLoans();
-  }
-
-  @override
-  Future<Loan> createLoan({
-    required int loanableId,
-    required DateTime startAt,
-    required DateTime endAt,
-  }) {
-    return _remoteDataSource.createLoan(
-      loanableId: loanableId,
-      startAt: startAt,
-      endAt: endAt,
-    );
-  }
-
-  @override
-  Future<void> cancelLoan(int loanId) {
-    return _remoteDataSource.cancelLoan(loanId);
-  }
-
-  @override
-  Future<void> returnLoan(int loanId) {
-    return _remoteDataSource.returnLoan(loanId);
   }
 }

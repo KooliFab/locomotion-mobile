@@ -13,15 +13,15 @@ class CommunitiesScreen extends ConsumerWidget {
     final communitiesAsync = ref.watch(communitiesListControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Communautés'),
-      ),
+      appBar: AppBar(title: const Text('Communautés')),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () => ref.read(communitiesListControllerProvider.notifier).refresh(),
+        onRefresh: () =>
+            ref.read(communitiesListControllerProvider.notifier).refresh(),
         child: AsyncValueWidget<List<Community>>(
           value: communitiesAsync,
-          onRetry: () => ref.read(communitiesListControllerProvider.notifier).refresh(),
+          onRetry: () =>
+              ref.read(communitiesListControllerProvider.notifier).refresh(),
           data: (communities) {
             return ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -80,27 +80,44 @@ class CommunitiesScreen extends ConsumerWidget {
                           const SizedBox(height: 10),
                           Text(
                             community.description!,
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ],
                         const SizedBox(height: 12),
                         Row(
                           children: [
                             if (community.membersCount != null) ...[
-                              const Icon(Icons.person_outline, size: 16, color: AppColors.textMuted),
+                              const Icon(
+                                Icons.person_outline,
+                                size: 16,
+                                color: AppColors.textMuted,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 '${community.membersCount} membres',
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                               const SizedBox(width: 16),
                             ],
                             if (community.loanablesCount != null) ...[
-                              const Icon(Icons.directions_car_outlined, size: 16, color: AppColors.textMuted),
+                              const Icon(
+                                Icons.directions_car_outlined,
+                                size: 16,
+                                color: AppColors.textMuted,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 '${community.loanablesCount} véhicules/vélos',
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ],
                           ],

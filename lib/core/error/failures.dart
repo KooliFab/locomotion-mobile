@@ -13,11 +13,16 @@ class ServerFailure extends Failure {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure([super.message = 'Impossible de contacter le serveur LocoMotion. Vérifiez votre connexion.']);
+  const NetworkFailure([
+    super.message =
+        'Impossible de contacter le serveur LocoMotion. Vérifiez votre connexion.',
+  ]);
 }
 
 class AuthFailure extends Failure {
-  const AuthFailure([super.message = 'Identifiants invalides ou session expirée.']);
+  const AuthFailure([
+    super.message = 'Identifiants invalides ou session expirée.',
+  ]);
 }
 
 class CacheFailure extends Failure {
@@ -25,5 +30,7 @@ class CacheFailure extends Failure {
 }
 
 class UnexpectedFailure extends Failure {
-  const UnexpectedFailure([super.message = 'Une erreur inattendue est survenue.']);
+  const UnexpectedFailure([
+    super.message = 'Une erreur inattendue est survenue.',
+  ]);
 }

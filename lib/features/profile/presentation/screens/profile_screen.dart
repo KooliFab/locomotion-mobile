@@ -14,9 +14,7 @@ class ProfileScreen extends ConsumerWidget {
     final balanceAsync = ref.watch(userBalanceControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mon Profil'),
-      ),
+      appBar: AppBar(title: const Text('Mon Profil')),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -32,7 +30,9 @@ class ProfileScreen extends ConsumerWidget {
                     child: Text(
                       user?.firstName?.isNotEmpty == true
                           ? user!.firstName![0].toUpperCase()
-                          : (user?.email.isNotEmpty == true ? user!.email[0].toUpperCase() : 'L'),
+                          : (user?.email.isNotEmpty == true
+                                ? user!.email[0].toUpperCase()
+                                : 'L'),
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -46,8 +46,11 @@ class ProfileScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user != null && (user.firstName != null || user.lastName != null)
-                              ? '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim()
+                          user != null &&
+                                  (user.firstName != null ||
+                                      user.lastName != null)
+                              ? '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                                    .trim()
                               : 'Membre LocoMotion',
                           style: const TextStyle(
                             fontSize: 18,
@@ -65,7 +68,10 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: user?.isBorrowerApproved == true
                                 ? AppColors.successBg
@@ -106,12 +112,18 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       Text(
                         'Solde du compte',
-                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         'Crédits disponibles',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -129,7 +141,10 @@ class ProfileScreen extends ConsumerWidget {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (_, _) => const Text('0.00 \$', style: TextStyle(fontWeight: FontWeight.bold)),
+                    error: (_, _) => const Text(
+                      '0.00 \$',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -185,7 +200,10 @@ class ProfileScreen extends ConsumerWidget {
       child: Column(
         children: items.map((item) {
           return ListTile(
-            leading: Icon(item.icon, color: item.iconColor ?? AppColors.textPrimary),
+            leading: Icon(
+              item.icon,
+              color: item.iconColor ?? AppColors.textPrimary,
+            ),
             title: Text(
               item.title,
               style: TextStyle(
@@ -194,7 +212,10 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             subtitle: item.subtitle != null ? Text(item.subtitle!) : null,
-            trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+            trailing: const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.textMuted,
+            ),
             onTap: item.onTap,
           );
         }).toList(),
@@ -207,7 +228,9 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Déconnexion'),
-        content: const Text('Voulez-vous vraiment vous déconnecter de LocoMotion ?'),
+        content: const Text(
+          'Voulez-vous vraiment vous déconnecter de LocoMotion ?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

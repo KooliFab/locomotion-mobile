@@ -50,9 +50,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inscription'),
-      ),
+      appBar: AppBar(title: const Text('Inscription')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -79,14 +77,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: 'Prénom',
                   hint: 'Alexandre',
                   controller: _firstNameController,
-                  validator: (v) => v == null || v.isEmpty ? 'Champ requis' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Champ requis' : null,
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
                   label: 'Nom',
                   hint: 'Tremblay',
                   controller: _lastNameController,
-                  validator: (v) => v == null || v.isEmpty ? 'Champ requis' : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Champ requis' : null,
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
@@ -94,7 +94,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   hint: 'alex@locomotion.app',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v == null || !v.contains('@') ? 'Courriel invalide' : null,
+                  validator: (v) => v == null || !v.contains('@')
+                      ? 'Courriel invalide'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
@@ -102,7 +104,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   hint: 'Minimum 8 caractères',
                   controller: _passwordController,
                   obscureText: true,
-                  validator: (v) => v == null || v.length < 8 ? '8 caractères minimum' : null,
+                  validator: (v) =>
+                      v == null || v.length < 8 ? '8 caractères minimum' : null,
                 ),
                 const SizedBox(height: 28),
                 AppButton(

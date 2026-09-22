@@ -15,11 +15,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
   testWidgets('LocoMotionApp smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: LocoMotionApp(),
-      ),
-    );
+    await tester.pumpWidget(const ProviderScope(child: LocoMotionApp()));
 
     // Initial frame loads
     expect(find.byType(LocoMotionApp), findsOneWidget);

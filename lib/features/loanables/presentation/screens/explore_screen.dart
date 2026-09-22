@@ -44,18 +44,37 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           // Filter Chips
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 10.0,
+            ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip(label: 'Tous', type: null, selected: selectedType == null),
+                  _buildFilterChip(
+                    label: 'Tous',
+                    type: null,
+                    selected: selectedType == null,
+                  ),
                   const SizedBox(width: 8),
-                  _buildFilterChip(label: '🚗 Voitures', type: 'car', selected: selectedType == 'car'),
+                  _buildFilterChip(
+                    label: '🚗 Voitures',
+                    type: 'car',
+                    selected: selectedType == 'car',
+                  ),
                   const SizedBox(width: 8),
-                  _buildFilterChip(label: '🚲 Vélos & Cargos', type: 'bike', selected: selectedType == 'bike'),
+                  _buildFilterChip(
+                    label: '🚲 Vélos & Cargos',
+                    type: 'bike',
+                    selected: selectedType == 'bike',
+                  ),
                   const SizedBox(width: 8),
-                  _buildFilterChip(label: '🛒 Remorques', type: 'trailer', selected: selectedType == 'trailer'),
+                  _buildFilterChip(
+                    label: '🛒 Remorques',
+                    type: 'trailer',
+                    selected: selectedType == 'trailer',
+                  ),
                 ],
               ),
             ),
@@ -66,7 +85,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           Expanded(
             child: AsyncValueWidget<List<Loanable>>(
               value: loanablesAsync,
-              onRetry: () => ref.read(loanablesListControllerProvider.notifier).refresh(),
+              onRetry: () =>
+                  ref.read(loanablesListControllerProvider.notifier).refresh(),
               data: (loanables) {
                 if (loanables.isEmpty) {
                   return const Center(
@@ -80,26 +100,34 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 if (_isMapView) {
                   final markers = loanables
                       .where((l) => l.latitude != null && l.longitude != null)
-                      .map((l) => AppMapMarker(
-                            id: l.id.toString(),
-                            title: l.name,
-                            snippet: l.communityName ?? l.address,
-                            latitude: l.latitude!,
-                            longitude: l.longitude!,
-                            type: l.type,
-                          ))
+                      .map(
+                        (l) => AppMapMarker(
+                          id: l.id.toString(),
+                          title: l.name,
+                          snippet: l.communityName ?? l.address,
+                          latitude: l.latitude!,
+                          longitude: l.longitude!,
+                          type: l.type,
+                        ),
+                      )
                       .toList();
 
                   return AdaptiveMapWidget(
-                    initialLatitude: markers.isNotEmpty ? markers.first.latitude : 45.5017,
-                    initialLongitude: markers.isNotEmpty ? markers.first.longitude : -73.5673,
+                    initialLatitude: markers.isNotEmpty
+                        ? markers.first.latitude
+                        : 45.5017,
+                    initialLongitude: markers.isNotEmpty
+                        ? markers.first.longitude
+                        : -73.5673,
                     markers: markers,
                   );
                 }
 
                 return RefreshIndicator(
                   color: AppColors.primary,
-                  onRefresh: () => ref.read(loanablesListControllerProvider.notifier).refresh(),
+                  onRefresh: () => ref
+                      .read(loanablesListControllerProvider.notifier)
+                      .refresh(),
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: loanables.length,
@@ -193,12 +221,19 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.place_outlined, size: 14, color: AppColors.textMuted),
+                              const Icon(
+                                Icons.place_outlined,
+                                size: 14,
+                                color: AppColors.textMuted,
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   item.address!,
-                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -210,9 +245,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: item.isAvailable ? AppColors.successBg : AppColors.warningBg,
+                      color: item.isAvailable
+                          ? AppColors.successBg
+                          : AppColors.warningBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -220,7 +260,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: item.isAvailable ? AppColors.success : AppColors.warning,
+                        color: item.isAvailable
+                            ? AppColors.success
+                            : AppColors.warning,
                       ),
                     ),
                   ),
@@ -230,7 +272,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 const SizedBox(height: 12),
                 Text(
                   item.description!,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

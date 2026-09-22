@@ -21,13 +21,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl(this._apiClient);
 
   @override
-  Future<AuthTokens> login({required String email, required String password}) async {
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async {
     final response = await _apiClient.post(
       ApiEndpoints.login,
-      data: {
-        'email': email,
-        'password': password,
-      },
+      data: {'email': email, 'password': password},
     );
 
     return AuthTokens.fromJson(response.data as Map<String, dynamic>);
@@ -64,7 +64,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final data = response.data;
     if (data is Map<String, dynamic>) {
       // Backend might return user object under 'user' key or root
-      final userMap = data['user'] is Map<String, dynamic> ? data['user'] as Map<String, dynamic> : data;
+      final userMap = data['user'] is Map<String, dynamic>
+          ? data['user'] as Map<String, dynamic>
+          : data;
       return User.fromJson(userMap);
     }
     throw Exception('Format de réponse utilisateur invalide');

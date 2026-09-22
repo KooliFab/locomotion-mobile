@@ -9,9 +9,13 @@ class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor(this._storageService, this._dio);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     // Endpoints that don't need a token
-    final isPublic = options.path == ApiEndpoints.login ||
+    final isPublic =
+        options.path == ApiEndpoints.login ||
         options.path == ApiEndpoints.register ||
         options.path == ApiEndpoints.status ||
         options.path == ApiEndpoints.stats;
@@ -52,9 +56,13 @@ class AuthInterceptor extends QueuedInterceptor {
             ),
           );
 
-          if (refreshResponse.statusCode == 200 && refreshResponse.data != null) {
-            final newAccessToken = refreshResponse.data['access_token'] as String;
-            final newRefreshToken = refreshResponse.data['refresh_token'] as String? ?? refreshToken;
+          if (refreshResponse.statusCode == 200 &&
+              refreshResponse.data != null) {
+            final newAccessToken =
+                refreshResponse.data['access_token'] as String;
+            final newRefreshToken =
+                refreshResponse.data['refresh_token'] as String? ??
+                refreshToken;
 
             await _storageService.saveTokens(
               accessToken: newAccessToken,

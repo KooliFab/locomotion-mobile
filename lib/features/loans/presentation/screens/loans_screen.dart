@@ -15,9 +15,7 @@ class LoansScreen extends ConsumerWidget {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'fr');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Réservations'),
-      ),
+      appBar: AppBar(title: const Text('Mes Réservations')),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () => ref.read(myLoansControllerProvider.notifier).refresh(),
@@ -85,7 +83,7 @@ class LoansScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              loan.loanableName,
+                              loan.displayLoanableName,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -98,11 +96,18 @@ class LoansScreen extends ConsumerWidget {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.access_time_rounded, size: 16, color: AppColors.textMuted),
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 16,
+                              color: AppColors.textMuted,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               '${dateFormat.format(loan.startAt)} → ${dateFormat.format(loan.endAt)}',
-                              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -135,25 +140,53 @@ class LoansScreen extends ConsumerWidget {
     String label;
 
     switch (status) {
+      case 'ongoing':
       case 'in_progress':
         bg = AppColors.successBg;
         fg = AppColors.success;
         label = 'En cours';
         break;
-      case 'accepted':
+      case 'confirmed':
         bg = AppColors.infoBg;
         fg = AppColors.info;
         label = 'Confirmé';
         break;
+      case 'accepted':
+        bg = AppColors.infoBg;
+        fg = AppColors.info;
+        label = 'Accepté';
+        break;
+      case 'requested':
       case 'pending':
         bg = AppColors.warningBg;
         fg = AppColors.warning;
         label = 'En attente';
         break;
+      case 'validated':
+        bg = AppColors.infoBg;
+        fg = AppColors.info;
+        label = 'Validé';
+        break;
+      case 'ended':
+        bg = Colors.amber.shade100;
+        fg = Colors.amber.shade800;
+        label = 'À valider';
+        break;
       case 'completed':
         bg = Colors.grey.shade200;
         fg = Colors.grey.shade700;
         label = 'Terminé';
+        break;
+      case 'canceled':
+      case 'cancelled':
+        bg = AppColors.dangerBg;
+        fg = AppColors.danger;
+        label = 'Annulé';
+        break;
+      case 'rejected':
+        bg = AppColors.dangerBg;
+        fg = AppColors.danger;
+        label = 'Refusé';
         break;
       default:
         bg = Colors.grey.shade100;

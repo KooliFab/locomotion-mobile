@@ -30,7 +30,8 @@ GoRouter appRouter(Ref ref) {
     redirect: (context, state) {
       final authState = ref.read(authControllerProvider);
       final isLoggedIn = authState.value != null;
-      final isLoggingIn = state.matchedLocation == AppRoutes.login ||
+      final isLoggingIn =
+          state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isLoggingIn) {

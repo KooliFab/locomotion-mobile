@@ -99,6 +99,52 @@ final class LoansRepositoryProvider
 
 String _$loansRepositoryHash() => r'c2d0eceeb6a26d31eb2165323c37cd6c4e01cf1c';
 
+@ProviderFor(LoansDashboardController)
+final loansDashboardControllerProvider = LoansDashboardControllerProvider._();
+
+final class LoansDashboardControllerProvider
+    extends $AsyncNotifierProvider<LoansDashboardController, LoansDashboard> {
+  LoansDashboardControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loansDashboardControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loansDashboardControllerHash();
+
+  @$internal
+  @override
+  LoansDashboardController create() => LoansDashboardController();
+}
+
+String _$loansDashboardControllerHash() =>
+    r'ca7d4247ae97d556f586c7c07b66e0561729a1a9';
+
+abstract class _$LoansDashboardController
+    extends $AsyncNotifier<LoansDashboard> {
+  FutureOr<LoansDashboard> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<LoansDashboard>, LoansDashboard>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<LoansDashboard>, LoansDashboard>,
+              AsyncValue<LoansDashboard>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(MyLoansController)
 final myLoansControllerProvider = MyLoansControllerProvider._();
 
@@ -123,7 +169,7 @@ final class MyLoansControllerProvider
   MyLoansController create() => MyLoansController();
 }
 
-String _$myLoansControllerHash() => r'e0fb407cf884b6fcc99b2134ac4dba4ce4d9786c';
+String _$myLoansControllerHash() => r'e1bfbe11e20c832fb10e8370cdc3b405027ff564';
 
 abstract class _$MyLoansController extends $AsyncNotifier<List<Loan>> {
   FutureOr<List<Loan>> build();

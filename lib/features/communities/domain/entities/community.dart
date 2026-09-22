@@ -14,5 +14,6 @@ abstract class Community with _$Community {
     int? loanablesCount,
   }) = _Community;
 
-  factory Community.fromJson(Map<String, dynamic> json) => _$CommunityFromJson(json);
+  factory Community.fromJson(Map<String, dynamic> json) =>
+      _$CommunityFromJson(json);
 }

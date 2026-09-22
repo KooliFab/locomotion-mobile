@@ -14,10 +14,17 @@ class ApiEndpoints {
   static const String loanableTypes = '/loanableTypes';
   static const String loanablesAvailability = '/loanables/availability';
   static const String loanablesDashboard = '/loanables/dashboard';
+  static String loanableAvailability(int id) => '/loanables/$id/availability';
+  static String loanableDetail(int id) => '/loanables/$id';
 
   // Loans (reservations)
   static const String loans = '/loans';
   static const String loansDashboard = '/loans/dashboard';
+  static String loanDetail(int id) => '/loans/$id';
+
+  // Images
+  static String image(int id, {String? size}) =>
+      '/images/$id${size != null ? '?size=$size' : ''}';
 
   // Communities
   static const String communities = '/communities';

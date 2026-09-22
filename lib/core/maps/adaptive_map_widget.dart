@@ -79,11 +79,7 @@ class AdaptiveMapWidget extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
-              _getIconForType(m.type),
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(_getIconForType(m.type), color: Colors.white, size: 22),
           ),
         ),
       );

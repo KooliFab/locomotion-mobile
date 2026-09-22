@@ -6,11 +6,7 @@ import 'core/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(
-    const ProviderScope(
-      child: LocoMotionApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: LocoMotionApp()));
 }
 
 class LocoMotionApp extends ConsumerWidget {

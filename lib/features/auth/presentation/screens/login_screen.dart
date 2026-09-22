@@ -18,7 +18,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'soutien@locomotion.app');
+  final _emailController = TextEditingController(
+    text: 'soutien@locomotion.app',
+  );
   final _passwordController = TextEditingController(text: 'locomotion');
   bool _obscurePassword = true;
 
@@ -32,7 +34,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authControllerProvider.notifier).login(
+    await ref
+        .read(authControllerProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -61,7 +65,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -134,7 +141,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             hint: 'votre.courriel@exemple.ca',
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textMuted),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: AppColors.textMuted,
+                            ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
                                 return 'Veuillez renseigner votre courriel';
@@ -151,10 +161,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             hint: '••••••••',
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textMuted),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: AppColors.textMuted,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: AppColors.textMuted,
                               ),
                               onPressed: () {
@@ -189,13 +204,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.infoBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: AppColors.info.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Column(
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.developer_mode_rounded, size: 16, color: AppColors.info),
+                          Icon(
+                            Icons.developer_mode_rounded,
+                            size: 16,
+                            color: AppColors.info,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             'Comptes de test dev (seed)',
@@ -212,8 +233,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         spacing: 8,
                         children: [
                           _buildAccountChip('Admin', 'soutien@locomotion.app'),
-                          _buildAccountChip('Emprunteur', 'emprunteurahuntsic@locomotion.app'),
-                          _buildAccountChip('Propriétaire', 'proprietaireahuntsic@locomotion.app'),
+                          _buildAccountChip(
+                            'Emprunteur',
+                            'emprunteurahuntsic@locomotion.app',
+                          ),
+                          _buildAccountChip(
+                            'Propriétaire',
+                            'proprietaireahuntsic@locomotion.app',
+                          ),
                         ],
                       ),
                     ],
@@ -226,7 +253,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   builder: (context, ref, child) {
                     final currentBaseUrl = ref.watch(apiBaseUrlProvider);
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -237,12 +267,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.dns_rounded, size: 14, color: AppColors.textSecondary),
+                              const Icon(
+                                Icons.dns_rounded,
+                                size: 14,
+                                color: AppColors.textSecondary,
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   'API: $currentBaseUrl',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -252,9 +289,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Wrap(
                             spacing: 6,
                             children: [
-                              _buildUrlChip(ref, 'Wi-Fi (192.168.0.16)', AppConfig.macLocalIpUrl, currentBaseUrl),
-                              _buildUrlChip(ref, 'USB adb (127.0.0.1)', AppConfig.usbReverseUrl, currentBaseUrl),
-                              _buildUrlChip(ref, 'Émulateur (10.0.2.2)', AppConfig.androidEmulatorUrl, currentBaseUrl),
+                              _buildUrlChip(
+                                ref,
+                                'Wi-Fi (192.168.0.16)',
+                                AppConfig.macLocalIpUrl,
+                                currentBaseUrl,
+                              ),
+                              _buildUrlChip(
+                                ref,
+                                'USB adb (127.0.0.1)',
+                                AppConfig.usbReverseUrl,
+                                currentBaseUrl,
+                              ),
+                              _buildUrlChip(
+                                ref,
+                                'Émulateur (10.0.2.2)',
+                                AppConfig.androidEmulatorUrl,
+                                currentBaseUrl,
+                              ),
                             ],
                           ),
                         ],
@@ -271,8 +323,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: const Text('Tester requête API backend'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.secondary,
-                    side: const BorderSide(color: AppColors.secondary, width: 1.2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    side: const BorderSide(
+                      color: AppColors.secondary,
+                      width: 1.2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -314,7 +371,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildUrlChip(WidgetRef ref, String label, String url, String currentUrl) {
+  Widget _buildUrlChip(
+    WidgetRef ref,
+    String label,
+    String url,
+    String currentUrl,
+  ) {
     final isSelected = currentUrl == url;
     return ActionChip(
       label: Text(

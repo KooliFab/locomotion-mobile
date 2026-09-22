@@ -45,10 +45,7 @@ class AppButton extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
-        ],
+        if (icon != null) ...[Icon(icon, size: 20), const SizedBox(width: 8)],
         Text(text),
       ],
     );
@@ -57,36 +54,38 @@ class AppButton extends StatelessWidget {
       height: height,
       child: switch (variant) {
         AppButtonVariant.primary => ElevatedButton(
-            onPressed: onPressed,
-            style: _buttonStyle(context),
-            child: content,
-          ),
+          onPressed: onPressed,
+          style: _buttonStyle(context),
+          child: content,
+        ),
         AppButtonVariant.secondary => ElevatedButton(
-            onPressed: onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.secondary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: content,
           ),
+          child: content,
+        ),
         AppButtonVariant.outline => OutlinedButton(
-            onPressed: onPressed,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary, width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: content,
           ),
+          child: content,
+        ),
         AppButtonVariant.text => TextButton(
-            onPressed: onPressed,
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-            ),
-            child: content,
-          ),
+          onPressed: onPressed,
+          style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+          child: content,
+        ),
       },
     );
   }
