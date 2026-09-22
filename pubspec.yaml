@@ -47,6 +47,7 @@ dependencies:
   apple_maps_flutter: ^1.4.0
   google_fonts: ^8.2.1
   flutter_svg: ^2.3.0
+  file_picker: ^13.1.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,8 @@ dev_dependencies:
   json_serializable: ^6.11.2
   custom_lint: ^0.8.1
   riverpod_lint: ^3.1.0
+  cross_file: ^0.3.4+2
+  plugin_platform_interface: ^2.1.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

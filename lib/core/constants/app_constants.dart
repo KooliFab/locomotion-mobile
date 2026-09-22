@@ -31,6 +31,10 @@ class ApiEndpoints {
   static const String communitiesOverview = '/communities/overview';
   static const String communityFriends = '/communityFriends';
 
+  // Borrower
+  static const String files = '/files';
+  static String borrowerSubmit(int userId) => '/users/$userId/borrower/submit';
+
   // Payments & Invoices
   static const String paymentMethods = '/payment_methods';
   static const String invoices = '/invoices';

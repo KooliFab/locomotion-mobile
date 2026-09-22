@@ -30,6 +30,27 @@ class UnauthorizedException extends AppException {
   });
 }
 
+class ForbiddenException extends AppException {
+  const ForbiddenException({
+    super.message = 'Action non autorisée',
+    super.statusCode = 403,
+    super.data,
+  });
+}
+
+/// Thrown on HTTP 422 Unprocessable Entity.
+/// [errors] contains field-level validation errors from the backend.
+class ValidationException extends ServerException {
+  final Map<String, dynamic>? errors;
+
+  const ValidationException({
+    required super.message,
+    super.statusCode = 422,
+    super.data,
+    this.errors,
+  });
+}
+
 class CacheException extends AppException {
   const CacheException({required super.message});
 }

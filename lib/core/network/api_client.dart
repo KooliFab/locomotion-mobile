@@ -149,6 +149,26 @@ class ApiClient {
       );
     }
 
+    if (statusCode == 403) {
+      return ForbiddenException(
+        message: extractMessage(),
+        statusCode: statusCode,
+        data: data,
+      );
+    }
+
+    if (statusCode == 422) {
+      final errors = data is Map<String, dynamic>
+          ? data['errors'] as Map<String, dynamic>?
+          : null;
+      return ValidationException(
+        message: extractMessage(),
+        statusCode: statusCode,
+        data: data,
+        errors: errors,
+      );
+    }
+
     return ServerException(
       message: extractMessage(),
       statusCode: statusCode,

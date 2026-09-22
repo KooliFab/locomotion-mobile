@@ -53,12 +53,10 @@ class AuthController extends _$AuthController {
     final isAuth = await authRepo.isAuthenticated();
     if (!isAuth) return null;
 
-    try {
-      final getCurrentUser = ref.watch(getCurrentUserUseCaseProvider);
-      return await getCurrentUser();
-    } catch (_) {
-      return null;
-    }
+    // Do NOT catch errors silently — propagate so the router can redirect
+    // to login and no fictitious session is fabricated.
+    final getCurrentUser = ref.watch(getCurrentUserUseCaseProvider);
+    return await getCurrentUser();
   }
 
   Future<void> login({required String email, required String password}) async {
@@ -77,6 +75,9 @@ class AuthController extends _$AuthController {
     state = await AsyncValue.guard(() async {
       final logoutUseCase = ref.read(logoutUseCaseProvider);
       await logoutUseCase();
+      // Invalidate borrower state so it doesn't leak across sessions.
+      // Use a delayed invalidation to avoid provider not yet mounted errors.
+      ref.invalidateSelf();
       return null;
     });
   }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../borrower/domain/entities/borrower_status.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -12,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
     final user = authState.value;
     final balanceAsync = ref.watch(userBalanceControllerProvider);
+    final borrowerStatus = BorrowerStatusX.from(user?.borrower);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mon Profil')),
@@ -67,30 +71,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: user?.isBorrowerApproved == true
-                                ? AppColors.successBg
-                                : AppColors.warningBg,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            user?.isBorrowerApproved == true
-                                ? 'Emprunteur validé'
-                                : 'Validation en attente',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: user?.isBorrowerApproved == true
-                                  ? AppColors.success
-                                  : AppColors.warning,
-                            ),
-                          ),
-                        ),
+                        _BorrowerStatusBadge(status: borrowerStatus),
                       ],
                     ),
                   ),
@@ -155,22 +136,10 @@ class ProfileScreen extends ConsumerWidget {
           // Menu Sections
           _buildMenuSection([
             _MenuItem(
-              icon: Icons.credit_card_rounded,
-              title: 'Moyens de paiement',
-              subtitle: 'Gérer vos cartes Stripe',
-              onTap: () {},
-            ),
-            _MenuItem(
-              icon: Icons.receipt_long_rounded,
-              title: 'Factures',
-              subtitle: 'Historique des reçus',
-              onTap: () {},
-            ),
-            _MenuItem(
               icon: Icons.shield_outlined,
               title: 'Dossier conducteur & Permis',
-              subtitle: 'Pièces justificatives',
-              onTap: () {},
+              subtitle: borrowerStatus.label,
+              onTap: () => context.push(AppRoutes.borrower),
             ),
           ]),
           const SizedBox(height: 16),
@@ -248,6 +217,58 @@ class ProfileScreen extends ConsumerWidget {
             child: const Text('Se déconnecter'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BorrowerStatusBadge extends StatelessWidget {
+  final BorrowerStatus status;
+
+  const _BorrowerStatusBadge({required this.status});
+
+  Color get _bgColor {
+    switch (status) {
+      case BorrowerStatus.validated:
+        return AppColors.successBg;
+      case BorrowerStatus.suspended:
+      case BorrowerStatus.checkRequired:
+        return AppColors.dangerBg;
+      case BorrowerStatus.pending:
+        return AppColors.warningBg;
+      case BorrowerStatus.incomplete:
+        return AppColors.warningBg;
+    }
+  }
+
+  Color get _textColor {
+    switch (status) {
+      case BorrowerStatus.validated:
+        return AppColors.success;
+      case BorrowerStatus.suspended:
+      case BorrowerStatus.checkRequired:
+        return AppColors.danger;
+      case BorrowerStatus.pending:
+      case BorrowerStatus.incomplete:
+        return AppColors.warning;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: _bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        status.label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: _textColor,
+        ),
       ),
     );
   }

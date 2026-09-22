@@ -4,6 +4,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/borrower/presentation/screens/borrower_form_screen.dart';
+import '../../features/borrower/presentation/screens/borrower_screen.dart';
 import '../../features/communities/presentation/screens/communities_screen.dart';
 import '../../features/loanables/presentation/screens/explore_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
@@ -72,6 +74,14 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: AppRoutes.profile,
             builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.borrower,
+            builder: (context, state) => const BorrowerScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.borrowerForm,
+            builder: (context, state) => const BorrowerFormScreen(),
           ),
         ],
       ),
