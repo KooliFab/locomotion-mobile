@@ -66,37 +66,36 @@ Travailler uniquement dans `mobile/`, documenter les filtres backend effectiveme
 
 | Fichier | Rôle |
 |---|---|
-| `loanable.dart` | Modèle unifié liste+détail avec prétraitement JSON pour `position`, communauté et image |
+| `loanable.dart` | Modèle unifié liste+détail avec prétraitement JSON pour `position` (tableau, `position_google`, `latitude`/`longitude` directs) sans injection de données fictives |
 | `loanable_availability.dart` | Intervalle de disponibilité; parsing strict avec rejet des dates manquantes ou mal formées |
-| `loanable_availability_window.dart` | Fenêtre combinée `available`+`unavailable` sur une période bornée |
-| `loanable_availability_window.dart` | Tri des intervalles par `rawStart` pour rendu jour par jour |
+| `loanable_availability_window.dart` | Fenêtre combinée `available`+`unavailable` sur une période bornée avec tri par `rawStart` pour rendu jour par jour |
 | `loanable_image.dart` | Métadonnées d'image (id, filename, sizes) sans URL directe |
 | `loanable_incident.dart` | Incident actif (`type`, `status`, `is_blocking`, `blocking_until`) |
-| `loanables_page.dart` | Page paginée avec `hasMore`, `isLoadingMore` et `loadMoreError` |
-| `vehicle_local_dates.dart` | Utilitaires de dates naïves (fuseau véhicule) : `formatYmd`, `shiftYmd`, `daysFrom`, `hhmm`, `dayOf`, `shortLabel` |
+| `loanables_page.dart` | Page paginée avec items typés `List<Loanable>`, `hasMore`, `isLoadingMore` et `loadMoreError` |
+| `vehicle_local_dates.dart` | Utilitaires de dates naïves (fuseau véhicule) : `formatYmd`, `shiftYmd`, `daysFrom`, `hhmm`, `dayOf`, `shortLabel`, `splitByDay` |
 
 #### Couche données (`lib/features/loanables/data/`)
 
 | Fichier | Rôle |
 |---|---|
-| `datasources/loanables_remote_data_source.dart` | `getLoanables` (paginé), `getLoanableDetails`, `getAvailability` avec `responseMode` |
+| `datasources/loanables_remote_data_source.dart` | `getLoanables` (paginé, incluant `relations=library,image,activeIncidents`), `getLoanableDetails`, `getAvailability` avec `responseMode` |
 | `repositories/loanables_repository_impl.dart` | Délégation directe vers le data source |
 
 #### Présentation (`lib/features/loanables/presentation/`)
 
 | Fichier | Rôle |
 |---|---|
-| `controllers/loanables_controller.dart` | `LoanablesListController` (pagination + loadMore), `loanableDetailProvider`, `LoanableAvailabilityPeriod`, `loanableAvailabilityWindowProvider`, `SelectedLoanableType`, `SelectedLoanableCommunity` |
-| `screens/explore_screen.dart` | Liste filtrée (type + communauté), basculement liste/carte, états chargement/vide/erreur, sélection d'un marqueur ouvre la fiche |
-| `screens/loanable_detail_screen.dart` | Galerie, caractéristiques, localisation (carte adaptative), incidents, instructions/conditions, calendrier de disponibilité par fenêtre de 7 jours, CTA désactivé vers Lot 3, porte d'éligibilité informative |
-| `widgets/loanable_image_widget.dart` | Chargement d'image via `GET /images/{id}` authentifié, placeholder si absent |
+| `controllers/loanables_controller.dart` | `LoanablesListController` (pagination + loadMore avec garde anti-race), `loanableDetailProvider`, `LoanableAvailabilityPeriod`, `loanableAvailabilityWindowProvider`, `SelectedLoanableType`, `SelectedLoanableCommunity` |
+| `screens/explore_screen.dart` | Liste filtrée (type + communauté), basculement liste/carte, fallback liste sous bannière si aucun véhicule n'a de position, sélection d'un marqueur ouvre la fiche |
+| `screens/loanable_detail_screen.dart` | Galerie, caractéristiques traduites en français, localisation (carte adaptative avec marqueur du véhicule), incidents, instructions/conditions, calendrier de disponibilité par fenêtre de 7 jours avec bouton réessayer, CTA désactivé avec info-bulle vers Lot 3, porte d'éligibilité informative différenciant chargement/erreur/non-validé |
+| `widgets/loanable_image_widget.dart` | Chargement d'image via `GET /images/{id}` authentifié avec mise en cache du token et placeholder sans flash 401 |
 
 #### Infrastructure (`lib/core/maps/`)
 
 | Fichier | Rôle |
 |---|---|
-| `adaptive_map_widget.dart` | Carte Google Maps si coordonnées valides, liste de repli sinon; aucun marqueur pour véhicule sans lat/lng |
-| `map_marker.dart` | Modèle de marqueur avec `id`, `lat`, `lng`, `label` |
+| `adaptive_map_widget.dart` | Carte Apple Maps sur iOS et OpenStreetMap (flutter_map) ailleurs sans demande de permission de localisation (`myLocationEnabled: false`); marqueurs typés pour véhicules géolocalisés |
+| `map_marker.dart` | Modèle de marqueur avec `id`, `latitude`, `longitude`, `title`, `snippet`, `type`, `onTap` |
 
 #### Routeur (`lib/core/router/app_router.dart`)
 
@@ -106,11 +105,11 @@ Route `/loanables/:id` ajoutée dans le `ShellRoute`. Validation de l'`id` avec 
 
 | Fichier | Couverture |
 |---|---|
-| `loanables_remote_data_source_test.dart` | Pagination (liste, page 2, liste brute), détail (`data` et `loanable` wrappers), disponibilité (parsing, éléments invalides, réponse non-liste), filtres type et communauté |
-| `loanable_mapping_test.dart` | Position (tableau, `position_google`, `latitude`/`longitude` directs, absence), communauté depuis `library`, image URL, `isAvailable` pour tous les statuts connus |
-| `explore_screen_test.dart` | Chargement, vide, erreur, liste de véhicules, filtre type, basculement carte/liste |
-| `loanable_detail_screen_test.dart` | Fiche sans photo, sans position, incident, indisponibilité, navigation CTA désactivé |
-| `vehicle_local_dates_test.dart` | `formatYmd`, `shiftYmd` (positif, négatif, traversée de mois/année), `hhmm`, `dayOf`, `shortLabel` |
+| `loanables_remote_data_source_test.dart` | Pagination (liste, page 2, liste brute), relations demandées, détail (`data` et `loanable` wrappers), disponibilité (parsing, éléments invalides, réponse non-liste), filtres type et communauté |
+| `loanable_mapping_test.dart` | Position (tableau, `position_google`, `latitude`/`longitude` directs, absence), pas de données fictives, `isAvailable` pour tous les statuts connus |
+| `explore_screen_test.dart` | Chargement, vide, erreur, liste de véhicules, filtre type, basculement carte/liste, repli liste si carte vide |
+| `loanable_detail_screen_test.dart` | Fiche sans photo, sans position, avec position et marqueur, incident, indisponibilité, navigation, retry d'erreur de disponibilité, CTA avec info-bulle désactivé |
+| `vehicle_local_dates_test.dart` | `formatYmd`, `shiftYmd`, `hhmm`, `dayOf`, `shortLabel`, `splitByDay` (intervalle finissant à minuit sans faux créneau 00:00 - 00:00) |
 
 #### Fixtures (`test/fixtures/loanables_fixtures.dart`)
 
@@ -123,54 +122,53 @@ Route `/loanables/:id` ajoutée dans le `ShellRoute`. Validation de l'`id` avec 
 
 ### Décisions d'implémentation
 
-**Modèle unique liste/détail.** Le parsing est fait dans `Loanable.fromJson` via `_preprocessJson`. Les champs absents dans la liste restent `null`; aucune valeur inventée. Un champ présent dans le détail mais absent de la liste ne provoque pas d'erreur.
+**Modèle unique liste/détail.** Le parsing est fait dans `Loanable.fromJson` via `_preprocessJson`. Les champs absents restent strictement `null` : aucune valeur inventée ni recopiée artificiellement (pas de duplication d'adresses/descriptions ou de noms de communauté inventés à partir de la bibliothèque).
 
-**Carte adaptative.** `AdaptiveMapWidget` n'affiche un marqueur que si `latitude != null && longitude != null`. Aucun véhicule sans coordonnées ne brise la carte. Sur les plateformes non supportées (Linux, Windows sans plugin carte), une liste de repli est affichée.
+**Carte adaptative.** `AdaptiveMapWidget` s'appuie sur Apple Maps sur iOS et OpenStreetMap (flutter_map) sur les autres plateformes. `myLocationEnabled` est désactivé pour ne pas déclencher de demande intempestive de permission de localisation. En mode carte, si aucun véhicule ne possède de coordonnées valides, une liste de repli est affichée sous un bandeau explicatif. Sur la fiche véhicule, la position du véhicule est explicitement marquée.
 
-**Fuseau du véhicule.** `VehicleLocalDates` opère exclusivement sur des chaînes `yyyy-MM-dd` et `Y-m-d H:i:s` naïves. L'arithmetic de décalage utilise `DateTime.utc` pour éviter tout effet DST de l'appareil. Aucune conversion vers le fuseau local n'est effectuée.
+**Fuseau du véhicule.** `VehicleLocalDates` opère exclusivement sur des chaînes `yyyy-MM-dd` et `Y-m-d H:i:s` naïves. L'arithmétique de décalage utilise `DateTime.utc` pour éviter tout effet DST de l'appareil. Le découpage jour par jour `splitByDay` ignore les fragments vides à minuit (`rawEnd == '<day> 00:00:00'`) pour éviter tout créneau fictif « 00:00 – 00:00 ».
 
-**Double appel de disponibilité.** `loanableAvailabilityWindowProvider` appelle simultanément `responseMode=available` et `responseMode=unavailable` avec `Future.wait`. Un créneau indisponible ne peut jamais apparaître comme disponible car les deux listes sont réconciliées à l'affichage.
+**Double appel de disponibilité.** `loanableAvailabilityWindowProvider` appelle simultanément `responseMode=available` et `responseMode=unavailable` avec `Future.wait`. En cas d'erreur réseau, un message clair sans trace brute Dio est présenté avec un bouton « Réessayer ».
 
-**Filtres backend documentés.** Seuls `type` et `shared_in_community=<id>` sont envoyés au backend. Il n'existe pas de recherche texte ni de filtre `availability_mode` supporté par `Loanable::webQueryBuilder()`. Tout filtrage supplémentaire est local et borné à la page chargée.
+**Filtres backend documentés.** `type`, `shared_in_community=<id>` ainsi que les `relations=library,image,activeIncidents` sont transmis au backend. `WebQueryBuilder` supporte également le paramètre de recherche `q` (branché sur `Loanable::scopeSearch` pour chercher sur le nom) et `order` pour le tri, mais la recherche plein texte et le tri ne sont pas exposés dans l'UI mobile de ce lot.
 
-**CTA Lot 3.** Le bouton « Faire une demande » est présent dans la fiche mais rendu `onPressed: null` (désactivé) avec une info-bulle explicative tant que le Lot 3 n'est pas livré. Aucun flux de réservation factice n'existe.
+**CTA Lot 3.** Le bouton « Continuer vers la demande » est présent dans la fiche mais rendu `onPressed: null` (désactivé) avec une info-bulle Tooltip explicative « La réservation sera disponible dans le Lot 3 ». Aucun flux de réservation factice n'existe.
 
-**Porte d'éligibilité.** `BorrowerEligibility.canRequest(loanableType, borrower)` du Lot 1 est appelé dans la fiche. Pour `car` et `car_trailer`, si le dossier n'est pas validé, un bandeau informatif s'affiche. Ce contrôle informe l'utilisateur; il ne se substitue pas à l'autorisation Laravel lors de `POST /loans`.
+**Porte d'éligibilité.** L'éligibilité est évaluée en distinguant l'état de chargement et d'erreur de l'authentification de l'état validé/non validé, évitant d'afficher prématurément un message d'inéligibilité à un emprunteur pourtant en règle.
 
 ---
 
 ### Filtres backend effectivement disponibles
 
-Vérifiés contre `Loanable::webQueryBuilder()` (backend Laravel existant) :
+Vérifiés contre `Loanable::webQueryBuilder()` et `Loanable` (backend Laravel) :
 
-| Paramètre | Support |
-|---|---|
-| `type` | ✅ Supporté (`$filterTypes`) |
-| `shared_in_community=<id>` | ✅ Supporté (scope dédié) |
-| `name` (texte libre) | ✅ Supporté mais NON utilisé côté mobile; aucun champ de recherche exposé dans cette version |
-| `sharing_mode` | ✅ Supporté mais NON utilisé côté mobile |
-| `library_id` | ✅ Supporté mais non exposé (les communautés passent par `shared_in_community`) |
-| Recherche plein texte | ❌ Absent du backend |
-| Filtre par disponibilité | ❌ Absent du backend |
-| Tri configurable | ❌ Absent du backend |
+| Paramètre | Support Backend | Usage Mobile Lot 2 |
+|---|---|---|
+| `type` | ✅ Supporté (`$filterTypes`) | ✅ Utilisé via les puces de filtres |
+| `shared_in_community=<id>` | ✅ Supporté (scope dédié) | ✅ Utilisé via le sélecteur de communauté |
+| `relations` | ✅ Supporté (`allowRelations`) | ✅ Utilisé (`library,image,activeIncidents`) |
+| `q` | ✅ Supporté (`scopeSearch` sur `name`) | Non exposé dans l'UI mobile Lot 2 |
+| `order` | ✅ Supporté (`WebQueryBuilder::addOrderBy`) | Non exposé dans l'UI mobile Lot 2 |
+| `sharing_mode` | ✅ Supporté (`$filterTypes`) | Non exposé dans l'UI mobile Lot 2 |
+| `library_id` | ✅ Supporté (`$filterTypes`) | Non exposé (passe par `shared_in_community`) |
+| Filtre par disponibilité | ❌ Absent du backend | Non disponible |
 
 ---
 
 ### Divergences et observations
 
 - **Enveloppe de détail variable.** `GET /loanables/{id}` peut renvoyer le véhicule directement à la racine, sous `data`, ou sous `loanable`. Le data source gère les trois cas.
-- **`library` sans `community_id`.** Certaines bibliothèques (environnement de test) n'exposent pas `community_id`. Le prétraitement tente aussi `community_ids[0]` comme repli.
 - **`position_google` vs `position`.** Les deux formats co-existent dans les réponses réelles. `_preprocessJson` priorise le tableau `position`, puis `position_google`, puis `latitude`/`longitude` directs.
-- **Dates de disponibilité sans fuseau.** Le backend retourne des chaînes naïves `Y-m-d H:i:s`. `DateTime.tryParse` utilisé avec remplacement de l'espace par `T` crée un `DateTime` local — son heure est donc correcte si l'affichage utilise `rawStart`/`rawEnd` directement (ce que fait `VehicleLocalDates.hhmm`), mais incorrecte si on utilise `.hour` de la `DateTime` parsée sur un appareil en fuseau différent. Les vues de disponibilité utilisent exclusivement les chaînes brutes.
+- **Dates de disponibilité sans fuseau.** Le backend retourne des chaînes naïves `Y-m-d H:i:s`. Les vues de disponibilité utilisent exclusivement les chaînes brutes pour l'affichage de l'heure locale du véhicule.
 
 ---
 
 ### Limites restantes
 
+- **Carte limitée à la page chargée.** La carte affiche uniquement les véhicules de la page courante; il n'y a pas de pagination globale sur la vue carte dans ce lot.
 - Aucune mise en cache locale des fiches ou de la disponibilité. Chaque ouverture d'écran déclenche une requête réseau.
 - Le calendrier de disponibilité navigue par fenêtres de 7 jours; il n'existe pas de sélecteur de mois complet ni de vue condensée.
-- La liste des communautés accessibles est chargée depuis `GET /communities` (feature `communities`); aucun filtrage backend des communautés auxquelles l'utilisateur appartient n'est encore appliqué au sélecteur de communauté.
-- La recherche texte locale est hors périmètre; elle sera abordée dans un lot ultérieur si le besoin est confirmé.
+- La recherche texte et le tri supportés par le backend ne sont pas encore reliés à un champ de saisie dans l'application mobile.
 - Le CTA vers la demande (Lot 3) est présent mais non fonctionnel.
 
 ---

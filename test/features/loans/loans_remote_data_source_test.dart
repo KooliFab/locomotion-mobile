@@ -111,5 +111,97 @@ void main() {
         );
       },
     );
+
+    test(
+      'propagates ConflictException on HTTP 409 without converting to fake success',
+      () async {
+        final apiClient = createMockApiClient((options) async {
+          return jsonResponse({
+            'message': 'Créneau déjà réservé par un autre utilisateur.',
+          }, statusCode: 409);
+        });
+
+        final dataSource = LoansRemoteDataSourceImpl(apiClient);
+        const request = LoanCreationRequest(
+          loanableId: 1,
+          borrowerUserId: 100,
+          departureAt: '2026-10-10 10:00:00',
+          durationInMinutes: 120,
+          estimatedDistance: 25,
+          alternativeTo: 'car',
+        );
+
+        expect(
+          () => dataSource.createLoan(request),
+          throwsA(
+            isA<ConflictException>().having(
+              (e) => e.statusCode,
+              'statusCode',
+              409,
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'propagates ForbiddenException on HTTP 403 (unapproved borrower)',
+      () async {
+        final apiClient = createMockApiClient((options) async {
+          return jsonResponse({
+            'message':
+                'Dossier emprunteur non approuvé pour ce type de véhicule.',
+          }, statusCode: 403);
+        });
+
+        final dataSource = LoansRemoteDataSourceImpl(apiClient);
+        const request = LoanCreationRequest(
+          loanableId: 1,
+          borrowerUserId: 100,
+          departureAt: '2026-10-10 10:00:00',
+          durationInMinutes: 120,
+          estimatedDistance: 25,
+          alternativeTo: 'car',
+        );
+
+        expect(
+          () => dataSource.createLoan(request),
+          throwsA(
+            isA<ForbiddenException>().having(
+              (e) => e.statusCode,
+              'statusCode',
+              403,
+            ),
+          ),
+        );
+      },
+    );
+
+    test('propagates UnauthorizedException on HTTP 401', () async {
+      final apiClient = createMockApiClient((options) async {
+        return jsonResponse({'message': 'Non authentifié.'}, statusCode: 401);
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      const request = LoanCreationRequest(
+        loanableId: 1,
+        borrowerUserId: 100,
+        departureAt: '2026-10-10 10:00:00',
+        durationInMinutes: 120,
+        estimatedDistance: 25,
+        alternativeTo: 'car',
+      );
+
+      expect(
+        () => dataSource.createLoan(request),
+        throwsA(
+          isA<UnauthorizedException>().having(
+            (e) => e.statusCode,
+            'statusCode',
+            401,
+          ),
+        ),
+      );
+    });
   });
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/features/auth/domain/entities/user.dart';
+import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable_availability.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable_availability_window.dart';
@@ -74,13 +76,29 @@ class _FakeLoanablesRepository implements LoanablesRepository {
   }
 }
 
+class _FakeAuthController extends AuthController {
+  final User? _user;
+  _FakeAuthController(this._user);
+
+  @override
+  User? build() => _user;
+}
+
 void main() {
   group('LoanableDetailScreen', () {
+    const testUser = User(
+      id: 1,
+      email: 'test@locomotion.app',
+      firstName: 'Alice',
+      lastName: 'Tremblay',
+    );
+
     Future<void> pumpDetail(
       WidgetTester tester, {
       required Loanable detail,
       LoanableAvailabilityWindow? window,
       Object? windowError,
+      User? user,
     }) async {
       final container = ProviderContainer(
         overrides: [
@@ -90,6 +108,9 @@ void main() {
               window: window,
               windowError: windowError,
             ),
+          ),
+          authControllerProvider.overrideWith(
+            () => _FakeAuthController(user),
           ),
         ],
       );
@@ -226,13 +247,46 @@ void main() {
       expect(find.text('Indisponible'), findsWidgets);
     });
 
-    testWidgets('CTA is always disabled (Lot 3 not delivered)', (tester) async {
-      await pumpDetail(tester, detail: _detail());
-
+    testWidgets('CTA is disabled for unauthenticated user even on bike', (
+      tester,
+    ) async {
+      await pumpDetail(tester, detail: _detail(type: 'bike'), user: null);
       final button = tester.widget<ElevatedButton>(
         find.widgetWithText(ElevatedButton, 'Continuer vers la demande'),
       );
       expect(button.onPressed, isNull);
+      expect(
+        find.text('Connectez-vous pour pouvoir réserver ce véhicule.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('CTA is disabled for unvalidated borrower on car', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        detail: _detail(type: 'car'),
+        user: testUser, // borrower is null/unvalidated
+      );
+      final buttonCar = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Continuer vers la demande'),
+      );
+      expect(buttonCar.onPressed, isNull);
+    });
+
+    testWidgets('CTA is enabled on unrestricted vehicle (bike) for logged-in user', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        detail: _detail(type: 'bike'),
+        user: testUser,
+      );
+      final buttonBike = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Continuer vers la demande'),
+      );
+      expect(buttonBike.onPressed, isNotNull);
     });
 
     testWidgets('shows incidents section when present', (tester) async {

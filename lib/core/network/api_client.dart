@@ -29,7 +29,7 @@ class ApiClient {
     baseDio.interceptors.add(
       LogInterceptor(
         requestHeader: false,
-        requestBody: true,
+        requestBody: false, // Ne pas tracer les corps de requête pour protéger la confidentialité des messages privés
         responseBody: true,
         responseHeader: false,
         error: true,
@@ -151,6 +151,14 @@ class ApiClient {
 
     if (statusCode == 403) {
       return ForbiddenException(
+        message: extractMessage(),
+        statusCode: statusCode,
+        data: data,
+      );
+    }
+
+    if (statusCode == 409) {
+      return ConflictException(
         message: extractMessage(),
         statusCode: statusCode,
         data: data,

@@ -35,12 +35,16 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     );
 
     final data = response.data;
-    final item =
-        data is Map<String, dynamic> && data['data'] is Map<String, dynamic>
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Format de réponse invalide pour la création de la réservation',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
         ? data['data'] as Map<String, dynamic>
-        : (data is Map<String, dynamic> && data['loan'] is Map<String, dynamic>
-              ? data['loan'] as Map<String, dynamic>
-              : data as Map<String, dynamic>);
+        : (data['loan'] is Map<String, dynamic>
+            ? data['loan'] as Map<String, dynamic>
+            : data);
 
     return Loan.fromJson(item);
   }

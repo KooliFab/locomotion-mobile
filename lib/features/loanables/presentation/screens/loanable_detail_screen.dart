@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/maps/adaptive_map_widget.dart';
 import '../../../../core/maps/map_marker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/async_value_widget.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../borrower/domain/entities/borrower_status.dart';
 import '../../domain/entities/loanable.dart';
 import '../../domain/entities/loanable_incident.dart';
 import '../../domain/entities/vehicle_local_dates.dart';
@@ -50,9 +53,11 @@ class _DetailBody extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
     final user = authState.value;
     final borrower = user?.borrower;
+    final borrowerStatus = BorrowerStatusX.from(borrower);
     final isRestrictedType =
         detail.type == 'car' || detail.type == 'car_trailer';
-    final canRequest = !isRestrictedType || (borrower?.validated == true);
+    final canRequest = user != null &&
+        (!isRestrictedType || borrowerStatus.canReserveCar);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 32),
@@ -271,18 +276,22 @@ class _DetailBody extends ConsumerWidget {
                 const SizedBox(height: 28),
                 SizedBox(
                   width: double.infinity,
-                  child: Tooltip(
-                    message: 'La réservation sera disponible dans le Lot 3',
-                    child: ElevatedButton(
-                      onPressed: null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  child: ElevatedButton(
+                    onPressed: canRequest
+                        ? () {
+                            context.push(
+                              AppRoutes.loanReservationPath(detail.id),
+                              extra: detail,
+                            );
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text('Continuer vers la demande'),
                     ),
+                    child: const Text('Continuer vers la demande'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -296,19 +305,17 @@ class _DetailBody extends ConsumerWidget {
                   )
                 else if (!canRequest)
                   Text(
-                    'Vous n\'êtes pas encore éligible pour ce type de véhicule. '
-                    'Complétez votre profil emprunteur pour demander une validation.',
+                    user == null
+                        ? 'Connectez-vous pour pouvoir réserver ce véhicule.'
+                        : (borrowerStatus == BorrowerStatus.pending
+                            ? 'Votre dossier emprunteur est en cours de validation.'
+                            : 'Vous n\'êtes pas encore éligible pour ce type de véhicule. '
+                                'Complétez votre profil emprunteur pour demander une validation.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.warning.withValues(alpha: 0.9),
                     ),
-                  )
-                else if (user != null)
-                  const Text(
-                    'La réservation sera disponible dans un prochain lot (Lot 3).',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                   )
                 else
                   const SizedBox.shrink(),

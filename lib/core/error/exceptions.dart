@@ -38,6 +38,14 @@ class ForbiddenException extends AppException {
   });
 }
 
+class ConflictException extends AppException {
+  const ConflictException({
+    super.message = 'Conflit de disponibilité ou de ressource',
+    super.statusCode = 409,
+    super.data,
+  });
+}
+
 /// Thrown on HTTP 422 Unprocessable Entity.
 /// [errors] contains field-level validation errors from the backend.
 class ValidationException extends ServerException {

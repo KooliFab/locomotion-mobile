@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
@@ -9,6 +10,11 @@ import '../../features/borrower/presentation/screens/borrower_screen.dart';
 import '../../features/communities/presentation/screens/communities_screen.dart';
 import '../../features/loanables/presentation/screens/explore_screen.dart';
 import '../../features/loanables/presentation/screens/loanable_detail_screen.dart';
+import '../../features/loanables/presentation/controllers/loanables_controller.dart';
+import '../../features/loanables/domain/entities/loanable.dart';
+import '../../features/loans/domain/entities/loan.dart';
+import '../../features/loans/presentation/screens/loan_reservation_screen.dart';
+import '../../features/loans/presentation/screens/loan_success_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../theme/app_colors.dart';
@@ -94,6 +100,46 @@ GoRouter appRouter(Ref ref) {
               return LoanableDetailScreen(loanableId: id);
             },
           ),
+          GoRoute(
+            path: AppRoutes.loanReservation,
+            builder: (context, state) {
+              final extra = state.extra;
+              if (extra is Loanable) {
+                return LoanReservationScreen(loanable: extra);
+              }
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              return _LoanableReservationLoaderScreen(loanableId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.loanSuccess,
+            builder: (context, state) {
+              final extra = state.extra;
+              if (extra is Loan) {
+                return LoanSuccessScreen(loan: extra);
+              }
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              return Scaffold(
+                appBar: AppBar(title: const Text('Confirmation')),
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Demande #${id ?? ""} enregistrée.'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => context.go(AppRoutes.loans),
+                        child: const Text('Voir mes réservations'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     ],
@@ -117,6 +163,58 @@ class _InvalidLoanableIdScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LoanableReservationLoaderScreen extends ConsumerWidget {
+  final int loanableId;
+
+  const _LoanableReservationLoaderScreen({required this.loanableId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loanableAsync = ref.watch(loanableDetailProvider(loanableId));
+
+    return loanableAsync.when(
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Réservation')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: AppColors.danger,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Impossible de charger le véhicule #$loanableId',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () =>
+                      ref.invalidate(loanableDetailProvider(loanableId)),
+                  child: const Text('Réessayer'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      data: (loanable) => LoanReservationScreen(loanable: loanable),
     );
   }
 }
