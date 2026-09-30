@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable_availability.dart';
+import 'package:mobile/features/loanables/domain/entities/vehicle_local_dates.dart';
 import '../../fixtures/loanables_fixtures.dart';
 
 void main() {
@@ -17,12 +18,12 @@ void main() {
       expect(car.name, 'Toyota Prius Hybride');
       expect(car.type, 'car');
       expect(car.sharingMode, 'self_service');
-      expect(car.availabilityStatus, 'available');
+      expect(car.availabilityStatus, 'has_availabilities');
       expect(car.isAvailable, true);
       expect(car.timezone, 'America/Montreal');
       expect(car.latitude, 45.5532);
       expect(car.longitude, -73.6543);
-      expect(car.communityName, 'Bibliothèque LocoMotion Ahuntsic');
+      expect(car.communityName, isNull);
       expect(car.activeIncidents.length, 1);
       expect(car.activeIncidents.first.incidentType, 'breakdown');
       expect(car.activeIncidents.first.isBlocking, false);
@@ -34,9 +35,9 @@ void main() {
       expect(bike.name, 'Vélo Cargo Babboe');
       expect(bike.type, 'bike');
       expect(bike.sharingMode, 'on_demand');
-      expect(bike.availabilityStatus, 'unavailable');
+      expect(bike.availabilityStatus, 'no_availabilities');
       expect(bike.isAvailable, false);
-      expect(bike.communityName, 'Bibliothèque Petite-Patrie');
+      expect(bike.communityName, isNull);
       expect(bike.image, isNull);
     });
 
@@ -76,6 +77,16 @@ void main() {
       },
     );
 
+    test('null availability status is not treated as available', () {
+      final item = Loanable.fromJson({
+        'id': 1,
+        'name': 'Vélo',
+        'type': 'bike',
+        'availability_status': null,
+      });
+      expect(item.isAvailable, false);
+    });
+
     test('tolerates missing optional fields without inventing fake data', () {
       final minimalJson = <String, dynamic>{
         'id': 99,
@@ -91,6 +102,7 @@ void main() {
       expect(item.latitude, isNull);
       expect(item.longitude, isNull);
       expect(item.availabilityStatus, isNull);
+      expect(item.isAvailable, false);
       expect(item.timezone, isNull);
       expect(item.image, isNull);
       expect(item.images, isEmpty);
@@ -118,6 +130,30 @@ void main() {
       expect(intervals[2].isAvailable, true);
       expect(intervals[2].start, DateTime(2026, 10, 1, 14, 0, 0));
       expect(intervals[2].end, DateTime(2026, 10, 1, 18, 0, 0));
+    });
+
+    test('vehicle-local dates keep naive strings and shift by whole days', () {
+      expect(VehicleLocalDates.hhmm('2026-10-01 08:30:00'), '08:30');
+      expect(VehicleLocalDates.dayOf('2026-10-01 08:30:00'), '2026-10-01');
+      expect(VehicleLocalDates.shiftYmd('2026-10-01', 7), '2026-10-08');
+      expect(VehicleLocalDates.shiftYmd('2026-10-01', -7), '2026-09-24');
+      // Cross a DST boundary on wall-clock dates (no device TZ involved).
+      expect(VehicleLocalDates.shiftYmd('2026-03-07', 2), '2026-03-09');
+      expect(VehicleLocalDates.daysFrom('2026-10-01', 7), [
+        '2026-10-01',
+        '2026-10-02',
+        '2026-10-03',
+        '2026-10-04',
+        '2026-10-05',
+        '2026-10-06',
+        '2026-10-07',
+      ]);
+      expect(VehicleLocalDates.hhmm(null), '');
+      expect(VehicleLocalDates.dayOf(null), '');
+      expect(
+        () => VehicleLocalDates.shiftYmd('not-a-date', 1),
+        throwsFormatException,
+      );
     });
 
     test(

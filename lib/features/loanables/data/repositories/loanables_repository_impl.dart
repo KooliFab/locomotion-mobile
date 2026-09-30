@@ -1,5 +1,6 @@
 import '../../domain/entities/loanable.dart';
 import '../../domain/entities/loanable_availability.dart';
+import '../../domain/entities/loanables_page.dart';
 import '../../domain/repositories/loanables_repository.dart';
 import '../datasources/loanables_remote_data_source.dart';
 
@@ -9,7 +10,7 @@ class LoanablesRepositoryImpl implements LoanablesRepository {
   const LoanablesRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<List<Loanable>> getLoanables({
+  Future<LoanablesPage> getLoanables({
     String? type,
     int? communityId,
     int? page,
@@ -31,11 +32,13 @@ class LoanablesRepositoryImpl implements LoanablesRepository {
     int loanableId, {
     required String start,
     required String end,
+    String responseMode = 'available',
   }) {
     return _remoteDataSource.getAvailability(
       loanableId,
       start: start,
       end: end,
+      responseMode: responseMode,
     );
   }
 }

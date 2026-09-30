@@ -7,7 +7,7 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
       "sharing_mode": "self_service",
       "name": "Toyota Prius Hybride",
       "type": "car",
-      "availability_status": "available",
+      "availability_status": "has_availabilities",
       "timezone": "America/Montreal",
       "position": [45.5532, -73.6543],
       "active_incidents": [
@@ -35,7 +35,7 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
       "sharing_mode": "on_demand",
       "name": "Vélo Cargo Babboe",
       "type": "bike",
-      "availability_status": "unavailable",
+      "availability_status": "no_availabilities",
       "timezone": "America/Montreal",
       "position": [45.5348, -73.5982],
       "active_incidents": [],
@@ -50,17 +50,53 @@ const Map<String, dynamic> laravelPaginatedLoanablesJson = {
   ],
   "links": {
     "first": "http://localhost:8000/api/v1/loanables?page=1",
-    "last": "http://localhost:8000/api/v1/loanables?page=1",
+    "last": "http://localhost:8000/api/v1/loanables?page=3",
     "prev": null,
-    "next": null,
+    "next": "http://localhost:8000/api/v1/loanables?page=2",
   },
   "meta": {
     "current_page": 1,
     "from": 1,
-    "last_page": 1,
+    "last_page": 3,
     "per_page": 15,
     "to": 2,
-    "total": 2,
+    "total": 16,
+  },
+};
+
+/// Last-page envelope for pagination tests (meta says this is page 3/3).
+const Map<String, dynamic> laravelPaginatedLoanablesPage2Json = {
+  "data": [
+    {
+      "id": 3,
+      "name": "Vélo Cargo Longtail",
+      "type": "bike",
+      "availability_status": "has_availabilities",
+      "timezone": "America/Montreal",
+      "position": [45.51, -73.60],
+      "active_incidents": [],
+      "library": {
+        "id": 7,
+        "name": "Bibliothèque Villeray",
+        "phone_number": "514-555-0102",
+        "created_at": "2025-01-01 10:00:00",
+        "updated_at": "2025-01-01 10:00:00",
+      },
+    },
+  ],
+  "links": {
+    "first": "http://localhost:8000/api/v1/loanables?page=1",
+    "last": "http://localhost:8000/api/v1/loanables?page=3",
+    "prev": "http://localhost:8000/api/v1/loanables?page=2",
+    "next": null,
+  },
+  "meta": {
+    "current_page": 3,
+    "from": 31,
+    "last_page": 3,
+    "per_page": 15,
+    "to": 31,
+    "total": 31,
   },
 };
 
@@ -71,7 +107,7 @@ const Map<String, dynamic> laravelLoanableDetailJson = {
   "name": "Toyota Prius Hybride",
   "sharing_mode": "self_service",
   "availability_mode": "always",
-  "availability_status": "available",
+  "availability_status": "has_availabilities",
   "timezone": "America/Montreal",
   "position": [45.5532, -73.6543],
   "position_google": {"lat": 45.5532, "lng": -73.6543},

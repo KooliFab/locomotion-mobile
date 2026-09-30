@@ -42,7 +42,12 @@ abstract class Loanable with _$Loanable {
     String? imageUrl,
   }) = _Loanable;
 
-  bool get isAvailable => availabilityStatus == 'available';
+  /// Backend values: `has_availabilities` / `no_availabilities` / …
+  /// Also tolerate legacy `'available'` from older fixtures.
+  /// Unknown/null status is NOT treated as available.
+  bool get isAvailable =>
+      availabilityStatus == 'has_availabilities' ||
+      availabilityStatus == 'available';
 
   factory Loanable.fromJson(Map<String, dynamic> json) =>
       _$LoanableFromJson(_preprocessJson(json));
@@ -68,31 +73,6 @@ abstract class Loanable with _$Loanable {
 
     copy['latitude'] = lat;
     copy['longitude'] = lng;
-
-    // Resolve community name & id from library or community_ids if missing
-    if (copy['community_id'] == null) {
-      if (copy['library'] is Map && copy['library']['community_id'] != null) {
-        copy['community_id'] = copy['library']['community_id'];
-      } else if (copy['community_ids'] is List &&
-          (copy['community_ids'] as List).isNotEmpty) {
-        copy['community_id'] = (copy['community_ids'] as List).first;
-      }
-    }
-    if (copy['community_name'] == null && copy['library'] is Map) {
-      copy['community_name'] = copy['library']['name'] as String?;
-    }
-
-    // Populate fallback description / address if not explicitly present
-    copy['description'] ??= copy['location_description'] ?? copy['comments'];
-    copy['address'] ??= copy['location_description'];
-
-    // Map single image if provided
-    if (copy['image'] is Map<String, dynamic>) {
-      final img = copy['image'] as Map<String, dynamic>;
-      if (img['id'] != null) {
-        copy['imageUrl'] ??= '/images/${img['id']}';
-      }
-    }
 
     return copy;
   }

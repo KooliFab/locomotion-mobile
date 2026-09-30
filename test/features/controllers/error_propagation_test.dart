@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/error/exceptions.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable_availability.dart';
+import 'package:mobile/features/loanables/domain/entities/loanables_page.dart';
 import 'package:mobile/features/loanables/domain/repositories/loanables_repository.dart';
 import 'package:mobile/features/loanables/presentation/controllers/loanables_controller.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
@@ -13,7 +14,7 @@ import 'package:mobile/features/loans/presentation/controllers/loans_controller.
 
 class FailingLoanablesRepository implements LoanablesRepository {
   @override
-  Future<List<Loanable>> getLoanables({
+  Future<LoanablesPage> getLoanables({
     String? type,
     int? communityId,
     int? page,
@@ -37,6 +38,7 @@ class FailingLoanablesRepository implements LoanablesRepository {
     int loanableId, {
     required String start,
     required String end,
+    String responseMode = 'available',
   }) async {
     throw const ServerException(
       message: 'Erreur réseau simulée',

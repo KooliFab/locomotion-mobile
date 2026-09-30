@@ -53,8 +53,8 @@ class AdaptiveMapWidget extends StatelessWidget {
         zoom: initialZoom,
       ),
       annotations: annotations,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: true,
+      myLocationEnabled: false,
+      myLocationButtonEnabled: false,
     );
   }
 

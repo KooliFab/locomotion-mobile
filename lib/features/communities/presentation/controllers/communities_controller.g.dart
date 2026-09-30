@@ -131,7 +131,7 @@ final class CommunitiesListControllerProvider
 }
 
 String _$communitiesListControllerHash() =>
-    r'02454aa98930f2c4c5ec7937abdd029a307ab0b9';
+    r'0456be711f501f60301c76b1731eb96ce4f97510';
 
 abstract class _$CommunitiesListController
     extends $AsyncNotifier<List<Community>> {

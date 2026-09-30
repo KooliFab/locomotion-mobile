@@ -17,17 +17,22 @@ class CommunitiesRemoteDataSourceImpl implements CommunitiesRemoteDataSource {
     final response = await _apiClient.get(ApiEndpoints.communities);
     final data = response.data;
     if (data is List) {
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(Community.fromJson)
-          .toList();
+      return _parseCommunityList(data);
     } else if (data is Map<String, dynamic> && data['data'] is List) {
-      return (data['data'] as List)
-          .whereType<Map<String, dynamic>>()
-          .map(Community.fromJson)
-          .toList();
+      return _parseCommunityList(data['data'] as List);
     }
-    return [];
+    throw FormatException(
+      'Format de réponse inattendu pour les communautés : ${data.runtimeType}',
+    );
+  }
+
+  List<Community> _parseCommunityList(List<dynamic> items) {
+    return items.map((item) {
+      if (item is! Map<String, dynamic>) {
+        throw FormatException('Élément de communauté invalide: $item');
+      }
+      return Community.fromJson(item);
+    }).toList();
   }
 
   @override

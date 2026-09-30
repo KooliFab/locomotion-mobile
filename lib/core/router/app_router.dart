@@ -8,6 +8,7 @@ import '../../features/borrower/presentation/screens/borrower_form_screen.dart';
 import '../../features/borrower/presentation/screens/borrower_screen.dart';
 import '../../features/communities/presentation/screens/communities_screen.dart';
 import '../../features/loanables/presentation/screens/explore_screen.dart';
+import '../../features/loanables/presentation/screens/loanable_detail_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../theme/app_colors.dart';
@@ -83,10 +84,41 @@ GoRouter appRouter(Ref ref) {
             path: AppRoutes.borrowerForm,
             builder: (context, state) => const BorrowerFormScreen(),
           ),
+          GoRoute(
+            path: AppRoutes.loanableDetail,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              return LoanableDetailScreen(loanableId: id);
+            },
+          ),
         ],
       ),
     ],
   );
+}
+
+class _InvalidLoanableIdScreen extends StatelessWidget {
+  const _InvalidLoanableIdScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Véhicule')),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Identifiant de véhicule invalide.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MainScaffold extends StatelessWidget {
