@@ -12,7 +12,10 @@ import 'package:mobile/features/loanables/domain/entities/vehicle_local_dates.da
 import 'package:mobile/features/loanables/domain/repositories/loanables_repository.dart';
 import 'package:mobile/features/loanables/presentation/controllers/loanables_controller.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
+import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
+import 'package:mobile/features/loans/domain/entities/loan_dates_update_request.dart';
+import 'package:mobile/features/loans/domain/entities/loan_pagination.dart';
 import 'package:mobile/features/loans/domain/entities/loans_dashboard.dart';
 import 'package:mobile/features/loans/domain/repositories/loans_repository.dart';
 import 'package:mobile/features/loans/presentation/controllers/loans_controller.dart';
@@ -63,6 +66,29 @@ class _FakeLoansRepo implements LoansRepository {
     if (errorToThrow != null) throw errorToThrow!;
     return responseToReturn!;
   }
+
+  @override
+  Future<Loan> getLoanDetail(int id) async => throw UnimplementedError();
+
+  @override
+  Future<LoanPagination> getLoansPage({
+    int page = 1,
+    int perPage = 10,
+    String? status,
+    int? borrowerUserId,
+  }) async =>
+      const LoanPagination();
+
+  @override
+  Future<Loan> cancelLoan(int id) async => throw UnimplementedError();
+
+  @override
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<LoanComment> addComment(int id, String text) async =>
+      throw UnimplementedError();
 }
 
 class _FakeAuthController extends AuthController {

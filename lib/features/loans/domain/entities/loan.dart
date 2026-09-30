@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../loanables/domain/entities/loanable.dart';
+import 'loan_comment.dart';
 import 'loan_status.dart';
 
 part 'loan.freezed.dart';
@@ -35,10 +36,14 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'community_name') String? communityName,
     @JsonKey(name: 'borrower_user_id') int? borrowerUserId,
     @JsonKey(name: 'borrower_user_name') String? borrowerUserName,
+    @JsonKey(name: 'accepted_at') DateTime? acceptedAt,
+    @JsonKey(name: 'prepaid_at') DateTime? prepaidAt,
+    @JsonKey(name: 'canceled_at') DateTime? canceledAt,
     @JsonKey(name: 'actual_return_at') DateTime? actualReturnAt,
     @JsonKey(name: 'borrower_validated_at') DateTime? borrowerValidatedAt,
     @JsonKey(name: 'owner_validated_at') DateTime? ownerValidatedAt,
     @JsonKey(name: 'needs_validation') @Default(false) bool needsValidation,
+    @JsonKey(name: 'is_free') @Default(false) bool isFree,
     @JsonKey(name: 'borrower_total') double? borrowerTotal,
     @JsonKey(name: 'owner_total') double? ownerTotal,
     @JsonKey(name: 'owner_action_required')
@@ -53,6 +58,7 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'alternative_to') String? alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     String? comment,
+    @Default([]) List<LoanComment> comments,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _Loan;
 
@@ -64,6 +70,47 @@ abstract class Loan with _$Loan {
   double? get totalCost => borrowerTotal;
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
+
+  /// Policy deduction for borrower cancel:
+  /// Laravel allows cancel if in process (requested -> validated).
+  /// For borrower: allowed if free, or not ongoing, or before departure, or has blocking incident.
+  /// Refused if ongoing with cost after departure without blocking incident.
+  bool canBorrowerCancel(int? currentUserId) {
+    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+      return false;
+    }
+    final s = parsedStatus;
+    // Must be in process
+    if (s == LoanStatus.completed || s == LoanStatus.canceled || s == LoanStatus.rejected || s == LoanStatus.unknown) {
+      return false;
+    }
+    if (s == LoanStatus.ongoing) {
+      // Must not be ongoing with cost after departure
+      if (!isFree && DateTime.now().toUtc().isAfter(departureAt.toUtc())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Roadmap rule: modification des dates avant confirmation (requested ou accepted)
+  /// Backend policy allows confirmed too, but resets confirmation to accepted.
+  /// In MVP, borrower can update dates when in requested or accepted.
+  bool canBorrowerUpdateDates(int? currentUserId) {
+    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+      return false;
+    }
+    final s = parsedStatus;
+    return s == LoanStatus.requested || s == LoanStatus.accepted;
+  }
+
+  /// Borrower can comment anytime as long as user is participant
+  bool canBorrowerComment(int? currentUserId) {
+    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+      return false;
+    }
+    return true;
+  }
 
   factory Loan.fromJson(Map<String, dynamic> json) =>
       _$LoanFromJson(_preprocessJson(json));
@@ -148,6 +195,15 @@ abstract class Loan with _$Loan {
     // Parse total
     if (copy['total_cost'] != null && copy['borrower_total'] == null) {
       copy['borrower_total'] = (copy['total_cost'] as num?)?.toDouble();
+    }
+
+    // Defensive parsing for comments
+    if (copy['comments'] is List) {
+      copy['comments'] = (copy['comments'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(LoanComment.fromJson)
+          .map((c) => c.toJson())
+          .toList();
     }
 
     return copy;

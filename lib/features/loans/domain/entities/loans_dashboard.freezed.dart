@@ -80,7 +80,7 @@ as LoansDashboardCategory,
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get started {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.started, (value) {
     return _then(_self.copyWith(started: value));
   });
@@ -89,7 +89,7 @@ $LoansDashboardCategoryCopyWith<$Res> get started {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get waiting {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.waiting, (value) {
     return _then(_self.copyWith(waiting: value));
   });
@@ -98,7 +98,7 @@ $LoansDashboardCategoryCopyWith<$Res> get waiting {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get needApproval {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.needApproval, (value) {
     return _then(_self.copyWith(needApproval: value));
   });
@@ -107,7 +107,7 @@ $LoansDashboardCategoryCopyWith<$Res> get needApproval {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get future {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.future, (value) {
     return _then(_self.copyWith(future: value));
   });
@@ -116,7 +116,7 @@ $LoansDashboardCategoryCopyWith<$Res> get future {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get completed {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.completed, (value) {
     return _then(_self.copyWith(completed: value));
   });
@@ -333,7 +333,7 @@ as LoansDashboardCategory,
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get started {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.started, (value) {
     return _then(_self.copyWith(started: value));
   });
@@ -342,7 +342,7 @@ $LoansDashboardCategoryCopyWith<$Res> get started {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get waiting {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.waiting, (value) {
     return _then(_self.copyWith(waiting: value));
   });
@@ -351,7 +351,7 @@ $LoansDashboardCategoryCopyWith<$Res> get waiting {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get needApproval {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.needApproval, (value) {
     return _then(_self.copyWith(needApproval: value));
   });
@@ -360,7 +360,7 @@ $LoansDashboardCategoryCopyWith<$Res> get needApproval {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get future {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.future, (value) {
     return _then(_self.copyWith(future: value));
   });
@@ -369,7 +369,7 @@ $LoansDashboardCategoryCopyWith<$Res> get future {
 @override
 @pragma('vm:prefer-inline')
 $LoansDashboardCategoryCopyWith<$Res> get completed {
-
+  
   return $LoansDashboardCategoryCopyWith<$Res>(_self.completed, (value) {
     return _then(_self.copyWith(completed: value));
   });

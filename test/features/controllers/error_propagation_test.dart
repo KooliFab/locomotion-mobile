@@ -7,7 +7,10 @@ import 'package:mobile/features/loanables/domain/entities/loanables_page.dart';
 import 'package:mobile/features/loanables/domain/repositories/loanables_repository.dart';
 import 'package:mobile/features/loanables/presentation/controllers/loanables_controller.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
+import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
+import 'package:mobile/features/loans/domain/entities/loan_dates_update_request.dart';
+import 'package:mobile/features/loans/domain/entities/loan_pagination.dart';
 import 'package:mobile/features/loans/domain/entities/loans_dashboard.dart';
 import 'package:mobile/features/loans/domain/repositories/loans_repository.dart';
 import 'package:mobile/features/loans/presentation/controllers/loans_controller.dart';
@@ -61,6 +64,36 @@ class FailingLoansRepository implements LoansRepository {
   @override
   Future<List<Loan>> getMyLoans() async {
     throw const ServerException(message: 'Erreur my loans', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> getLoanDetail(int id) async {
+    throw const ServerException(message: 'Erreur loan detail', statusCode: 500);
+  }
+
+  @override
+  Future<LoanPagination> getLoansPage({
+    int page = 1,
+    int perPage = 10,
+    String? status,
+    int? borrowerUserId,
+  }) async {
+    throw const ServerException(message: 'Erreur loans page', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> cancelLoan(int id) async {
+    throw const ServerException(message: 'Erreur cancel loan', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async {
+    throw const ServerException(message: 'Erreur update dates', statusCode: 500);
+  }
+
+  @override
+  Future<LoanComment> addComment(int id, String text) async {
+    throw const ServerException(message: 'Erreur add comment', statusCode: 500);
   }
 }
 

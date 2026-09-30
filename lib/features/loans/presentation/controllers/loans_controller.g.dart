@@ -188,3 +188,184 @@ abstract class _$MyLoansController extends $AsyncNotifier<List<Loan>> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Detail provider for `GET /loans/{id}`
+
+@ProviderFor(loanDetail)
+final loanDetailProvider = LoanDetailFamily._();
+
+/// Detail provider for `GET /loans/{id}`
+
+final class LoanDetailProvider
+    extends $FunctionalProvider<AsyncValue<Loan>, Loan, FutureOr<Loan>>
+    with $FutureModifier<Loan>, $FutureProvider<Loan> {
+  /// Detail provider for `GET /loans/{id}`
+  LoanDetailProvider._({
+    required LoanDetailFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'loanDetailProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$loanDetailHash();
+
+  @override
+  String toString() {
+    return r'loanDetailProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Loan> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Loan> create(Ref ref) {
+    final argument = this.argument as int;
+    return loanDetail(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LoanDetailProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$loanDetailHash() => r'd3ed2514b1bf4e56e5515a333c7f6d7b451ee5c1';
+
+/// Detail provider for `GET /loans/{id}`
+
+final class LoanDetailFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Loan>, int> {
+  LoanDetailFamily._()
+    : super(
+        retry: null,
+        name: r'loanDetailProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Detail provider for `GET /loans/{id}`
+
+  LoanDetailProvider call(int id) =>
+      LoanDetailProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'loanDetailProvider';
+}
+
+/// Provider for canceled / rejected loans for the current borrower
+
+@ProviderFor(cancelledOrRejectedLoans)
+final cancelledOrRejectedLoansProvider = CancelledOrRejectedLoansProvider._();
+
+/// Provider for canceled / rejected loans for the current borrower
+
+final class CancelledOrRejectedLoansProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Loan>>,
+          List<Loan>,
+          FutureOr<List<Loan>>
+        >
+    with $FutureModifier<List<Loan>>, $FutureProvider<List<Loan>> {
+  /// Provider for canceled / rejected loans for the current borrower
+  CancelledOrRejectedLoansProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cancelledOrRejectedLoansProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cancelledOrRejectedLoansHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Loan>> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Loan>> create(Ref ref) {
+    return cancelledOrRejectedLoans(ref);
+  }
+}
+
+String _$cancelledOrRejectedLoansHash() =>
+    r'97aa0bff3deec228a16775ae9cb098c0f07bc2ee';
+
+/// Action controller for borrower actions: cancel, update dates, comment
+
+@ProviderFor(LoanActionsController)
+final loanActionsControllerProvider = LoanActionsControllerProvider._();
+
+/// Action controller for borrower actions: cancel, update dates, comment
+final class LoanActionsControllerProvider
+    extends $NotifierProvider<LoanActionsController, AsyncValue<void>> {
+  /// Action controller for borrower actions: cancel, update dates, comment
+  LoanActionsControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loanActionsControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loanActionsControllerHash();
+
+  @$internal
+  @override
+  LoanActionsController create() => LoanActionsController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<void> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<void>>(value),
+    );
+  }
+}
+
+String _$loanActionsControllerHash() =>
+    r'b0b83752db3f489846f1c7ddd12d208af1fe90a4';
+
+/// Action controller for borrower actions: cancel, update dates, comment
+
+abstract class _$LoanActionsController extends $Notifier<AsyncValue<void>> {
+  AsyncValue<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, AsyncValue<void>>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

@@ -303,10 +303,12 @@ class LoanCreationController extends _$LoanCreationController {
       final loansRepo = ref.read(loansRepositoryProvider);
       final createdLoan = await loansRepo.createLoan(request);
 
-      // Invalidate relevant providers upon success
-      ref.invalidate(loansDashboardControllerProvider);
-      ref.invalidate(myLoansControllerProvider);
-      ref.invalidate(loanableDetailProvider(draft.loanableId));
+      // Invalidate relevant providers upon success using centralized invalidation
+      invalidateLoanViews(
+        ref,
+        loanId: createdLoan.id,
+        loanableId: draft.loanableId,
+      );
 
       state = state.copyWith(isSubmitting: false, createdLoan: createdLoan);
       return createdLoan;
@@ -334,10 +336,15 @@ class LoanCreationController extends _$LoanCreationController {
         targetStep = 1;
       }
 
+      final isAvailabilityError = e.message.toLowerCase().contains('pas disponible') ||
+          (fieldMap.containsKey('departure_at') &&
+              fieldMap['departure_at']!.toLowerCase().contains('pas disponible'));
+
       state = state.copyWith(
         isSubmitting: false,
-        currentStep: targetStep,
-        generalError: e.message,
+        currentStep: isAvailabilityError ? 0 : targetStep,
+        availabilityConflictMessage: isAvailabilityError ? e.message : null,
+        generalError: isAvailabilityError ? null : e.message,
         fieldErrors: fieldMap.isNotEmpty ? fieldMap : null,
       );
       return null;

@@ -20,6 +20,15 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   communityName: json['community_name'] as String?,
   borrowerUserId: (json['borrower_user_id'] as num?)?.toInt(),
   borrowerUserName: json['borrower_user_name'] as String?,
+  acceptedAt: json['accepted_at'] == null
+      ? null
+      : DateTime.parse(json['accepted_at'] as String),
+  prepaidAt: json['prepaid_at'] == null
+      ? null
+      : DateTime.parse(json['prepaid_at'] as String),
+  canceledAt: json['canceled_at'] == null
+      ? null
+      : DateTime.parse(json['canceled_at'] as String),
   actualReturnAt: json['actual_return_at'] == null
       ? null
       : DateTime.parse(json['actual_return_at'] as String),
@@ -30,6 +39,7 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
       ? null
       : DateTime.parse(json['owner_validated_at'] as String),
   needsValidation: json['needs_validation'] as bool? ?? false,
+  isFree: json['is_free'] as bool? ?? false,
   borrowerTotal: (json['borrower_total'] as num?)?.toDouble(),
   ownerTotal: (json['owner_total'] as num?)?.toDouble(),
   ownerActionRequired: json['owner_action_required'] as bool? ?? false,
@@ -40,6 +50,11 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   alternativeTo: json['alternative_to'] as String?,
   alternativeToOther: json['alternative_to_other'] as String?,
   comment: json['comment'] as String?,
+  comments:
+      (json['comments'] as List<dynamic>?)
+          ?.map((e) => LoanComment.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -57,10 +72,14 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'community_name': instance.communityName,
   'borrower_user_id': instance.borrowerUserId,
   'borrower_user_name': instance.borrowerUserName,
+  'accepted_at': instance.acceptedAt?.toIso8601String(),
+  'prepaid_at': instance.prepaidAt?.toIso8601String(),
+  'canceled_at': instance.canceledAt?.toIso8601String(),
   'actual_return_at': instance.actualReturnAt?.toIso8601String(),
   'borrower_validated_at': instance.borrowerValidatedAt?.toIso8601String(),
   'owner_validated_at': instance.ownerValidatedAt?.toIso8601String(),
   'needs_validation': instance.needsValidation,
+  'is_free': instance.isFree,
   'borrower_total': instance.borrowerTotal,
   'owner_total': instance.ownerTotal,
   'owner_action_required': instance.ownerActionRequired,
@@ -71,5 +90,6 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'alternative_to': instance.alternativeTo,
   'alternative_to_other': instance.alternativeToOther,
   'comment': instance.comment,
+  'comments': instance.comments,
   'created_at': instance.createdAt?.toIso8601String(),
 };

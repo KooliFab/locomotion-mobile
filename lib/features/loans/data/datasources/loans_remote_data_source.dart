@@ -1,13 +1,26 @@
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/loan.dart';
+import '../../domain/entities/loan_comment.dart';
 import '../../domain/entities/loan_creation_request.dart';
+import '../../domain/entities/loan_dates_update_request.dart';
+import '../../domain/entities/loan_pagination.dart';
 import '../../domain/entities/loans_dashboard.dart';
 
 abstract class LoansRemoteDataSource {
   Future<LoansDashboard> getDashboard();
   Future<Loan> createLoan(LoanCreationRequest request);
   Future<List<Loan>> getMyLoans();
+  Future<Loan> getLoanDetail(int id);
+  Future<LoanPagination> getLoansPage({
+    int page = 1,
+    int perPage = 10,
+    String? status,
+    int? borrowerUserId,
+  });
+  Future<Loan> cancelLoan(int id);
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
+  Future<LoanComment> addComment(int id, String text);
 }
 
 class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
@@ -61,6 +74,129 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
           .map(Loan.fromJson)
           .toList();
     }
-    return [];
+    throw const FormatException(
+      'Format de réponse invalide pour la liste des prêts',
+    );
+  }
+
+  @override
+  Future<Loan> getLoanDetail(int id) async {
+    final response = await _apiClient.get(ApiEndpoints.loanDetail(id));
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour le détail du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<LoanPagination> getLoansPage({
+    int page = 1,
+    int perPage = 10,
+    String? status,
+    int? borrowerUserId,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'page': page,
+      'per_page': perPage,
+    };
+    if (status != null && status.isNotEmpty) {
+      queryParams['status'] = status;
+    }
+    if (borrowerUserId != null) {
+      queryParams['borrower_user.id'] = borrowerUserId;
+    }
+
+    final response = await _apiClient.get(
+      ApiEndpoints.loans,
+      queryParameters: queryParams,
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Format de réponse invalide pour la pagination des réservations',
+      );
+    }
+
+    final rawList = data['data'] is List ? data['data'] as List : <dynamic>[];
+    final loans = rawList
+        .whereType<Map<String, dynamic>>()
+        .map(Loan.fromJson)
+        .toList();
+
+    int currentPage = page;
+    int lastPage = page;
+    int total = loans.length;
+
+    if (data['meta'] is Map<String, dynamic>) {
+      final meta = data['meta'] as Map<String, dynamic>;
+      currentPage = (meta['current_page'] as num?)?.toInt() ?? currentPage;
+      lastPage = (meta['last_page'] as num?)?.toInt() ?? lastPage;
+      total = (meta['total'] as num?)?.toInt() ?? total;
+    }
+
+    return LoanPagination(
+      data: loans,
+      currentPage: currentPage,
+      lastPage: lastPage,
+      total: total,
+      perPage: perPage,
+    );
+  }
+
+  @override
+  Future<Loan> cancelLoan(int id) async {
+    final response = await _apiClient.put('${ApiEndpoints.loanDetail(id)}/cancel');
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'annulation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/dates',
+      data: request.toJson(),
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour la mise à jour des dates du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<LoanComment> addComment(int id, String text) async {
+    final response = await _apiClient.post(
+      '${ApiEndpoints.loanDetail(id)}/comment',
+      data: {'text': text},
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'ajout de commentaire au prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return LoanComment.fromJson(item);
   }
 }

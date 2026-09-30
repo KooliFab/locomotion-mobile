@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/error/exceptions.dart';
+import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/features/loans/data/datasources/loans_remote_data_source.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
+import 'package:mobile/features/loans/domain/entities/loan_dates_update_request.dart';
 import '../../fixtures/loans_fixtures.dart';
 import '../../helpers/mock_api_client.dart';
 
@@ -202,6 +205,138 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('getLoanDetail calls GET /loans/{id} and parses full LoanResource', () async {
+      String? capturedPath;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        return jsonResponse({'data': laravelLoanDetailJson});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loan = await dataSource.getLoanDetail(42);
+
+      expect(capturedPath, '/loans/42');
+      expect(loan.id, 42);
+      expect(loan.status, 'requested');
+      expect(loan.loanable?.timezone, 'America/Montreal');
+      expect(loan.comments.length, 1);
+      expect(loan.comments.first.text, contains('batterie à 80%'));
+    });
+
+    test('getLoansPage sends page, per_page, status and borrower_id correctly', () async {
+      String? capturedPath;
+      Map<String, dynamic>? capturedQuery;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedQuery = options.queryParameters;
+        return jsonResponse(laravelLoansPaginatedJson);
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final page = await dataSource.getLoansPage(
+        page: 1,
+        perPage: 2,
+        status: 'canceled,rejected',
+        borrowerUserId: 100,
+      );
+
+      expect(capturedPath, '/loans');
+      expect(capturedQuery?['page'], 1);
+      expect(capturedQuery?['per_page'], 2);
+      expect(capturedQuery?['status'], 'canceled,rejected');
+      expect(capturedQuery?['borrower_user.id'], 100);
+
+      expect(page.data.length, 2);
+      expect(page.currentPage, 1);
+      expect(page.lastPage, 2);
+      expect(page.total, 4);
+      expect(page.hasMore, true);
+    });
+
+    test('cancelLoan sends PUT /loans/{id}/cancel and returns updated Loan', () async {
+      String? capturedPath;
+      String? capturedMethod;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedMethod = options.method;
+        final map = Map<String, dynamic>.from(laravelLoanDetailJson);
+        map['status'] = 'canceled';
+        map['canceled_at'] = '2026-10-02 12:00:00';
+        return jsonResponse({'data': map});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loan = await dataSource.cancelLoan(42);
+
+      expect(capturedPath, '/loans/42/cancel');
+      expect(capturedMethod, 'PUT');
+      expect(loan.status, 'canceled');
+      expect(loan.canceledAt, isNotNull);
+    });
+
+    test('updateLoanDates sends PUT /loans/{id}/dates with naive vehicle timezone payload', () async {
+      String? capturedPath;
+      String? capturedMethod;
+      dynamic capturedData;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedMethod = options.method;
+        capturedData = options.data;
+        return jsonResponse({'data': laravelLoanDetailJson});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      const req = LoanDatesUpdateRequest(
+        departureAt: '2026-10-15 15:30:00',
+        durationInMinutes: 240,
+      );
+      await dataSource.updateLoanDates(42, req);
+
+      expect(capturedPath, '/loans/42/dates');
+      expect(capturedMethod, 'PUT');
+      expect(capturedData['departure_at'], '2026-10-15 15:30:00');
+      expect(capturedData['duration_in_minutes'], 240);
+    });
+
+    test('addComment sends POST /loans/{id}/comment and parses LoanComment', () async {
+      String? capturedPath;
+      String? capturedMethod;
+      dynamic capturedData;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedMethod = options.method;
+        capturedData = options.data;
+        return jsonResponse({
+          'data': {
+            'id': 10,
+            'loan_id': 42,
+            'author_id': 100,
+            'text': 'Merci beaucoup!',
+            'created_at': '2026-10-01 12:00:00',
+          },
+        });
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final comment = await dataSource.addComment(42, 'Merci beaucoup!');
+
+      expect(capturedPath, '/loans/42/comment');
+      expect(capturedMethod, 'POST');
+      expect(capturedData['text'], 'Merci beaucoup!');
+      expect(comment.id, 10);
+      expect(comment.text, 'Merci beaucoup!');
+    });
+
+    test('LogInterceptor in ApiClient does not log request or response bodies (privacy check)', () {
+      final client = ApiClient.create(
+        storageService: FakeSecureStorageService(),
+        baseUrl: 'http://localhost:8000/api/v1',
+      );
+      final logInterceptor = client.dio.interceptors.whereType<LogInterceptor>().first;
+      expect(logInterceptor.requestBody, isFalse);
+      expect(logInterceptor.responseBody, isFalse);
     });
   });
 }
