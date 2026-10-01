@@ -87,6 +87,16 @@ class FailingLoansRepository implements LoansRepository {
   }
 
   @override
+  Future<Loan> acceptLoan(int id, {String? comment}) async {
+    throw const ServerException(message: 'Erreur accept loan', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) async {
+    throw const ServerException(message: 'Erreur reject loan', statusCode: 500);
+  }
+
+  @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async {
     throw const ServerException(message: 'Erreur update dates', statusCode: 500);
   }

@@ -134,6 +134,12 @@ const Map<String, dynamic> laravelLoanDetailJson = {
     "name": "Hyundai Ioniq 5",
     "type": "car",
     "timezone": "America/Montreal",
+    "merged_user_roles": [
+      {
+        "user_id": 200,
+        "role": "owner",
+      },
+    ],
   },
   "comments": [
     {

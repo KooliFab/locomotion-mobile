@@ -19,6 +19,8 @@ abstract class LoansRemoteDataSource {
     int? borrowerUserId,
   });
   Future<Loan> cancelLoan(int id);
+  Future<Loan> acceptLoan(int id, {String? comment});
+  Future<Loan> rejectLoan(int id, {String? comment});
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
   Future<LoanComment> addComment(int id, String text);
 }
@@ -156,6 +158,50 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     if (data is! Map<String, dynamic>) {
       throw FormatException(
         'Format de réponse invalide pour l\'annulation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> acceptLoan(int id, {String? comment}) async {
+    final body = <String, dynamic>{};
+    if (comment != null && comment.trim().isNotEmpty) {
+      body['comment'] = comment.trim();
+    }
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/accept',
+      data: body.isNotEmpty ? body : null,
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'acceptation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) async {
+    final body = <String, dynamic>{};
+    if (comment != null && comment.trim().isNotEmpty) {
+      body['comment'] = comment.trim();
+    }
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/reject',
+      data: body.isNotEmpty ? body : null,
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour le refus du prêt #$id',
       );
     }
     final item = data['data'] is Map<String, dynamic>

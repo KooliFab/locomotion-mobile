@@ -329,6 +329,119 @@ void main() {
       expect(comment.text, 'Merci beaucoup!');
     });
 
+    test('acceptLoan sends PUT /loans/{id}/accept with optional comment and parses returned Loan', () async {
+      String? capturedPath;
+      String? capturedMethod;
+      dynamic capturedData;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedMethod = options.method;
+        capturedData = options.data;
+        final map = Map<String, dynamic>.from(laravelLoanDetailJson);
+        map['status'] = 'confirmed';
+        map['accepted_at'] = '2026-10-02 14:00:00';
+        return jsonResponse({'data': map});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loanWithComment = await dataSource.acceptLoan(42, comment: 'Bonne route !');
+
+      expect(capturedPath, '/loans/42/accept');
+      expect(capturedMethod, 'PUT');
+      expect(capturedData, {'comment': 'Bonne route !'});
+      expect(loanWithComment.status, 'confirmed');
+
+      // Test without comment (empty payload)
+      final loanWithoutComment = await dataSource.acceptLoan(42);
+      expect(capturedData, isNull);
+      expect(loanWithoutComment.status, 'confirmed');
+    });
+
+    test('acceptLoan parses and preserves final status accepted when borrower cannot prepay', () async {
+      final apiClient = createMockApiClient((options) async {
+        final map = Map<String, dynamic>.from(laravelLoanDetailJson);
+        map['status'] = 'accepted';
+        map['accepted_at'] = '2026-10-02 14:00:00';
+        return jsonResponse({'data': map});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loan = await dataSource.acceptLoan(42);
+      expect(loan.status, 'accepted');
+    });
+
+    test('acceptLoan parses and preserves final status ongoing when departure is already in the past', () async {
+      final apiClient = createMockApiClient((options) async {
+        final map = Map<String, dynamic>.from(laravelLoanDetailJson);
+        map['status'] = 'ongoing';
+        map['accepted_at'] = '2026-10-02 14:00:00';
+        return jsonResponse({'data': map});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loan = await dataSource.acceptLoan(42);
+      expect(loan.status, 'ongoing');
+    });
+
+    test('acceptLoan propagates 422 unavailability error without altering local state', () async {
+      final apiClient = createMockApiClient((options) async {
+        return jsonResponse(
+          {'message': 'Le véhicule n\'est pas disponible sur cette période.'},
+          statusCode: 422,
+        );
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      expect(
+        () => dataSource.acceptLoan(42),
+        throwsA(
+          isA<ServerException>()
+              .having((e) => e.statusCode, 'statusCode', 422)
+              .having((e) => e.message, 'message', contains('Le véhicule n\'est pas disponible')),
+        ),
+      );
+    });
+
+    test('rejectLoan sends PUT /loans/{id}/reject with optional comment and parses returned Loan', () async {
+      String? capturedPath;
+      String? capturedMethod;
+      dynamic capturedData;
+      final apiClient = createMockApiClient((options) async {
+        capturedPath = options.path;
+        capturedMethod = options.method;
+        capturedData = options.data;
+        final map = Map<String, dynamic>.from(laravelLoanDetailJson);
+        map['status'] = 'rejected';
+        return jsonResponse({'data': map});
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      final loan = await dataSource.rejectLoan(42, comment: 'Véhicule en révision');
+
+      expect(capturedPath, '/loans/42/reject');
+      expect(capturedMethod, 'PUT');
+      expect(capturedData, {'comment': 'Véhicule en révision'});
+      expect(loan.status, 'rejected');
+    });
+
+    test('rejectLoan propagates 403 on loss of access', () async {
+      final apiClient = createMockApiClient((options) async {
+        return jsonResponse(
+          {'message': 'Action non autorisée.'},
+          statusCode: 403,
+        );
+      });
+
+      final dataSource = LoansRemoteDataSourceImpl(apiClient);
+      expect(
+        () => dataSource.rejectLoan(42),
+        throwsA(
+          isA<ForbiddenException>()
+              .having((e) => e.statusCode, 'statusCode', 403),
+        ),
+      );
+    });
+
     test('LogInterceptor in ApiClient does not log request or response bodies (privacy check)', () {
       final client = ApiClient.create(
         storageService: FakeSecureStorageService(),

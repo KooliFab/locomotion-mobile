@@ -60,7 +60,7 @@ final class LoanCreationControllerProvider
 }
 
 String _$loanCreationControllerHash() =>
-    r'005e9c3fa0db5edf48724a0a5b2ff1d1d67cfd42';
+    r'cbcf3e7a98b1434a1ba24c044d52af15750933d5';
 
 final class LoanCreationControllerFamily extends $Family
     with

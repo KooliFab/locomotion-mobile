@@ -61,6 +61,34 @@ class _MockLoansRepo implements LoansRepository {
     return LoanComment(id: 99, loanId: id, authorId: 100, text: text);
   }
 
+  int acceptCalls = 0;
+  String? lastAcceptComment;
+  Loan? acceptResultToReturn;
+
+  @override
+  Future<Loan> acceptLoan(int id, {String? comment}) async {
+    acceptCalls++;
+    lastAcceptComment = comment;
+    if (errorToThrow != null) throw errorToThrow!;
+    return acceptResultToReturn ??
+        (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+            .copyWith(status: 'confirmed', acceptedAt: DateTime.now());
+  }
+
+  int rejectCalls = 0;
+  String? lastRejectComment;
+  Loan? rejectResultToReturn;
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) async {
+    rejectCalls++;
+    lastRejectComment = comment;
+    if (errorToThrow != null) throw errorToThrow!;
+    return rejectResultToReturn ??
+        (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+            .copyWith(status: 'rejected');
+  }
+
   @override
   Future<LoansDashboard> getDashboard() async => const LoansDashboard();
 
@@ -444,6 +472,319 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(mockRepo.cancelCalls, 1);
+    });
+
+    testWidgets('borrower does not see owner accept or reject buttons', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      mockRepo.loanDetailToReturn = Loan.fromJson(laravelLoanDetailJson);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(testBorrowerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('action_owner_accept_button')), findsNothing);
+      expect(find.byKey(const Key('action_owner_reject_button')), findsNothing);
+    });
+
+    testWidgets('owner sees accept and reject buttons and borrower info card', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final ownerDetail = Map<String, dynamic>.from(laravelLoanDetailJson);
+      // Give current user (id 200) owner role in loanable directly at top level (LoanLoanableResource pattern)
+      ownerDetail['loanable'] = {
+        'id': 5,
+        'name': 'Hyundai Ioniq 5',
+        'type': 'car',
+        'timezone': 'America/Montreal',
+        'merged_user_roles': [
+          {'user_id': 200, 'role': 'owner'},
+        ],
+      };
+      mockRepo.loanDetailToReturn = Loan.fromJson(ownerDetail);
+
+      const ownerUser = User(
+        id: 200,
+        email: 'owner@example.com',
+        firstName: 'Proprio',
+        lastName: 'Test',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(ownerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Borrower card must be present with borrower name & email
+      expect(find.byKey(const Key('borrower_info_card')), findsOneWidget);
+      expect(find.text('Jean Dupont'), findsWidgets);
+      expect(find.text('jean.dupont@example.com'), findsOneWidget);
+
+      // Owner buttons must be present
+      expect(find.byKey(const Key('action_owner_accept_button')), findsOneWidget);
+      expect(find.byKey(const Key('action_owner_reject_button')), findsOneWidget);
+    });
+
+    testWidgets('owner accept sends PUT /loans/{id}/accept with comment and non-reentrant double-tap', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final ownerDetail = Map<String, dynamic>.from(laravelLoanDetailJson);
+      ownerDetail['loanable'] = {
+        'id': 5,
+        'name': 'Hyundai Ioniq 5',
+        'type': 'car',
+        'timezone': 'America/Montreal',
+        'merged_user_roles': [
+          {'user_id': 200, 'role': 'owner'},
+        ],
+      };
+      mockRepo.loanDetailToReturn = Loan.fromJson(ownerDetail);
+
+      const ownerUser = User(
+        id: 200,
+        email: 'owner@example.com',
+        firstName: 'Proprio',
+        lastName: 'Test',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(ownerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Open accept dialog
+      await tester.tap(find.byKey(const Key('action_owner_accept_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Accepter la demande'), findsOneWidget);
+
+      // Enter optional comment
+      await tester.enterText(
+        find.byKey(const Key('owner_decision_comment_input')),
+        'Clés dans la boîte à gants.',
+      );
+
+      final confirmBtn = find.byKey(const Key('owner_decision_confirm_accept_button'));
+      // Double tap to test non-reentrancy
+      await tester.tap(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(mockRepo.acceptCalls, 1);
+      expect(mockRepo.lastAcceptComment, 'Clés dans la boîte à gants.');
+      expect(find.text('Demande acceptée.'), findsOneWidget);
+    });
+
+    testWidgets('owner reject sends PUT /loans/{id}/reject with motif and non-reentrant double-tap', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final ownerDetail = Map<String, dynamic>.from(laravelLoanDetailJson);
+      ownerDetail['loanable'] = {
+        'id': 5,
+        'name': 'Hyundai Ioniq 5',
+        'type': 'car',
+        'timezone': 'America/Montreal',
+        'merged_user_roles': [
+          {'user_id': 200, 'role': 'owner'},
+        ],
+      };
+      mockRepo.loanDetailToReturn = Loan.fromJson(ownerDetail);
+
+      const ownerUser = User(
+        id: 200,
+        email: 'owner@example.com',
+        firstName: 'Proprio',
+        lastName: 'Test',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(ownerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Open reject dialog
+      await tester.tap(find.byKey(const Key('action_owner_reject_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Refuser la demande'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const Key('owner_decision_comment_input')),
+        'Indisponible cause entretien.',
+      );
+
+      final confirmBtn = find.byKey(const Key('owner_decision_confirm_reject_button'));
+      await tester.tap(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(mockRepo.rejectCalls, 1);
+      expect(mockRepo.lastRejectComment, 'Indisponible cause entretien.');
+      expect(find.text('Demande refusée.'), findsOneWidget);
+    });
+
+    testWidgets('accept dialog displays 422 unavailability error with Refuser/Réessayer buttons and preserves comment', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final ownerDetail = Map<String, dynamic>.from(laravelLoanDetailJson);
+      ownerDetail['loanable'] = {
+        'id': 5,
+        'name': 'Hyundai Ioniq 5',
+        'type': 'car',
+        'timezone': 'America/Montreal',
+        'merged_user_roles': [
+          {'user_id': 200, 'role': 'owner'},
+        ],
+      };
+      mockRepo.loanDetailToReturn = Loan.fromJson(ownerDetail);
+
+      const ownerUser = User(
+        id: 200,
+        email: 'owner@example.com',
+        firstName: 'Proprio',
+        lastName: 'Test',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(ownerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Trigger 422 error on accept
+      mockRepo.errorToThrow = const ServerException(
+        message: 'Le véhicule n\'est pas disponible sur cette période.',
+        statusCode: 422,
+      );
+
+      await tester.tap(find.byKey(const Key('action_owner_accept_button')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('owner_decision_comment_input')),
+        'Tentative acceptation',
+      );
+
+      await tester.tap(find.byKey(const Key('owner_decision_confirm_accept_button')));
+      await tester.pumpAndSettle();
+
+      // Dialog must remain open with error message, input preserved and action buttons
+      expect(find.byKey(const Key('owner_decision_dialog_error')), findsOneWidget);
+      expect(find.textContaining('Le véhicule n\'est pas disponible sur cette période.'), findsOneWidget);
+      expect(find.text('Tentative acceptation'), findsOneWidget);
+      expect(find.byKey(const Key('dialog_422_reject_button')), findsOneWidget);
+      expect(find.byKey(const Key('dialog_422_retry_button')), findsOneWidget);
+      expect(mockRepo.acceptCalls, 1);
+    });
+
+    testWidgets('403 during decision triggers access loss and invalidates detail view', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final ownerDetail = Map<String, dynamic>.from(laravelLoanDetailJson);
+      ownerDetail['loanable'] = {
+        'id': 5,
+        'name': 'Hyundai Ioniq 5',
+        'type': 'car',
+        'timezone': 'America/Montreal',
+        'merged_user_roles': [
+          {'user_id': 200, 'role': 'owner'},
+        ],
+      };
+      mockRepo.loanDetailToReturn = Loan.fromJson(ownerDetail);
+
+      const ownerUser = User(
+        id: 200,
+        email: 'owner@example.com',
+        firstName: 'Proprio',
+        lastName: 'Test',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(ownerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 42),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Set error to throw 403 on accept call
+      mockRepo.errorToThrow = const ForbiddenException(
+        message: 'Action non autorisée.',
+        statusCode: 403,
+      );
+
+      await tester.tap(find.byKey(const Key('action_owner_accept_button')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('owner_decision_confirm_accept_button')));
+      await tester.pumpAndSettle();
+
+      // Dialog shows access loss message
+      expect(
+        find.text('Cette demande n\'est plus disponible ou a déjà été traitée.'),
+        findsOneWidget,
+      );
+
+      // Now close dialog
+      await tester.tap(find.byKey(const Key('owner_decision_cancel_dialog_button')));
+      await tester.pumpAndSettle();
+
+      // Detail has been invalidated and re-fetched
+      // Because errorToThrow is still 403, the detail screen itself shows the loss of access error
+      expect(find.textContaining('Accès non autorisé'), findsOneWidget);
+      // Action buttons are removed
+      expect(find.byKey(const Key('action_owner_accept_button')), findsNothing);
     });
   });
 }

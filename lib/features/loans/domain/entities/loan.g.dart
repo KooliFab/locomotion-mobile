@@ -20,6 +20,8 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   communityName: json['community_name'] as String?,
   borrowerUserId: (json['borrower_user_id'] as num?)?.toInt(),
   borrowerUserName: json['borrower_user_name'] as String?,
+  borrowerUserEmail: json['borrower_user_email'] as String?,
+  borrowerUserPhone: json['borrower_user_phone'] as String?,
   acceptedAt: json['accepted_at'] == null
       ? null
       : DateTime.parse(json['accepted_at'] as String),
@@ -72,6 +74,8 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'community_name': instance.communityName,
   'borrower_user_id': instance.borrowerUserId,
   'borrower_user_name': instance.borrowerUserName,
+  'borrower_user_email': instance.borrowerUserEmail,
+  'borrower_user_phone': instance.borrowerUserPhone,
   'accepted_at': instance.acceptedAt?.toIso8601String(),
   'prepaid_at': instance.prepaidAt?.toIso8601String(),
   'canceled_at': instance.canceledAt?.toIso8601String(),

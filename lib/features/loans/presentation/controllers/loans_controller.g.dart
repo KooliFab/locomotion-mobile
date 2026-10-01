@@ -326,7 +326,7 @@ final class LoanActionsControllerProvider
         argument: null,
         retry: null,
         name: r'loanActionsControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -348,7 +348,7 @@ final class LoanActionsControllerProvider
 }
 
 String _$loanActionsControllerHash() =>
-    r'b0b83752db3f489846f1c7ddd12d208af1fe90a4';
+    r'546932c9758f19f87973dd0ced7eab4e7f7dd481';
 
 /// Action controller for borrower actions: cancel, update dates, comment
 

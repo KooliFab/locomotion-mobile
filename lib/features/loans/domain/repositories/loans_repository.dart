@@ -17,6 +17,8 @@ abstract class LoansRepository {
     int? borrowerUserId,
   });
   Future<Loan> cancelLoan(int id);
+  Future<Loan> acceptLoan(int id, {String? comment});
+  Future<Loan> rejectLoan(int id, {String? comment});
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
   Future<LoanComment> addComment(int id, String text);
 }

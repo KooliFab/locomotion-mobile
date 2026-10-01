@@ -36,6 +36,8 @@ abstract class Loanable with _$Loanable {
     @JsonKey(name: 'community_ids') List<int>? communityIds,
     @JsonKey(name: 'community_name') String? communityName,
     @JsonKey(name: 'community_id') int? communityId,
+    @JsonKey(name: 'merged_user_roles')
+    List<Map<String, dynamic>>? mergedUserRoles,
     // Convenience / legacy compatibility fields
     String? description,
     String? address,

@@ -36,6 +36,8 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'community_name') String? communityName,
     @JsonKey(name: 'borrower_user_id') int? borrowerUserId,
     @JsonKey(name: 'borrower_user_name') String? borrowerUserName,
+    @JsonKey(name: 'borrower_user_email') String? borrowerUserEmail,
+    @JsonKey(name: 'borrower_user_phone') String? borrowerUserPhone,
     @JsonKey(name: 'accepted_at') DateTime? acceptedAt,
     @JsonKey(name: 'prepaid_at') DateTime? prepaidAt,
     @JsonKey(name: 'canceled_at') DateTime? canceledAt,
@@ -70,6 +72,74 @@ abstract class Loan with _$Loan {
   double? get totalCost => borrowerTotal;
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
+
+  /// Determines if the current user has owner access to this loan.
+  /// Checks via `loanable.mergedUserRoles` (top-level key as per LoanLoanableResource)
+  /// or fallback to `loanable.details['merged_user_roles']`.
+  /// Allowed owner roles: 'owner' and 'coowner'.
+  bool isUserOwner(int? currentUserId) {
+    if (currentUserId == null) return false;
+
+    // Check merged_user_roles directly on loanable
+    final directRoles = loanable?.mergedUserRoles;
+    if (directRoles != null) {
+      for (final r in directRoles) {
+        final uid = r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
+        final role = r['role']?.toString();
+        if (uid == currentUserId && (role == 'owner' || role == 'coowner')) {
+          return true;
+        }
+      }
+    }
+
+    // Fallback if roles were embedded in details
+    if (loanable?.details != null) {
+      final roles = loanable!.details!['merged_user_roles'];
+      if (roles is List) {
+        for (final r in roles) {
+          if (r is Map) {
+            final uid = r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
+            final role = r['role']?.toString();
+            if (uid == currentUserId && (role == 'owner' || role == 'coowner')) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Policy deduction for owner accept:
+  /// Laravel LoanPolicy: status must be 'requested', user must be (co)owner or loan admin.
+  bool canOwnerAccept(int? currentUserId) {
+    if (currentUserId == null) return false;
+    if (parsedStatus != LoanStatus.requested) return false;
+    return isUserOwner(currentUserId);
+  }
+
+  /// Policy deduction for owner reject:
+  /// Laravel LoanPolicy: status must be 'requested', user must be (co)owner or loan admin.
+  bool canOwnerReject(int? currentUserId) {
+    if (currentUserId == null) return false;
+    if (parsedStatus != LoanStatus.requested) return false;
+    return isUserOwner(currentUserId);
+  }
+
+  /// Policy deduction for owner cancel:
+  /// Laravel LoanPolicy: loan must be in process ($loan->is_in_process), user must be (co)owner or admin.
+  bool canOwnerCancel(int? currentUserId) {
+    if (currentUserId == null) return false;
+    final s = parsedStatus;
+    if (s == LoanStatus.completed ||
+        s == LoanStatus.canceled ||
+        s == LoanStatus.rejected ||
+        s == LoanStatus.unknown) {
+      return false;
+    }
+    return isUserOwner(currentUserId);
+  }
 
   /// Policy deduction for borrower cancel:
   /// Laravel allows cancel if in process (requested -> validated).
@@ -190,6 +260,8 @@ abstract class Loan with _$Loan {
       copy['borrower_user_name'] ??=
           uMap['full_name'] ??
           '${uMap['name'] ?? ''} ${uMap['last_name'] ?? ''}'.trim();
+      copy['borrower_user_email'] ??= uMap['email'];
+      copy['borrower_user_phone'] ??= uMap['phone'];
     }
 
     // Parse total

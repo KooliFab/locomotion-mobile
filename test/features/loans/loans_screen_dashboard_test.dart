@@ -65,6 +65,14 @@ class _MockLoansRepo implements LoansRepository {
   }
 
   @override
+  Future<Loan> acceptLoan(int id, {String? comment}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) async =>
+      throw UnimplementedError();
+
+  @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async =>
       throw UnimplementedError();
 
@@ -270,6 +278,168 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(mockRepo.cancelCalls, 1);
+    });
+
+    testWidgets('displays "Demandes à traiter" section when need_approval has loans', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      // laravelLoansDashboardJson has need_approval with 1 loan
+      mockRepo.dashboardToReturn = LoansDashboard.fromJson(laravelLoansDashboardJson);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(borrowerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoansScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Demandes à traiter (1)'), findsOneWidget);
+    });
+
+    testWidgets('hides "Demandes à traiter" section when need_approval.total is 0', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final noApprovalDashboard = Map<String, dynamic>.from(laravelLoansDashboardJson);
+      noApprovalDashboard['need_approval'] = {
+        'total': 0,
+        'loans': [],
+      };
+      mockRepo.dashboardToReturn = LoansDashboard.fromJson(noApprovalDashboard);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(borrowerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoansScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Demandes à traiter'), findsNothing);
+    });
+
+    testWidgets('taps "Voir tout" on Demandes à traiter navigates to /loans/all?status=requested', (tester) async {
+      final mockRepo = _MockLoansRepo();
+      final multipleApprovalDashboard = Map<String, dynamic>.from(laravelLoansDashboardJson);
+      multipleApprovalDashboard['need_approval'] = {
+        'total': 7,
+        'loans': [
+          {
+            "id": 12,
+            "departure_at": "2026-10-06 10:00:00",
+            "duration_in_minutes": 240,
+            "status": "requested",
+            "owner_action_required": true,
+            "borrower_user": {"id": 105, "full_name": "Marie Curie"},
+            "loanable": {"id": 1, "name": "Toyota Prius Hybride", "type": "car"},
+          },
+        ],
+      };
+      mockRepo.dashboardToReturn = LoansDashboard.fromJson(multipleApprovalDashboard);
+
+      String? capturedRoute;
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const LoansScreen(),
+          ),
+          GoRoute(
+            path: '/loans/all',
+            builder: (context, state) {
+              capturedRoute = state.uri.toString();
+              return const Scaffold(body: Text('All Loans Screen'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(borrowerUser)),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('view_all_need_approval')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('view_all_need_approval')));
+      await tester.pumpAndSettle();
+
+      expect(capturedRoute, '/loans/all?status=requested');
+      expect(find.text('All Loans Screen'), findsOneWidget);
+    });
+
+    testWidgets('loan canceled by owner appears in borrower canceled/rejected section upon refresh', (tester) async {
+      final initialDashboard = Map<String, dynamic>.from(laravelLoansDashboardJson);
+      final mockRepo = _MockLoansRepo(
+        dashboard: LoansDashboard.fromJson(initialDashboard),
+        cancelledLoans: [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider
+                .overrideWith(() => _TestAuthController(borrowerUser)),
+          ],
+          child: const MaterialApp(
+            home: LoansScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('En attente (1)'), findsOneWidget);
+
+      // Now simulate owner canceled loan #11:
+      // In updated dashboard, loan #11 is no longer in waiting, and is in canceledLoans
+      final updatedDashboard = Map<String, dynamic>.from(laravelLoansDashboardJson);
+      updatedDashboard['waiting'] = {'total': 0, 'loans': []};
+      mockRepo.dashboardToReturn = LoansDashboard.fromJson(updatedDashboard);
+      mockRepo.cancelledLoansToReturn = [
+        Loan(
+          id: 11,
+          departureAt: DateTime.parse('2026-10-05 14:00:00'),
+          durationInMinutes: 120,
+          status: 'canceled',
+          borrowerUserId: 100,
+          loanableName: 'Vélo Cargo Babboe',
+        ),
+      ];
+
+      // Tap refresh action in AppBar
+      await tester.tap(find.byTooltip('Actualiser'));
+      await tester.pumpAndSettle();
+
+      // Scroll to bottom to view canceled section if needed
+      await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+      await tester.pumpAndSettle();
+
+      // Canceled section now has loan #11
+      expect(find.text('Annulées / Refusées (1)'), findsOneWidget);
+      expect(find.text('Vélo Cargo Babboe'), findsOneWidget);
     });
   });
 }

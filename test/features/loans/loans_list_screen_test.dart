@@ -45,6 +45,12 @@ class _MockLoansRepo implements LoansRepository {
   @override
   Future<Loan> cancelLoan(int id) async => throw UnimplementedError();
   @override
+  Future<Loan> acceptLoan(int id, {String? comment}) async =>
+      throw UnimplementedError();
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) async =>
+      throw UnimplementedError();
+  @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) async =>
       throw UnimplementedError();
   @override

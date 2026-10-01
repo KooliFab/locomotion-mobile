@@ -10,6 +10,7 @@ import '../controllers/loans_controller.dart';
 import '../widgets/loan_comments_section.dart';
 import '../widgets/loan_status_helper.dart';
 import '../widgets/loan_timeline_widget.dart';
+import '../widgets/owner_decision_dialog.dart';
 import '../widgets/update_dates_dialog.dart';
 
 class LoanDetailScreen extends ConsumerStatefulWidget {
@@ -29,7 +30,70 @@ class LoanDetailScreen extends ConsumerStatefulWidget {
 class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
   bool _isCancelling = false;
   bool _isCommenting = false;
+  bool _isDeciding = false;
   String? _screenError;
+
+  Future<void> _handleOwnerDecision(Loan loan, OwnerDecisionType type) async {
+    setState(() {
+      _isDeciding = true;
+    });
+
+    try {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => OwnerDecisionDialog(
+          loan: loan,
+          decisionType: type,
+          onAccessLost: () {
+            invalidateLoanViews(ref, loanId: widget.loanId, loanableId: loan.loanableId);
+          },
+          onSwitchToReject: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _handleOwnerDecision(loan, OwnerDecisionType.reject);
+              }
+            });
+          },
+          onConfirm: (comment) async {
+            if (type == OwnerDecisionType.accept) {
+              await ref.read(loanActionsControllerProvider.notifier).accept(
+                    widget.loanId,
+                    comment: comment,
+                    loanableId: loan.loanableId,
+                  );
+            } else {
+              await ref.read(loanActionsControllerProvider.notifier).reject(
+                    widget.loanId,
+                    comment: comment,
+                    loanableId: loan.loanableId,
+                  );
+            }
+          },
+        ),
+      );
+
+      if (result == true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              type == OwnerDecisionType.accept
+                  ? 'Demande acceptée.'
+                  : 'Demande refusée.',
+            ),
+            backgroundColor:
+                type == OwnerDecisionType.accept ? AppColors.success : AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeciding = false;
+        });
+      }
+    }
+  }
 
   Future<void> _handleCancel(Loan loan) async {
     final confirmed = await showDialog<bool>(
@@ -186,9 +250,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
         error: (e, _) {
           String message = 'Impossible de charger la réservation.';
           if (e is ForbiddenException) {
-            message = 'Accès non autorisé à cette réservation.';
+            message = 'Accès non autorisé : cette demande n\'est plus disponible ou a déjà été traitée.';
           } else if (e is ServerException && e.statusCode == 404) {
-            message = 'Réservation introuvable (#${widget.loanId}).';
+            message = 'Réservation introuvable (#${widget.loanId}) : cette demande n\'est plus disponible ou a déjà été traitée.';
           } else if (e is AppException) {
             message = e.message;
           }
@@ -226,9 +290,18 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
         },
         data: (loan) {
           final status = loan.parsedStatus;
-          final canCancel = loan.canBorrowerCancel(currentUser?.id);
+          final isOwner = loan.isUserOwner(currentUser?.id);
+          final canOwnerAccept = loan.canOwnerAccept(currentUser?.id);
+          final canOwnerReject = loan.canOwnerReject(currentUser?.id);
+          final canOwnerCancel = loan.canOwnerCancel(currentUser?.id);
+          final canBorrowerCancel = loan.canBorrowerCancel(currentUser?.id);
+          final canCancel = canBorrowerCancel || canOwnerCancel;
           final canUpdateDates = loan.canBorrowerUpdateDates(currentUser?.id);
-          final canComment = loan.canBorrowerComment(currentUser?.id);
+          final canComment = loan.canBorrowerComment(currentUser?.id) || isOwner;
+
+          final hasBorrowerInfo = loan.borrowerUserName != null ||
+              loan.borrowerUserEmail != null ||
+              loan.borrowerUserPhone != null;
 
           return RefreshIndicator(
             color: AppColors.primary,
@@ -337,7 +410,164 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     ),
                   ),
 
-                  // Actions row
+                  // Borrower Card (for owners or if participant info is present)
+                  if (hasBorrowerInfo) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      key: const Key('borrower_info_card'),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: AppColors.primaryLight,
+                                  radius: 20,
+                                  child: Text(
+                                    loan.borrowerUserName != null &&
+                                            loan.borrowerUserName!.isNotEmpty
+                                        ? loan.borrowerUserName![0].toUpperCase()
+                                        : '?',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Emprunteur',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      Text(
+                                        loan.borrowerUserName ?? 'Non renseigné',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (loan.borrowerUserEmail != null) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  const Icon(Icons.email_outlined,
+                                      size: 16, color: AppColors.textMuted),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      loan.borrowerUserEmail!,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            if (loan.borrowerUserPhone != null) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.phone_outlined,
+                                      size: 16, color: AppColors.textMuted),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      loan.borrowerUserPhone!,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Owner Actions row (Accepter / Refuser) for requested loans
+                  if (canOwnerAccept || canOwnerReject) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        if (canOwnerAccept)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              key: const Key('action_owner_accept_button'),
+                              onPressed: _isDeciding
+                                  ? null
+                                  : () => _handleOwnerDecision(
+                                        loan,
+                                        OwnerDecisionType.accept,
+                                      ),
+                              icon: const Icon(Icons.check_circle_outline_rounded,
+                                  size: 18),
+                              label: const Text('Accepter'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (canOwnerAccept && canOwnerReject)
+                          const SizedBox(width: 12),
+                        if (canOwnerReject)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              key: const Key('action_owner_reject_button'),
+                              onPressed: _isDeciding
+                                  ? null
+                                  : () => _handleOwnerDecision(
+                                        loan,
+                                        OwnerDecisionType.reject,
+                                      ),
+                              icon: const Icon(Icons.cancel_outlined, size: 18),
+                              label: const Text('Refuser'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.danger,
+                                side: const BorderSide(color: AppColors.danger),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+
+                  // Borrower / Generic Actions row (Modifier dates / Annuler)
                   if (canUpdateDates || canCancel) ...[
                     const SizedBox(height: 12),
                     Row(
@@ -346,7 +576,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                           Expanded(
                             child: OutlinedButton.icon(
                               key: const Key('action_update_dates_button'),
-                              onPressed: _isCancelling
+                              onPressed: _isCancelling || _isDeciding
                                   ? null
                                   : () => _handleUpdateDates(loan),
                               icon: const Icon(Icons.edit_calendar_rounded,
@@ -368,7 +598,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               key: const Key('action_cancel_button'),
-                              onPressed: _isCancelling
+                              onPressed: _isCancelling || _isDeciding
                                   ? null
                                   : () => _handleCancel(loan),
                               icon: _isCancelling

@@ -53,6 +53,16 @@ class LoansRepositoryImpl implements LoansRepository {
   }
 
   @override
+  Future<Loan> acceptLoan(int id, {String? comment}) {
+    return _remoteDataSource.acceptLoan(id, comment: comment);
+  }
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) {
+    return _remoteDataSource.rejectLoan(id, comment: comment);
+  }
+
+  @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) {
     return _remoteDataSource.updateLoanDates(id, request);
   }

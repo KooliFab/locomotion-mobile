@@ -25,8 +25,9 @@ LoansRepository loansRepository(Ref ref) {
 }
 
 /// Centralized invalidation helper for dashboard, list, and detail views.
+/// Accepts either [Ref] or [WidgetRef].
 /// Reusable by Lot 4, Lot 5, and Lot 6.
-void invalidateLoanViews(Ref ref, {int? loanId, int? loanableId}) {
+void invalidateLoanViews(dynamic ref, {int? loanId, int? loanableId}) {
   ref.invalidate(loansDashboardControllerProvider);
   ref.invalidate(myLoansControllerProvider);
   ref.invalidate(cancelledOrRejectedLoansProvider);
@@ -159,5 +160,35 @@ class LoanActionsController extends _$LoanActionsController {
       throw state.error!;
     }
     return comment;
+  }
+
+  Future<Loan?> accept(int loanId, {String? comment, int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.acceptLoan(loanId, comment: comment);
+      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      return;
+    });
+    if (state.hasError) {
+      throw state.error!;
+    }
+    return result;
+  }
+
+  Future<Loan?> reject(int loanId, {String? comment, int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.rejectLoan(loanId, comment: comment);
+      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      return;
+    });
+    if (state.hasError) {
+      throw state.error!;
+    }
+    return result;
   }
 }

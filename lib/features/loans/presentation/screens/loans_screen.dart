@@ -124,11 +124,16 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
                     .where((l) => l.borrowerUserId == null || l.borrowerUserId == userId)
                     .toList();
 
+            // Owner section: Demandes à traiter (need_approval)
+            final needApprovalLoans = dashboard.needApproval.loans;
+            final needApprovalTotal = dashboard.needApproval.total;
+
             final isEmptyOverall = waitingLoans.isEmpty &&
                 futureLoans.isEmpty &&
                 startedLoans.isEmpty &&
                 completedLoans.isEmpty &&
-                cancelledOrRejectedLoans.isEmpty;
+                cancelledOrRejectedLoans.isEmpty &&
+                needApprovalLoans.isEmpty;
 
             if (isEmptyOverall) {
               return Center(
@@ -182,6 +187,20 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               children: [
+                // Section Propriétaire: Demandes à traiter (roadmap title)
+                if (needApprovalTotal > 0 || needApprovalLoans.isNotEmpty)
+                  _buildSection(
+                    context,
+                    title: 'Demandes à traiter',
+                    icon: Icons.assignment_late_rounded,
+                    color: Colors.orange.shade800,
+                    loans: needApprovalLoans,
+                    totalCount: needApprovalTotal,
+                    filterStatus: 'requested',
+                    customRoute: '/loans/all?status=requested',
+                    customKey: 'view_all_need_approval',
+                  ),
+
                 // Section 1: En attente
                 _buildSection(
                   context,
@@ -252,6 +271,8 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
     required List<Loan> loans,
     required int totalCount,
     required String filterStatus,
+    String? customRoute,
+    String? customKey,
   }) {
     if (loans.isEmpty) return const SizedBox.shrink();
 
@@ -281,9 +302,13 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
               ),
               if (showViewAll)
                 TextButton(
-                  key: Key('view_all_$filterStatus'),
+                  key: Key(customKey ?? 'view_all_$filterStatus'),
                   onPressed: () {
-                    context.push(AppRoutes.loansListPath(status: filterStatus));
+                    if (customRoute != null) {
+                      context.push(customRoute);
+                    } else {
+                      context.push(AppRoutes.loansListPath(status: filterStatus));
+                    }
                   },
                   child: const Text('Voir tout'),
                 ),

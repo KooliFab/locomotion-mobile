@@ -43,6 +43,9 @@ _Loanable _$LoanableFromJson(Map<String, dynamic> json) => _Loanable(
       .toList(),
   communityName: json['community_name'] as String?,
   communityId: (json['community_id'] as num?)?.toInt(),
+  mergedUserRoles: (json['merged_user_roles'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
   description: json['description'] as String?,
   address: json['address'] as String?,
   imageUrl: json['imageUrl'] as String?,
@@ -71,6 +74,7 @@ Map<String, dynamic> _$LoanableToJson(_Loanable instance) => <String, dynamic>{
   'community_ids': instance.communityIds,
   'community_name': instance.communityName,
   'community_id': instance.communityId,
+  'merged_user_roles': instance.mergedUserRoles,
   'description': instance.description,
   'address': instance.address,
   'imageUrl': instance.imageUrl,
