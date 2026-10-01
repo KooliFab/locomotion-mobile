@@ -9,6 +9,8 @@ import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 
+import '../../../notifications/presentation/controllers/notifications_controller.dart';
+
 part 'auth_controller.g.dart';
 
 @Riverpod(keepAlive: true)
@@ -56,7 +58,11 @@ class AuthController extends _$AuthController {
     // Do NOT catch errors silently — propagate so the router can redirect
     // to login and no fictitious session is fabricated.
     final getCurrentUser = ref.watch(getCurrentUserUseCaseProvider);
-    return await getCurrentUser();
+    final user = await getCurrentUser();
+    Future.microtask(() {
+      ref.read(notificationsControllerProvider.notifier).syncPushToken();
+    });
+    return user;
   }
 
   Future<void> login({required String email, required String password}) async {
@@ -66,13 +72,21 @@ class AuthController extends _$AuthController {
       await loginUseCase(email: email, password: password);
 
       final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
-      return await getCurrentUser();
+      final user = await getCurrentUser();
+      Future.microtask(() {
+        ref.read(notificationsControllerProvider.notifier).requestPermissionContextual();
+      });
+      return user;
     });
   }
 
   Future<void> logout() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
+      // 1. Revoke push token before destroying local tokens / session
+      await ref.read(notificationsControllerProvider.notifier).revokeAndCleanupToken();
+
+      // 2. Clear remote and local auth session
       final logoutUseCase = ref.read(logoutUseCaseProvider);
       await logoutUseCase();
       // Invalidate borrower state so it doesn't leak across sessions.

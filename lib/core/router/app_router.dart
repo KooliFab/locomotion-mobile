@@ -18,14 +18,16 @@ import '../../features/loans/presentation/screens/loan_reservation_screen.dart';
 import '../../features/loans/presentation/screens/loan_success_screen.dart';
 import '../../features/loans/presentation/screens/loans_list_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
+import '../../features/notifications/presentation/controllers/notifications_controller.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../theme/app_colors.dart';
 import 'routes.dart';
 
 part 'app_router.g.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>(debugLabel: 'rootScaffoldMessenger');
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
@@ -35,7 +37,7 @@ GoRouter appRouter(Ref ref) {
   });
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.explore,
     refreshListenable: authNotifier,
     redirect: (context, state) {
@@ -49,6 +51,12 @@ GoRouter appRouter(Ref ref) {
         return AppRoutes.login;
       }
       if (isLoggedIn && isLoggingIn) {
+        final notifState = ref.read(notificationsControllerProvider);
+        if (notifState.pendingRedirectPath != null) {
+          final target = notifState.pendingRedirectPath!;
+          ref.read(notificationsControllerProvider.notifier).consumePendingRedirect();
+          return target;
+        }
         return AppRoutes.explore;
       }
       return null;

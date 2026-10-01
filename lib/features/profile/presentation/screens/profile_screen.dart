@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,17 +6,44 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../borrower/domain/entities/borrower_status.dart';
+import '../../../notifications/presentation/controllers/notifications_controller.dart';
 import '../controllers/profile_controller.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(notificationsControllerProvider.notifier).refreshPermissionStatus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.value;
     final balanceAsync = ref.watch(userBalanceControllerProvider);
     final borrowerStatus = BorrowerStatusX.from(user?.borrower);
+    final notifState = ref.watch(notificationsControllerProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mon Profil')),
@@ -144,6 +172,39 @@ class ProfileScreen extends ConsumerWidget {
           ]),
           const SizedBox(height: 16),
 
+          // Notifications Push
+          _buildMenuSection([
+            _MenuItem(
+              icon: notifState.isPermissionGranted
+                  ? Icons.notifications_active_outlined
+                  : Icons.notifications_off_outlined,
+              iconColor: notifState.isPermissionGranted
+                  ? AppColors.primary
+                  : AppColors.warning,
+              title: 'Notifications push',
+              subtitle: notifState.isPermissionGranted
+                  ? 'Activées'
+                  : 'Notifications désactivées',
+              onTap: () async {
+                if (!notifState.isPermissionGranted) {
+                  final granted = await ref
+                      .read(notificationsControllerProvider.notifier)
+                      .requestPermission();
+                  if (!granted) {
+                    try {
+                      await AppSettings.openAppSettings(
+                        type: AppSettingsType.notification,
+                      );
+                    } catch (_) {
+                      await AppSettings.openAppSettings();
+                    }
+                  }
+                }
+              },
+            ),
+          ]),
+          const SizedBox(height: 16),
+
           _buildMenuSection([
             _MenuItem(
               icon: Icons.help_outline_rounded,
@@ -156,7 +217,7 @@ class ProfileScreen extends ConsumerWidget {
               title: 'Déconnexion',
               textColor: AppColors.danger,
               iconColor: AppColors.danger,
-              onTap: () => _showLogoutDialog(context, ref),
+              onTap: () => _showLogoutDialog(context),
             ),
           ]),
         ],
@@ -192,7 +253,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

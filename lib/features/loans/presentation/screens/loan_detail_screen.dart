@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/async_value_widget.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -248,6 +250,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
         value: loanAsync,
         onRetry: () => ref.invalidate(loanDetailProvider(widget.loanId)),
         error: (e, _) {
+          final isAccessError = e is ForbiddenException ||
+              (e is ServerException && (e.statusCode == 404 || e.statusCode == 403));
           String message = 'Impossible de charger la réservation.';
           if (e is ForbiddenException) {
             message = 'Accès non autorisé : cette demande n\'est plus disponible ou a déjà été traitée.';
@@ -277,12 +281,26 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () =>
-                        ref.invalidate(loanDetailProvider(widget.loanId)),
-                    child: const Text('Réessayer'),
-                  ),
+                  const SizedBox(height: 20),
+                  if (isAccessError) ...[
+                    ElevatedButton.icon(
+                      key: const Key('back_to_dashboard_button'),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: const Text('Retour au tableau de bord'),
+                      onPressed: () => context.go(AppRoutes.loans),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(loanDetailProvider(widget.loanId)),
+                      child: const Text('Réessayer'),
+                    ),
+                  ] else
+                    ElevatedButton(
+                      onPressed: () =>
+                          ref.invalidate(loanDetailProvider(widget.loanId)),
+                      child: const Text('Réessayer'),
+                    ),
                 ],
               ),
             ),

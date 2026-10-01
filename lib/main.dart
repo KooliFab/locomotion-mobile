@@ -1,13 +1,24 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/notifications/presentation/controllers/notifications_controller.dart';
+import 'features/notifications/presentation/widgets/foreground_notification_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise Firebase if available (non-fatal if missing config or in test)
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('[Firebase] initializeApp skipped or failed: $e');
+  }
 
   // Initialise the timezone database so VehicleLocalDates.nowYmdInZone()
   // can resolve any IANA zone without a network call.
@@ -22,11 +33,37 @@ void main() async {
   runApp(const ProviderScope(child: LocoMotionApp()));
 }
 
-class LocoMotionApp extends ConsumerWidget {
+class LocoMotionApp extends ConsumerStatefulWidget {
   const LocoMotionApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LocoMotionApp> createState() => _LocoMotionAppState();
+}
+
+class _LocoMotionAppState extends ConsumerState<LocoMotionApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationsControllerProvider.notifier).initialize(
+        onForegroundPayload: (payload) {
+          final context = rootNavigatorKey.currentContext;
+          if (context != null) {
+            ForegroundNotificationBanner.show(context, payload: payload);
+          }
+        },
+        onOpenPayload: (payload) {
+          final context = rootNavigatorKey.currentContext;
+          if (context != null) {
+            context.push('/loans/${payload.loanId}');
+          }
+        },
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
@@ -36,6 +73,7 @@ class LocoMotionApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       routerConfig: router,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
     );
   }
 }
