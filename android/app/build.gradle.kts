@@ -23,11 +23,30 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appName"] = "LocoMotion"
+    }
+
+    flavorDimensions += listOf("environment")
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["appName"] = "LocoMotion Dev"
+        }
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            manifestPlaceholders["appName"] = "LocoMotion Staging"
+        }
+        create("prod") {
+            dimension = "environment"
+            manifestPlaceholders["appName"] = "LocoMotion"
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
