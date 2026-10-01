@@ -30,5 +30,5 @@ Map<String, dynamic> _$LoanCreationRequestToJson(
   'alternative_to': instance.alternativeTo,
   'alternative_to_other': instance.alternativeToOther,
   'message_for_owner': instance.messageForOwner,
-  'community_id': instance.communityId,
+  'community_id': ?instance.communityId,
 };

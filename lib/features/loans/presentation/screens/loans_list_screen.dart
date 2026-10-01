@@ -83,9 +83,7 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Toutes mes réservations'),
-      ),
+      appBar: AppBar(title: const Text('Toutes mes réservations')),
       body: Column(
         children: [
           // Filter chips
@@ -98,7 +96,10 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
                 const SizedBox(width: 8),
                 _buildFilterChip('requested', 'En attente'),
                 const SizedBox(width: 8),
-                _buildFilterChip('accepted,confirmed', 'Acceptées / Confirmées'),
+                _buildFilterChip(
+                  'accepted,confirmed',
+                  'Acceptées / Confirmées',
+                ),
                 const SizedBox(width: 8),
                 _buildFilterChip('ongoing,ended,validated', 'En cours'),
                 const SizedBox(width: 8),
@@ -111,9 +112,7 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
           const Divider(height: 1),
 
           // Main list
-          Expanded(
-            child: _buildBody(),
-          ),
+          Expanded(child: _buildBody()),
         ],
       ),
     );
@@ -133,8 +132,11 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppColors.danger),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.danger,
+              ),
               const SizedBox(height: 12),
               Text(
                 'Erreur: $_error',
@@ -243,7 +245,9 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: LoanStatusHelper.backgroundColor(status),
                             borderRadius: BorderRadius.circular(6),

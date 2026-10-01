@@ -36,7 +36,9 @@ class _LoanReservationScreenState extends ConsumerState<LoanReservationScreen> {
       loanableId: widget.loanable.id,
       loanableName: widget.loanable.name,
       loanableType: widget.loanable.type,
-      communityId: widget.loanable.communityId,
+      communityId:
+          widget.loanable.communityId ??
+          widget.loanable.communityIds?.firstOrNull,
       communityName: widget.loanable.communityName,
       vehicleTimezone: widget.loanable.timezone,
       minLoanDurationInMinutes: widget.loanable.minLoanDurationInMinutes,
@@ -277,7 +279,9 @@ class _LoanReservationScreenState extends ConsumerState<LoanReservationScreen> {
 
             final picked = await showDatePicker(
               context: context,
-              initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
+              initialDate: initialDate.isBefore(firstDate)
+                  ? firstDate
+                  : initialDate,
               firstDate: firstDate,
               lastDate: lastDate,
             );

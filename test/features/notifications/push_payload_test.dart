@@ -60,10 +60,7 @@ void main() {
     });
 
     test('rejects payload missing schema_version', () {
-      final data = {
-        'event_type': 'loan_created',
-        'loan_id': '42',
-      };
+      final data = {'event_type': 'loan_created', 'loan_id': '42'};
 
       final payload = PushPayload.tryParse(data: data);
       expect(payload, isNull);
@@ -89,23 +86,43 @@ void main() {
     test('rejects payload with missing or non-positive loan_id', () {
       // Missing
       expect(
-        PushPayload.tryParse(data: {'schema_version': '1', 'event_type': 'loan_created'}),
+        PushPayload.tryParse(
+          data: {'schema_version': '1', 'event_type': 'loan_created'},
+        ),
         isNull,
       );
 
       // String non numeric
       expect(
-        PushPayload.tryParse(data: {'schema_version': '1', 'event_type': 'loan_created', 'loan_id': 'abc'}),
+        PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_created',
+            'loan_id': 'abc',
+          },
+        ),
         isNull,
       );
 
       // <= 0
       expect(
-        PushPayload.tryParse(data: {'schema_version': '1', 'event_type': 'loan_created', 'loan_id': '0'}),
+        PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_created',
+            'loan_id': '0',
+          },
+        ),
         isNull,
       );
       expect(
-        PushPayload.tryParse(data: {'schema_version': '1', 'event_type': 'loan_created', 'loan_id': '-5'}),
+        PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_created',
+            'loan_id': '-5',
+          },
+        ),
         isNull,
       );
     });
@@ -124,7 +141,12 @@ void main() {
 
       expect(payload, isNotNull);
       final logStr = payload!.toSafeLogString();
-      expect(logStr, contains('PushPayload(schemaVersion: 1, eventType: loan_created, loanId: 55, messageId: msg_sec_123)'));
+      expect(
+        logStr,
+        contains(
+          'PushPayload(schemaVersion: 1, eventType: loan_created, loanId: 55, messageId: msg_sec_123)',
+        ),
+      );
     });
   });
 }

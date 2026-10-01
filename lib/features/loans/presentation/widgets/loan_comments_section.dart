@@ -31,8 +31,11 @@ class LoanCommentsSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.chat_bubble_outline_rounded,
-                    size: 20, color: AppColors.primary),
+                const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Messages et commentaires (${loan.comments.length})',
@@ -110,20 +113,14 @@ class _CommentBubble extends StatelessWidget {
             if (dateStr.isNotEmpty)
               Text(
                 dateStr,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade500,
-                ),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
               ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           comment.text ?? '',
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.textPrimary,
-          ),
+          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
         ),
       ],
     );
@@ -134,10 +131,7 @@ class _NewCommentInput extends StatefulWidget {
   final bool isSubmitting;
   final Future<void> Function(String) onSubmit;
 
-  const _NewCommentInput({
-    required this.isSubmitting,
-    required this.onSubmit,
-  });
+  const _NewCommentInput({required this.isSubmitting, required this.onSubmit});
 
   @override
   State<_NewCommentInput> createState() => _NewCommentInputState();

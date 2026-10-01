@@ -29,8 +29,10 @@ class ApiClient {
     baseDio.interceptors.add(
       LogInterceptor(
         requestHeader: false,
-        requestBody: false, // Ne pas tracer les corps de requête pour protéger la confidentialité des messages privés
-        responseBody: false, // Ne pas tracer les corps de réponse (données privées, messages et commentaires)
+        requestBody:
+            false, // Ne pas tracer les corps de requête pour protéger la confidentialité des messages privés
+        responseBody:
+            false, // Ne pas tracer les corps de réponse (données privées, messages et commentaires)
         responseHeader: false,
         error: true,
       ),

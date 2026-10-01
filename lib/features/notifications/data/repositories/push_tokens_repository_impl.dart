@@ -10,10 +10,7 @@ class PushTokensRepositoryImpl implements PushTokensRepository {
   final PushTokensRemoteDataSource _remoteDataSource;
   final SecureStorageService _storageService;
 
-  const PushTokensRepositoryImpl(
-    this._remoteDataSource,
-    this._storageService,
-  );
+  const PushTokensRepositoryImpl(this._remoteDataSource, this._storageService);
 
   @override
   Future<String> getOrCreateInstallationId() async {

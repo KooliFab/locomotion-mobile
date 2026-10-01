@@ -74,7 +74,9 @@ class AuthController extends _$AuthController {
       final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
       final user = await getCurrentUser();
       Future.microtask(() {
-        ref.read(notificationsControllerProvider.notifier).requestPermissionContextual();
+        ref
+            .read(notificationsControllerProvider.notifier)
+            .requestPermissionContextual();
       });
       return user;
     });
@@ -84,7 +86,9 @@ class AuthController extends _$AuthController {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       // 1. Revoke push token before destroying local tokens / session
-      await ref.read(notificationsControllerProvider.notifier).revokeAndCleanupToken();
+      await ref
+          .read(notificationsControllerProvider.notifier)
+          .revokeAndCleanupToken();
 
       // 2. Clear remote and local auth session
       final logoutUseCase = ref.read(logoutUseCaseProvider);

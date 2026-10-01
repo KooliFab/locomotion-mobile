@@ -33,7 +33,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(notificationsControllerProvider.notifier).refreshPermissionStatus();
+      ref
+          .read(notificationsControllerProvider.notifier)
+          .refreshPermissionStatus();
     }
   }
 

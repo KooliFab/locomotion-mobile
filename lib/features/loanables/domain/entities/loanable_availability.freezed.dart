@@ -212,7 +212,7 @@ return $default(_that.type,_that.start,_that.end,_that.isAvailable,_that.rawStar
 
 class _LoanableAvailabilityInterval extends LoanableAvailabilityInterval {
   const _LoanableAvailabilityInterval({required this.type, required this.start, required this.end, required this.isAvailable, this.rawStart, this.rawEnd}): super._();
-
+  
 
 @override final  String type;
 @override final  DateTime start;

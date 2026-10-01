@@ -76,6 +76,13 @@ abstract class Loanable with _$Loanable {
     copy['latitude'] = lat;
     copy['longitude'] = lng;
 
+    if (copy['community_id'] == null && copy['community_ids'] is List) {
+      final list = copy['community_ids'] as List;
+      if (list.isNotEmpty) {
+        copy['community_id'] = list.first;
+      }
+    }
+
     return copy;
   }
 }

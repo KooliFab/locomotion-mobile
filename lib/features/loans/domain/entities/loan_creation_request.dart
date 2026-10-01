@@ -14,7 +14,7 @@ abstract class LoanCreationRequest with _$LoanCreationRequest {
     @JsonKey(name: 'alternative_to') required String alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     @JsonKey(name: 'message_for_owner') String? messageForOwner,
-    @JsonKey(name: 'community_id') int? communityId,
+    @JsonKey(name: 'community_id', includeIfNull: false) int? communityId,
   }) = _LoanCreationRequest;
 
   factory LoanCreationRequest.fromJson(Map<String, dynamic> json) =>

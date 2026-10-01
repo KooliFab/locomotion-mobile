@@ -5,6 +5,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/notifications/presentation/controllers/notifications_controller.dart';
@@ -12,6 +13,14 @@ import 'features/notifications/presentation/widgets/foreground_notification_bann
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise locale data for intl DateFormat
+  try {
+    await initializeDateFormatting('fr_CA', null);
+    await initializeDateFormatting('fr', null);
+  } catch (e) {
+    debugPrint('[intl] initializeDateFormatting failed: $e');
+  }
 
   // Initialise Firebase if available (non-fatal if missing config or in test)
   try {
@@ -45,20 +54,22 @@ class _LocoMotionAppState extends ConsumerState<LocoMotionApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(notificationsControllerProvider.notifier).initialize(
-        onForegroundPayload: (payload) {
-          final context = rootNavigatorKey.currentContext;
-          if (context != null) {
-            ForegroundNotificationBanner.show(context, payload: payload);
-          }
-        },
-        onOpenPayload: (payload) {
-          final context = rootNavigatorKey.currentContext;
-          if (context != null) {
-            context.push('/loans/${payload.loanId}');
-          }
-        },
-      );
+      ref
+          .read(notificationsControllerProvider.notifier)
+          .initialize(
+            onForegroundPayload: (payload) {
+              final context = rootNavigatorKey.currentContext;
+              if (context != null) {
+                ForegroundNotificationBanner.show(context, payload: payload);
+              }
+            },
+            onOpenPayload: (payload) {
+              final context = rootNavigatorKey.currentContext;
+              if (context != null) {
+                context.push('/loans/${payload.loanId}');
+              }
+            },
+          );
     });
   }
 

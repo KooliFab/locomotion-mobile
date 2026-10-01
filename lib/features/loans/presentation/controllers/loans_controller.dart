@@ -108,7 +108,11 @@ class LoanActionsController extends _$LoanActionsController {
     state = await AsyncValue.guard(() async {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.cancelLoan(loanId);
-      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
       return;
     });
     if (state.hasError) {
@@ -134,7 +138,11 @@ class LoanActionsController extends _$LoanActionsController {
           durationInMinutes: durationInMinutes,
         ),
       );
-      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
       return;
     });
     if (state.hasError) {
@@ -168,7 +176,11 @@ class LoanActionsController extends _$LoanActionsController {
     state = await AsyncValue.guard(() async {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.acceptLoan(loanId, comment: comment);
-      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
       return;
     });
     if (state.hasError) {
@@ -183,7 +195,11 @@ class LoanActionsController extends _$LoanActionsController {
     state = await AsyncValue.guard(() async {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.rejectLoan(loanId, comment: comment);
-      invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId ?? result?.loanableId);
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
       return;
     });
     if (state.hasError) {

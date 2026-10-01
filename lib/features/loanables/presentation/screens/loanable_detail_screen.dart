@@ -56,8 +56,8 @@ class _DetailBody extends ConsumerWidget {
     final borrowerStatus = BorrowerStatusX.from(borrower);
     final isRestrictedType =
         detail.type == 'car' || detail.type == 'car_trailer';
-    final canRequest = user != null &&
-        (!isRestrictedType || borrowerStatus.canReserveCar);
+    final canRequest =
+        user != null && (!isRestrictedType || borrowerStatus.canReserveCar);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 32),
@@ -308,9 +308,9 @@ class _DetailBody extends ConsumerWidget {
                     user == null
                         ? 'Connectez-vous pour pouvoir réserver ce véhicule.'
                         : (borrowerStatus == BorrowerStatus.pending
-                            ? 'Votre dossier emprunteur est en cours de validation.'
-                            : 'Vous n\'êtes pas encore éligible pour ce type de véhicule. '
-                                'Complétez votre profil emprunteur pour demander une validation.'),
+                              ? 'Votre dossier emprunteur est en cours de validation.'
+                              : 'Vous n\'êtes pas encore éligible pour ce type de véhicule. '
+                                    'Complétez votre profil emprunteur pour demander une validation.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,

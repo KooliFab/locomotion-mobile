@@ -79,72 +79,74 @@ void main() {
 
   final baseLoan = Loan.fromJson(laravelLoanDetailJson);
 
-  testWidgets('LoansListScreen displays page 1, loads page 2, and hides button at end',
-      (tester) async {
-    final loan1 = baseLoan.copyWith(id: 101, loanableName: 'Vélo Babboe P1');
-    final loan2 = baseLoan.copyWith(id: 102, loanableName: 'Vélo Babboe P2');
+  testWidgets(
+    'LoansListScreen displays page 1, loads page 2, and hides button at end',
+    (tester) async {
+      final loan1 = baseLoan.copyWith(id: 101, loanableName: 'Vélo Babboe P1');
+      final loan2 = baseLoan.copyWith(id: 102, loanableName: 'Vélo Babboe P2');
 
-    final mockRepo = _MockLoansRepo(
-      pages: {
-        1: LoanPagination(
-          data: [loan1],
-          currentPage: 1,
-          lastPage: 2,
-          total: 2,
-          perPage: 1,
+      final mockRepo = _MockLoansRepo(
+        pages: {
+          1: LoanPagination(
+            data: [loan1],
+            currentPage: 1,
+            lastPage: 2,
+            total: 2,
+            perPage: 1,
+          ),
+          2: LoanPagination(
+            data: [loan2],
+            currentPage: 2,
+            lastPage: 2,
+            total: 2,
+            perPage: 1,
+          ),
+        },
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(mockRepo),
+            authControllerProvider.overrideWith(
+              () => _TestAuthController(testUser),
+            ),
+          ],
+          child: const MaterialApp(home: LoansListScreen()),
         ),
-        2: LoanPagination(
-          data: [loan2],
-          currentPage: 2,
-          lastPage: 2,
-          total: 2,
-          perPage: 1,
-        ),
-      },
-    );
+      );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          loansRepositoryProvider.overrideWithValue(mockRepo),
-          authControllerProvider.overrideWith(() => _TestAuthController(testUser)),
-        ],
-        child: const MaterialApp(
-          home: LoansListScreen(),
-        ),
-      ),
-    );
+      // Initial loading indicator
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pumpAndSettle();
 
-    // Initial loading indicator
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await tester.pumpAndSettle();
+      // Page 1 is displayed
+      expect(find.text('Vélo Babboe P1'), findsOneWidget);
+      expect(find.text('Vélo Babboe P2'), findsNothing);
 
-    // Page 1 is displayed
-    expect(find.text('Vélo Babboe P1'), findsOneWidget);
-    expect(find.text('Vélo Babboe P2'), findsNothing);
+      // Load more button should be present because currentPage (1) < lastPage (2)
+      final loadMoreFinder = find.byKey(const Key('load_more_button'));
+      expect(loadMoreFinder, findsOneWidget);
+      expect(find.text('Charger plus'), findsOneWidget);
 
-    // Load more button should be present because currentPage (1) < lastPage (2)
-    final loadMoreFinder = find.byKey(const Key('load_more_button'));
-    expect(loadMoreFinder, findsOneWidget);
-    expect(find.text('Charger plus'), findsOneWidget);
+      // Click on Charger plus
+      await tester.tap(loadMoreFinder);
+      await tester.pump(); // Start loading more
+      await tester.pumpAndSettle(); // Finished loading page 2
 
-    // Click on Charger plus
-    await tester.tap(loadMoreFinder);
-    await tester.pump(); // Start loading more
-    await tester.pumpAndSettle(); // Finished loading page 2
+      // Both items from page 1 and page 2 are now in list
+      expect(find.text('Vélo Babboe P1'), findsOneWidget);
+      expect(find.text('Vélo Babboe P2'), findsOneWidget);
 
-    // Both items from page 1 and page 2 are now in list
-    expect(find.text('Vélo Babboe P1'), findsOneWidget);
-    expect(find.text('Vélo Babboe P2'), findsOneWidget);
+      // Button "Charger plus" is gone because currentPage (2) == lastPage (2)
+      expect(find.byKey(const Key('load_more_button')), findsNothing);
 
-    // Button "Charger plus" is gone because currentPage (2) == lastPage (2)
-    expect(find.byKey(const Key('load_more_button')), findsNothing);
-
-    // Verify params passed to repository
-    expect(mockRepo.requestedPages.length, 2);
-    expect(mockRepo.requestedPages[0]['page'], 1);
-    expect(mockRepo.requestedPages[0]['borrowerUserId'], 100);
-    expect(mockRepo.requestedPages[1]['page'], 2);
-    expect(mockRepo.requestedPages[1]['borrowerUserId'], 100);
-  });
+      // Verify params passed to repository
+      expect(mockRepo.requestedPages.length, 2);
+      expect(mockRepo.requestedPages[0]['page'], 1);
+      expect(mockRepo.requestedPages[0]['borrowerUserId'], 100);
+      expect(mockRepo.requestedPages[1]['page'], 2);
+      expect(mockRepo.requestedPages[1]['borrowerUserId'], 100);
+    },
+  );
 }

@@ -50,21 +50,27 @@ class PushPayload {
   }) {
     final schemaVersion = data['schema_version']?.toString();
     if (schemaVersion != '1') {
-      debugPrint('[PushNotification] Ignored payload with unsupported schema_version: $schemaVersion');
+      debugPrint(
+        '[PushNotification] Ignored payload with unsupported schema_version: $schemaVersion',
+      );
       return null;
     }
 
     final rawEventType = data['event_type']?.toString();
     final eventType = PushEventType.fromString(rawEventType);
     if (eventType == PushEventType.unknown) {
-      debugPrint('[PushNotification] Ignored payload with unknown event_type: $rawEventType');
+      debugPrint(
+        '[PushNotification] Ignored payload with unknown event_type: $rawEventType',
+      );
       return null;
     }
 
     final rawLoanId = data['loan_id'];
     final loanId = int.tryParse(rawLoanId?.toString() ?? '');
     if (loanId == null || loanId <= 0) {
-      debugPrint('[PushNotification] Ignored payload with invalid loan_id: $rawLoanId');
+      debugPrint(
+        '[PushNotification] Ignored payload with invalid loan_id: $rawLoanId',
+      );
       return null;
     }
 

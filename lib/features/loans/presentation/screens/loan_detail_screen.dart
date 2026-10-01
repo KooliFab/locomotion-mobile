@@ -19,11 +19,7 @@ class LoanDetailScreen extends ConsumerStatefulWidget {
   final int loanId;
   final Loan? initialLoan;
 
-  const LoanDetailScreen({
-    super.key,
-    required this.loanId,
-    this.initialLoan,
-  });
+  const LoanDetailScreen({super.key, required this.loanId, this.initialLoan});
 
   @override
   ConsumerState<LoanDetailScreen> createState() => _LoanDetailScreenState();
@@ -48,7 +44,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           loan: loan,
           decisionType: type,
           onAccessLost: () {
-            invalidateLoanViews(ref, loanId: widget.loanId, loanableId: loan.loanableId);
+            invalidateLoanViews(
+              ref,
+              loanId: widget.loanId,
+              loanableId: loan.loanableId,
+            );
           },
           onSwitchToReject: () {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,13 +59,17 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           },
           onConfirm: (comment) async {
             if (type == OwnerDecisionType.accept) {
-              await ref.read(loanActionsControllerProvider.notifier).accept(
+              await ref
+                  .read(loanActionsControllerProvider.notifier)
+                  .accept(
                     widget.loanId,
                     comment: comment,
                     loanableId: loan.loanableId,
                   );
             } else {
-              await ref.read(loanActionsControllerProvider.notifier).reject(
+              await ref
+                  .read(loanActionsControllerProvider.notifier)
+                  .reject(
                     widget.loanId,
                     comment: comment,
                     loanableId: loan.loanableId,
@@ -83,8 +87,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                   ? 'Demande acceptée.'
                   : 'Demande refusée.',
             ),
-            backgroundColor:
-                type == OwnerDecisionType.accept ? AppColors.success : AppColors.danger,
+            backgroundColor: type == OwnerDecisionType.accept
+                ? AppColors.success
+                : AppColors.danger,
           ),
         );
       }
@@ -149,10 +154,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           _screenError = msg;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            backgroundColor: AppColors.danger,
-          ),
+          SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
         );
       }
     } finally {
@@ -170,7 +172,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       builder: (ctx) => UpdateDatesDialog(
         loan: loan,
         onSave: (departureAt, durationInMinutes) async {
-          await ref.read(loanActionsControllerProvider.notifier).updateDates(
+          await ref
+              .read(loanActionsControllerProvider.notifier)
+              .updateDates(
                 loanId: widget.loanId,
                 departureAt: departureAt,
                 durationInMinutes: durationInMinutes,
@@ -199,7 +203,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
     try {
       await ref
           .read(loanActionsControllerProvider.notifier)
-          .addComment(loanId: widget.loanId, text: text, loanableId: loan.loanableId);
+          .addComment(
+            loanId: widget.loanId,
+            text: text,
+            loanableId: loan.loanableId,
+          );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -215,10 +223,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           _screenError = msg;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            backgroundColor: AppColors.danger,
-          ),
+          SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
         );
       }
       rethrow;
@@ -250,13 +255,17 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
         value: loanAsync,
         onRetry: () => ref.invalidate(loanDetailProvider(widget.loanId)),
         error: (e, _) {
-          final isAccessError = e is ForbiddenException ||
-              (e is ServerException && (e.statusCode == 404 || e.statusCode == 403));
+          final isAccessError =
+              e is ForbiddenException ||
+              (e is ServerException &&
+                  (e.statusCode == 404 || e.statusCode == 403));
           String message = 'Impossible de charger la réservation.';
           if (e is ForbiddenException) {
-            message = 'Accès non autorisé : cette demande n\'est plus disponible ou a déjà été traitée.';
+            message =
+                'Accès non autorisé : cette demande n\'est plus disponible ou a déjà été traitée.';
           } else if (e is ServerException && e.statusCode == 404) {
-            message = 'Réservation introuvable (#${widget.loanId}) : cette demande n\'est plus disponible ou a déjà été traitée.';
+            message =
+                'Réservation introuvable (#${widget.loanId}) : cette demande n\'est plus disponible ou a déjà été traitée.';
           } else if (e is AppException) {
             message = e.message;
           }
@@ -315,9 +324,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           final canBorrowerCancel = loan.canBorrowerCancel(currentUser?.id);
           final canCancel = canBorrowerCancel || canOwnerCancel;
           final canUpdateDates = loan.canBorrowerUpdateDates(currentUser?.id);
-          final canComment = loan.canBorrowerComment(currentUser?.id) || isOwner;
+          final canComment =
+              loan.canBorrowerComment(currentUser?.id) || isOwner;
 
-          final hasBorrowerInfo = loan.borrowerUserName != null ||
+          final hasBorrowerInfo =
+              loan.borrowerUserName != null ||
               loan.borrowerUserEmail != null ||
               loan.borrowerUserPhone != null;
 
@@ -451,7 +462,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                   child: Text(
                                     loan.borrowerUserName != null &&
                                             loan.borrowerUserName!.isNotEmpty
-                                        ? loan.borrowerUserName![0].toUpperCase()
+                                        ? loan.borrowerUserName![0]
+                                              .toUpperCase()
                                         : '?',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -462,7 +474,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Emprunteur',
@@ -473,7 +486,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                         ),
                                       ),
                                       Text(
-                                        loan.borrowerUserName ?? 'Non renseigné',
+                                        loan.borrowerUserName ??
+                                            'Non renseigné',
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
@@ -489,8 +503,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               const SizedBox(height: 10),
                               Row(
                                 children: [
-                                  const Icon(Icons.email_outlined,
-                                      size: 16, color: AppColors.textMuted),
+                                  const Icon(
+                                    Icons.email_outlined,
+                                    size: 16,
+                                    color: AppColors.textMuted,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -508,8 +525,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  const Icon(Icons.phone_outlined,
-                                      size: 16, color: AppColors.textMuted),
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 16,
+                                    color: AppColors.textMuted,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -541,16 +561,20 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               onPressed: _isDeciding
                                   ? null
                                   : () => _handleOwnerDecision(
-                                        loan,
-                                        OwnerDecisionType.accept,
-                                      ),
-                              icon: const Icon(Icons.check_circle_outline_rounded,
-                                  size: 18),
+                                      loan,
+                                      OwnerDecisionType.accept,
+                                    ),
+                              icon: const Icon(
+                                Icons.check_circle_outline_rounded,
+                                size: 18,
+                              ),
                               label: const Text('Accepter'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.success,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -566,15 +590,17 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               onPressed: _isDeciding
                                   ? null
                                   : () => _handleOwnerDecision(
-                                        loan,
-                                        OwnerDecisionType.reject,
-                                      ),
+                                      loan,
+                                      OwnerDecisionType.reject,
+                                    ),
                               icon: const Icon(Icons.cancel_outlined, size: 18),
                               label: const Text('Refuser'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.danger,
                                 side: const BorderSide(color: AppColors.danger),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -597,13 +623,16 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               onPressed: _isCancelling || _isDeciding
                                   ? null
                                   : () => _handleUpdateDates(loan),
-                              icon: const Icon(Icons.edit_calendar_rounded,
-                                  size: 18),
+                              icon: const Icon(
+                                Icons.edit_calendar_rounded,
+                                size: 18,
+                              ),
                               label: const Text('Modifier dates'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.primary,
                                 side: const BorderSide(
-                                    color: AppColors.primary),
+                                  color: AppColors.primary,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

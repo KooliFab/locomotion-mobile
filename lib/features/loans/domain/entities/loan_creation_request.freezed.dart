@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LoanCreationRequest {
 
-@JsonKey(name: 'loanable_id') int get loanableId;@JsonKey(name: 'borrower_user_id') int get borrowerUserId;@JsonKey(name: 'departure_at') String get departureAt;@JsonKey(name: 'duration_in_minutes') int get durationInMinutes;@JsonKey(name: 'estimated_distance') int get estimatedDistance;@JsonKey(name: 'alternative_to') String get alternativeTo;@JsonKey(name: 'alternative_to_other') String? get alternativeToOther;@JsonKey(name: 'message_for_owner') String? get messageForOwner;@JsonKey(name: 'community_id') int? get communityId;
+@JsonKey(name: 'loanable_id') int get loanableId;@JsonKey(name: 'borrower_user_id') int get borrowerUserId;@JsonKey(name: 'departure_at') String get departureAt;@JsonKey(name: 'duration_in_minutes') int get durationInMinutes;@JsonKey(name: 'estimated_distance') int get estimatedDistance;@JsonKey(name: 'alternative_to') String get alternativeTo;@JsonKey(name: 'alternative_to_other') String? get alternativeToOther;@JsonKey(name: 'message_for_owner') String? get messageForOwner;@JsonKey(name: 'community_id', includeIfNull: false) int? get communityId;
 /// Create a copy of LoanCreationRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $LoanCreationRequestCopyWith<$Res>  {
   factory $LoanCreationRequestCopyWith(LoanCreationRequest value, $Res Function(LoanCreationRequest) _then) = _$LoanCreationRequestCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'loanable_id') int loanableId,@JsonKey(name: 'borrower_user_id') int borrowerUserId,@JsonKey(name: 'departure_at') String departureAt,@JsonKey(name: 'duration_in_minutes') int durationInMinutes,@JsonKey(name: 'estimated_distance') int estimatedDistance,@JsonKey(name: 'alternative_to') String alternativeTo,@JsonKey(name: 'alternative_to_other') String? alternativeToOther,@JsonKey(name: 'message_for_owner') String? messageForOwner,@JsonKey(name: 'community_id') int? communityId
+@JsonKey(name: 'loanable_id') int loanableId,@JsonKey(name: 'borrower_user_id') int borrowerUserId,@JsonKey(name: 'departure_at') String departureAt,@JsonKey(name: 'duration_in_minutes') int durationInMinutes,@JsonKey(name: 'estimated_distance') int estimatedDistance,@JsonKey(name: 'alternative_to') String alternativeTo,@JsonKey(name: 'alternative_to_other') String? alternativeToOther,@JsonKey(name: 'message_for_owner') String? messageForOwner,@JsonKey(name: 'community_id', includeIfNull: false) int? communityId
 });
 
 
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id')  int? communityId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id', includeIfNull: false)  int? communityId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoanCreationRequest() when $default != null:
 return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.durationInMinutes,_that.estimatedDistance,_that.alternativeTo,_that.alternativeToOther,_that.messageForOwner,_that.communityId);case _:
@@ -182,7 +182,7 @@ return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.du
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id')  int? communityId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id', includeIfNull: false)  int? communityId)  $default,) {final _that = this;
 switch (_that) {
 case _LoanCreationRequest():
 return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.durationInMinutes,_that.estimatedDistance,_that.alternativeTo,_that.alternativeToOther,_that.messageForOwner,_that.communityId);case _:
@@ -202,7 +202,7 @@ return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.du
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id')  int? communityId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'loanable_id')  int loanableId, @JsonKey(name: 'borrower_user_id')  int borrowerUserId, @JsonKey(name: 'departure_at')  String departureAt, @JsonKey(name: 'duration_in_minutes')  int durationInMinutes, @JsonKey(name: 'estimated_distance')  int estimatedDistance, @JsonKey(name: 'alternative_to')  String alternativeTo, @JsonKey(name: 'alternative_to_other')  String? alternativeToOther, @JsonKey(name: 'message_for_owner')  String? messageForOwner, @JsonKey(name: 'community_id', includeIfNull: false)  int? communityId)?  $default,) {final _that = this;
 switch (_that) {
 case _LoanCreationRequest() when $default != null:
 return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.durationInMinutes,_that.estimatedDistance,_that.alternativeTo,_that.alternativeToOther,_that.messageForOwner,_that.communityId);case _:
@@ -217,7 +217,7 @@ return $default(_that.loanableId,_that.borrowerUserId,_that.departureAt,_that.du
 @JsonSerializable()
 
 class _LoanCreationRequest implements LoanCreationRequest {
-  const _LoanCreationRequest({@JsonKey(name: 'loanable_id') required this.loanableId, @JsonKey(name: 'borrower_user_id') required this.borrowerUserId, @JsonKey(name: 'departure_at') required this.departureAt, @JsonKey(name: 'duration_in_minutes') required this.durationInMinutes, @JsonKey(name: 'estimated_distance') required this.estimatedDistance, @JsonKey(name: 'alternative_to') required this.alternativeTo, @JsonKey(name: 'alternative_to_other') this.alternativeToOther, @JsonKey(name: 'message_for_owner') this.messageForOwner, @JsonKey(name: 'community_id') this.communityId});
+  const _LoanCreationRequest({@JsonKey(name: 'loanable_id') required this.loanableId, @JsonKey(name: 'borrower_user_id') required this.borrowerUserId, @JsonKey(name: 'departure_at') required this.departureAt, @JsonKey(name: 'duration_in_minutes') required this.durationInMinutes, @JsonKey(name: 'estimated_distance') required this.estimatedDistance, @JsonKey(name: 'alternative_to') required this.alternativeTo, @JsonKey(name: 'alternative_to_other') this.alternativeToOther, @JsonKey(name: 'message_for_owner') this.messageForOwner, @JsonKey(name: 'community_id', includeIfNull: false) this.communityId});
   factory _LoanCreationRequest.fromJson(Map<String, dynamic> json) => _$LoanCreationRequestFromJson(json);
 
 @override@JsonKey(name: 'loanable_id') final  int loanableId;
@@ -228,7 +228,7 @@ class _LoanCreationRequest implements LoanCreationRequest {
 @override@JsonKey(name: 'alternative_to') final  String alternativeTo;
 @override@JsonKey(name: 'alternative_to_other') final  String? alternativeToOther;
 @override@JsonKey(name: 'message_for_owner') final  String? messageForOwner;
-@override@JsonKey(name: 'community_id') final  int? communityId;
+@override@JsonKey(name: 'community_id', includeIfNull: false) final  int? communityId;
 
 /// Create a copy of LoanCreationRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -263,7 +263,7 @@ abstract mixin class _$LoanCreationRequestCopyWith<$Res> implements $LoanCreatio
   factory _$LoanCreationRequestCopyWith(_LoanCreationRequest value, $Res Function(_LoanCreationRequest) _then) = __$LoanCreationRequestCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'loanable_id') int loanableId,@JsonKey(name: 'borrower_user_id') int borrowerUserId,@JsonKey(name: 'departure_at') String departureAt,@JsonKey(name: 'duration_in_minutes') int durationInMinutes,@JsonKey(name: 'estimated_distance') int estimatedDistance,@JsonKey(name: 'alternative_to') String alternativeTo,@JsonKey(name: 'alternative_to_other') String? alternativeToOther,@JsonKey(name: 'message_for_owner') String? messageForOwner,@JsonKey(name: 'community_id') int? communityId
+@JsonKey(name: 'loanable_id') int loanableId,@JsonKey(name: 'borrower_user_id') int borrowerUserId,@JsonKey(name: 'departure_at') String departureAt,@JsonKey(name: 'duration_in_minutes') int durationInMinutes,@JsonKey(name: 'estimated_distance') int estimatedDistance,@JsonKey(name: 'alternative_to') String alternativeTo,@JsonKey(name: 'alternative_to_other') String? alternativeToOther,@JsonKey(name: 'message_for_owner') String? messageForOwner,@JsonKey(name: 'community_id', includeIfNull: false) int? communityId
 });
 
 

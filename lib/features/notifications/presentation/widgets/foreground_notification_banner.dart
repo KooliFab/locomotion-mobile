@@ -4,11 +4,9 @@ import '../../../../core/router/app_router.dart';
 import '../../domain/entities/push_payload.dart';
 
 class ForegroundNotificationBanner {
-  static void show(
-    BuildContext? context, {
-    required PushPayload payload,
-  }) {
-    final messenger = (context != null ? ScaffoldMessenger.maybeOf(context) : null) ??
+  static void show(BuildContext? context, {required PushPayload payload}) {
+    final messenger =
+        (context != null ? ScaffoldMessenger.maybeOf(context) : null) ??
         rootScaffoldMessengerKey.currentState;
     if (messenger == null) return;
 

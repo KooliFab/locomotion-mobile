@@ -27,7 +27,9 @@ part 'app_router.g.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
-final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>(debugLabel: 'rootScaffoldMessenger');
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>(
+  debugLabel: 'rootScaffoldMessenger',
+);
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
@@ -54,7 +56,9 @@ GoRouter appRouter(Ref ref) {
         final notifState = ref.read(notificationsControllerProvider);
         if (notifState.pendingRedirectPath != null) {
           final target = notifState.pendingRedirectPath!;
-          ref.read(notificationsControllerProvider.notifier).consumePendingRedirect();
+          ref
+              .read(notificationsControllerProvider.notifier)
+              .consumePendingRedirect();
           return target;
         }
         return AppRoutes.explore;

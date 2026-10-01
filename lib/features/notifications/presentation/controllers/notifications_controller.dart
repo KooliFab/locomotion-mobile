@@ -23,7 +23,9 @@ PushNotificationService pushNotificationService(Ref ref) {
   try {
     return FirebasePushNotificationService();
   } catch (e) {
-    debugPrint('[PushNotification] Firebase unavailable, fallback to FakePushNotificationService: $e');
+    debugPrint(
+      '[PushNotification] Firebase unavailable, fallback to FakePushNotificationService: $e',
+    );
     return FakePushNotificationService();
   }
 }
@@ -38,10 +40,7 @@ PushTokensRemoteDataSource pushTokensRemoteDataSource(Ref ref) {
 PushTokensRepository pushTokensRepository(Ref ref) {
   final remoteDataSource = ref.watch(pushTokensRemoteDataSourceProvider);
   final storageService = ref.watch(secureStorageServiceProvider);
-  return PushTokensRepositoryImpl(
-    remoteDataSource,
-    storageService,
-  );
+  return PushTokensRepositoryImpl(remoteDataSource, storageService);
 }
 
 class NotificationsState {
@@ -71,9 +70,13 @@ class NotificationsState {
     return NotificationsState(
       isPermissionGranted: isPermissionGranted ?? this.isPermissionGranted,
       isRegistering: isRegistering ?? this.isRegistering,
-      registeredTokenPrefix: clearRegisteredToken ? null : (registeredTokenPrefix ?? this.registeredTokenPrefix),
+      registeredTokenPrefix: clearRegisteredToken
+          ? null
+          : (registeredTokenPrefix ?? this.registeredTokenPrefix),
       lastError: lastError,
-      pendingRedirectPath: clearPendingRedirect ? null : (pendingRedirectPath ?? this.pendingRedirectPath),
+      pendingRedirectPath: clearPendingRedirect
+          ? null
+          : (pendingRedirectPath ?? this.pendingRedirectPath),
     );
   }
 }
@@ -115,7 +118,9 @@ class NotificationsController extends _$NotificationsController {
 
     // 1. Foreground message stream
     _foregroundSub = service.onForegroundMessage.listen((payload) {
-      debugPrint('[PushNotification] Foreground payload received: ${payload.toSafeLogString()}');
+      debugPrint(
+        '[PushNotification] Foreground payload received: ${payload.toSafeLogString()}',
+      );
       // Invalidate loan views central helper from Lot 4
       invalidateLoanViews(ref, loanId: payload.loanId);
 
@@ -124,7 +129,9 @@ class NotificationsController extends _$NotificationsController {
 
     // 2. Message opened app (background)
     _openedAppSub = service.onMessageOpenedApp.listen((payload) {
-      debugPrint('[PushNotification] Opened from background: ${payload.toSafeLogString()}');
+      debugPrint(
+        '[PushNotification] Opened from background: ${payload.toSafeLogString()}',
+      );
       handleOpenedNotification(payload, onOpenPayload: onOpenPayload);
     });
 
@@ -137,7 +144,9 @@ class NotificationsController extends _$NotificationsController {
     // 4. Check initial message (terminated state cold start)
     final initialMessage = await service.getInitialMessage();
     if (initialMessage != null) {
-      debugPrint('[PushNotification] Opened from terminated cold start: ${initialMessage.toSafeLogString()}');
+      debugPrint(
+        '[PushNotification] Opened from terminated cold start: ${initialMessage.toSafeLogString()}',
+      );
       handleOpenedNotification(initialMessage, onOpenPayload: onOpenPayload);
     }
   }
@@ -188,12 +197,16 @@ class NotificationsController extends _$NotificationsController {
     final authState = ref.read(authControllerProvider);
     final user = authState.value;
     if (user == null) {
-      debugPrint('[PushNotification] User not authenticated, skipping token registration');
+      debugPrint(
+        '[PushNotification] User not authenticated, skipping token registration',
+      );
       return;
     }
 
     if (state.isRegistering) {
-      debugPrint('[PushNotification] Registration already in flight, queueing token');
+      debugPrint(
+        '[PushNotification] Registration already in flight, queueing token',
+      );
       _queuedToken = newToken ?? _queuedToken;
       return;
     }
@@ -202,7 +215,9 @@ class NotificationsController extends _$NotificationsController {
 
     try {
       if (kIsWeb) {
-        debugPrint('[PushNotification] Web platform does not support mobile push tokens');
+        debugPrint(
+          '[PushNotification] Web platform does not support mobile push tokens',
+        );
         state = state.copyWith(isRegistering: false);
         return;
       }
@@ -229,7 +244,9 @@ class NotificationsController extends _$NotificationsController {
         appVersion: '1.0.0+1',
       );
 
-      debugPrint('[PushNotification] Token successfully registered for user ID ${user.id}');
+      debugPrint(
+        '[PushNotification] Token successfully registered for user ID ${user.id}',
+      );
       state = state.copyWith(
         isRegistering: false,
         registeredTokenPrefix: prefix,
@@ -237,10 +254,7 @@ class NotificationsController extends _$NotificationsController {
       );
     } catch (e) {
       debugPrint('[PushNotification] Token registration failed: $e');
-      state = state.copyWith(
-        isRegistering: false,
-        lastError: e.toString(),
-      );
+      state = state.copyWith(isRegistering: false, lastError: e.toString());
     } finally {
       if (_queuedToken != null) {
         final next = _queuedToken;
@@ -252,7 +266,9 @@ class NotificationsController extends _$NotificationsController {
 
   /// Revoke token on backend and delete token locally upon logout
   Future<void> revokeAndCleanupToken() async {
-    debugPrint('[PushNotification] Initiating push token revocation before logout');
+    debugPrint(
+      '[PushNotification] Initiating push token revocation before logout',
+    );
 
     // 1. Revoke on backend with short timeout to prevent hanging offline
     try {
@@ -260,7 +276,9 @@ class NotificationsController extends _$NotificationsController {
       await repository.revokeCurrentInstallationToken().timeout(
         const Duration(seconds: 3),
         onTimeout: () {
-          debugPrint('[PushNotification] Backend revocation timed out (offline logout)');
+          debugPrint(
+            '[PushNotification] Backend revocation timed out (offline logout)',
+          );
         },
       );
     } catch (e) {
@@ -290,7 +308,9 @@ class NotificationsController extends _$NotificationsController {
     if (payload.messageId != null && payload.messageId!.isNotEmpty) {
       final messageId = payload.messageId!;
       if (_processedMessageIds.contains(messageId)) {
-        debugPrint('[PushNotification] Message $messageId already processed, skipping duplicate navigation');
+        debugPrint(
+          '[PushNotification] Message $messageId already processed, skipping duplicate navigation',
+        );
         return;
       }
       _processedMessageIds.add(messageId);
@@ -306,7 +326,9 @@ class NotificationsController extends _$NotificationsController {
     final isLoggedIn = authState.value != null;
 
     if (!isLoggedIn) {
-      debugPrint('[PushNotification] User not logged in, saving pending redirect to $targetPath');
+      debugPrint(
+        '[PushNotification] User not logged in, saving pending redirect to $targetPath',
+      );
       state = state.copyWith(pendingRedirectPath: targetPath);
     } else {
       // User is already logged in: do NOT save pending redirect path to prevent stale redirects on subsequent sessions

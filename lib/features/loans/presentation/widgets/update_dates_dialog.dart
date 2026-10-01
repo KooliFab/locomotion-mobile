@@ -34,8 +34,10 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
     // Convert departure to vehicle local time so the initial form fields
     // match the vehicle's wall-clock time rather than UTC or device local.
     final tz = widget.loan.loanable?.timezone;
-    final vehicleDep =
-        LoanDateFormatter.toVehicleDateTime(widget.loan.departureAt, tz);
+    final vehicleDep = LoanDateFormatter.toVehicleDateTime(
+      widget.loan.departureAt,
+      tz,
+    );
     _departureDate = VehicleLocalDates.formatYmd(vehicleDep);
     _departureTime =
         '${vehicleDep.hour.toString().padLeft(2, '0')}:${vehicleDep.minute.toString().padLeft(2, '0')}';
@@ -60,8 +62,9 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
       return;
     }
 
-    final time =
-        _departureTime.length == 5 ? '$_departureTime:00' : _departureTime;
+    final time = _departureTime.length == 5
+        ? '$_departureTime:00'
+        : _departureTime;
     final naiveDeparture = '$_departureDate $time';
 
     setState(() {
@@ -119,12 +122,17 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
                 decoration: BoxDecoration(
                   color: AppColors.dangerBg,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: AppColors.danger, size: 20),
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: AppColors.danger,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -150,10 +158,12 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
               onTap: _isLoading
                   ? null
                   : () async {
-                      final initial = DateTime.tryParse(_departureDate) ??
-                          DateTime.now();
+                      final initial =
+                          DateTime.tryParse(_departureDate) ?? DateTime.now();
                       final now = DateTime.now();
-                      final candidateFirst = now.subtract(const Duration(days: 30));
+                      final candidateFirst = now.subtract(
+                        const Duration(days: 30),
+                      );
                       final firstDate = initial.isBefore(candidateFirst)
                           ? initial.subtract(const Duration(days: 7))
                           : candidateFirst;
@@ -181,7 +191,10 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   errorText: _departureError,
-                  suffixIcon: const Icon(Icons.calendar_today_rounded, size: 18),
+                  suffixIcon: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 18,
+                  ),
                 ),
                 child: Text(_departureDate),
               ),

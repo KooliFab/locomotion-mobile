@@ -55,7 +55,7 @@ final class PushNotificationServiceProvider
 }
 
 String _$pushNotificationServiceHash() =>
-    r'd31cc04d1b8d14374fb75a4795f2180f74f52eca';
+    r'1d1e447f39fc7c9ef59ff2dff3366111c741df9c';
 
 @ProviderFor(pushTokensRemoteDataSource)
 final pushTokensRemoteDataSourceProvider =
@@ -152,7 +152,7 @@ final class PushTokensRepositoryProvider
 }
 
 String _$pushTokensRepositoryHash() =>
-    r'7606ae09fb63a292e920b8230fc6dc1e080e1b31';
+    r'49347a77dded6fa168cf8559333ab09e4b62a401';
 
 @ProviderFor(NotificationsController)
 final notificationsControllerProvider = NotificationsControllerProvider._();
@@ -187,7 +187,7 @@ final class NotificationsControllerProvider
 }
 
 String _$notificationsControllerHash() =>
-    r'c244a7f6b4028362a9ec6989626179f98c70a25b';
+    r'4955908d46b338893d53be4a4b3ed11725bc540a';
 
 abstract class _$NotificationsController extends $Notifier<NotificationsState> {
   NotificationsState build();

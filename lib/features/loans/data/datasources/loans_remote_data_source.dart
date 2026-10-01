@@ -58,8 +58,8 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     final item = data['data'] is Map<String, dynamic>
         ? data['data'] as Map<String, dynamic>
         : (data['loan'] is Map<String, dynamic>
-            ? data['loan'] as Map<String, dynamic>
-            : data);
+              ? data['loan'] as Map<String, dynamic>
+              : data);
 
     return Loan.fromJson(item);
   }
@@ -103,10 +103,7 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     String? status,
     int? borrowerUserId,
   }) async {
-    final queryParams = <String, dynamic>{
-      'page': page,
-      'per_page': perPage,
-    };
+    final queryParams = <String, dynamic>{'page': page, 'per_page': perPage};
     if (status != null && status.isNotEmpty) {
       queryParams['status'] = status;
     }
@@ -153,7 +150,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
 
   @override
   Future<Loan> cancelLoan(int id) async {
-    final response = await _apiClient.put('${ApiEndpoints.loanDetail(id)}/cancel');
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/cancel',
+    );
     final data = response.data;
     if (data is! Map<String, dynamic>) {
       throw FormatException(

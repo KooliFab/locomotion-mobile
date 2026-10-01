@@ -98,9 +98,11 @@ abstract class Loan with _$Loan {
       if (roles is List) {
         for (final r in roles) {
           if (r is Map) {
-            final uid = r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
+            final uid =
+                r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
             final role = r['role']?.toString();
-            if (uid == currentUserId && (role == 'owner' || role == 'coowner')) {
+            if (uid == currentUserId &&
+                (role == 'owner' || role == 'coowner')) {
               return true;
             }
           }
@@ -146,12 +148,17 @@ abstract class Loan with _$Loan {
   /// For borrower: allowed if free, or not ongoing, or before departure, or has blocking incident.
   /// Refused if ongoing with cost after departure without blocking incident.
   bool canBorrowerCancel(int? currentUserId) {
-    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+    if (borrowerUserId != null &&
+        currentUserId != null &&
+        borrowerUserId != currentUserId) {
       return false;
     }
     final s = parsedStatus;
     // Must be in process
-    if (s == LoanStatus.completed || s == LoanStatus.canceled || s == LoanStatus.rejected || s == LoanStatus.unknown) {
+    if (s == LoanStatus.completed ||
+        s == LoanStatus.canceled ||
+        s == LoanStatus.rejected ||
+        s == LoanStatus.unknown) {
       return false;
     }
     if (s == LoanStatus.ongoing) {
@@ -167,7 +174,9 @@ abstract class Loan with _$Loan {
   /// Backend policy allows confirmed too, but resets confirmation to accepted.
   /// In MVP, borrower can update dates when in requested or accepted.
   bool canBorrowerUpdateDates(int? currentUserId) {
-    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+    if (borrowerUserId != null &&
+        currentUserId != null &&
+        borrowerUserId != currentUserId) {
       return false;
     }
     final s = parsedStatus;
@@ -176,7 +185,9 @@ abstract class Loan with _$Loan {
 
   /// Borrower can comment anytime as long as user is participant
   bool canBorrowerComment(int? currentUserId) {
-    if (borrowerUserId != null && currentUserId != null && borrowerUserId != currentUserId) {
+    if (borrowerUserId != null &&
+        currentUserId != null &&
+        borrowerUserId != currentUserId) {
       return false;
     }
     return true;

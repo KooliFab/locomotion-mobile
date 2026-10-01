@@ -118,10 +118,7 @@ const Map<String, dynamic> laravelLoanDetailJson = {
   "actual_distance": null,
   "alternative_to": "car",
   "created_at": "2026-10-01T10:00:00.000000Z",
-  "community": {
-    "id": 10,
-    "name": "Communauté Rosemont",
-  },
+  "community": {"id": 10, "name": "Communauté Rosemont"},
   "borrower_user": {
     "id": 100,
     "name": "Jean",
@@ -135,10 +132,7 @@ const Map<String, dynamic> laravelLoanDetailJson = {
     "type": "car",
     "timezone": "America/Montreal",
     "merged_user_roles": [
-      {
-        "user_id": 200,
-        "role": "owner",
-      },
+      {"user_id": 200, "role": "owner"},
     ],
   },
   "comments": [
@@ -179,12 +173,7 @@ const Map<String, dynamic> laravelLoansPaginatedJson = {
       "loanable": {"id": 2, "name": "Vélo Babboe", "type": "bike"},
     },
   ],
-  "meta": {
-    "current_page": 1,
-    "last_page": 2,
-    "per_page": 2,
-    "total": 4,
-  },
+  "meta": {"current_page": 1, "last_page": 2, "per_page": 2, "total": 4},
   "links": {
     "first": "http://localhost:8000/api/v1/loans?page=1",
     "last": "http://localhost:8000/api/v1/loans?page=2",
@@ -192,4 +181,3 @@ const Map<String, dynamic> laravelLoansPaginatedJson = {
     "next": "http://localhost:8000/api/v1/loans?page=2",
   },
 };
-

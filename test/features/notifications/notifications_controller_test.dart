@@ -100,30 +100,46 @@ void main() {
       addTearDown(container.dispose);
 
       fakeService.permissionGranted = true;
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
 
       await controller.initialize();
 
-      expect(container.read(notificationsControllerProvider).isPermissionGranted, isTrue);
+      expect(
+        container.read(notificationsControllerProvider).isPermissionGranted,
+        isTrue,
+      );
       expect(fakeService.isInitialized, isTrue);
     });
 
-    test('requestPermission updates state and syncs token if granted', () async {
-      final container = createContainer(user: testUser);
-      addTearDown(container.dispose);
+    test(
+      'requestPermission updates state and syncs token if granted',
+      () async {
+        final container = createContainer(user: testUser);
+        addTearDown(container.dispose);
 
-      fakeService.permissionGranted = true;
-      fakeService.currentToken = 'fcm_token_1234567890';
+        fakeService.permissionGranted = true;
+        fakeService.currentToken = 'fcm_token_1234567890';
 
-      final controller = container.read(notificationsControllerProvider.notifier);
-      final granted = await controller.requestPermission();
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+        final granted = await controller.requestPermission();
 
-      expect(granted, isTrue);
-      expect(container.read(notificationsControllerProvider).isPermissionGranted, isTrue);
-      expect(fakeRepo.registeredToken, 'fcm_token_1234567890');
-      // Token prefix should be 6 characters max
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, 'fcm_to');
-    });
+        expect(granted, isTrue);
+        expect(
+          container.read(notificationsControllerProvider).isPermissionGranted,
+          isTrue,
+        );
+        expect(fakeRepo.registeredToken, 'fcm_token_1234567890');
+        // Token prefix should be 6 characters max
+        expect(
+          container.read(notificationsControllerProvider).registeredTokenPrefix,
+          'fcm_to',
+        );
+      },
+    );
   });
 
   group('NotificationsController Token Sync & Revocation', () {
@@ -131,11 +147,16 @@ void main() {
       final container = createContainer(user: null);
       addTearDown(container.dispose);
 
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
       await controller.syncPushToken();
 
       expect(fakeRepo.registeredToken, isNull);
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, isNull);
+      expect(
+        container.read(notificationsControllerProvider).registeredTokenPrefix,
+        isNull,
+      );
     });
 
     test('syncPushToken registers token when user is authenticated', () async {
@@ -144,19 +165,29 @@ void main() {
 
       fakeService.currentToken = 'my_super_token_987';
 
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
       await controller.syncPushToken();
 
       expect(fakeRepo.registeredToken, 'my_super_token_987');
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, 'my_sup');
-      expect(container.read(notificationsControllerProvider).isRegistering, isFalse);
+      expect(
+        container.read(notificationsControllerProvider).registeredTokenPrefix,
+        'my_sup',
+      );
+      expect(
+        container.read(notificationsControllerProvider).isRegistering,
+        isFalse,
+      );
     });
 
     test('onTokenRefresh stream triggers token synchronization', () async {
       final container = createContainer(user: testUser);
       addTearDown(container.dispose);
 
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
       await controller.initialize();
 
       fakeService.emitTokenRefresh('refreshed_token_55555');
@@ -164,91 +195,117 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(fakeRepo.registeredToken, 'refreshed_token_55555');
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, 'refres');
+      expect(
+        container.read(notificationsControllerProvider).registeredTokenPrefix,
+        'refres',
+      );
     });
 
     test('revokeAndCleanupToken calls backend and local deleteToken', () async {
       final container = createContainer(user: testUser);
       addTearDown(container.dispose);
 
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
       await controller.syncPushToken();
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, isNotNull);
+      expect(
+        container.read(notificationsControllerProvider).registeredTokenPrefix,
+        isNotNull,
+      );
 
       await controller.revokeAndCleanupToken();
 
       expect(fakeRepo.isRevoked, isTrue);
       expect(fakeService.isTokenDeleted, isTrue);
-      expect(container.read(notificationsControllerProvider).registeredTokenPrefix, isNull);
+      expect(
+        container.read(notificationsControllerProvider).registeredTokenPrefix,
+        isNull,
+      );
     });
   });
 
   group('NotificationsController Foreground & Opened Messages', () {
-    test('foreground message invokes onForegroundPayload without navigating', () async {
-      final container = createContainer(user: testUser);
-      addTearDown(container.dispose);
+    test(
+      'foreground message invokes onForegroundPayload without navigating',
+      () async {
+        final container = createContainer(user: testUser);
+        addTearDown(container.dispose);
 
-      PushPayload? receivedForegroundPayload;
-      final controller = container.read(notificationsControllerProvider.notifier);
+        PushPayload? receivedForegroundPayload;
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
 
-      await controller.initialize(
-        onForegroundPayload: (payload) {
-          receivedForegroundPayload = payload;
-        },
-      );
+        await controller.initialize(
+          onForegroundPayload: (payload) {
+            receivedForegroundPayload = payload;
+          },
+        );
 
-      const payload = PushPayload(
-        schemaVersion: '1',
-        eventType: PushEventType.loanCreated,
-        loanId: 42,
-        messageId: 'msg_fg_1',
-        title: 'LocoMotion',
-        body: 'Nouvelle demande reçue',
-      );
+        const payload = PushPayload(
+          schemaVersion: '1',
+          eventType: PushEventType.loanCreated,
+          loanId: 42,
+          messageId: 'msg_fg_1',
+          title: 'LocoMotion',
+          body: 'Nouvelle demande reçue',
+        );
 
-      fakeService.emitForegroundMessage(payload);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        fakeService.emitForegroundMessage(payload);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(receivedForegroundPayload, isNotNull);
-      expect(receivedForegroundPayload!.loanId, 42);
-      expect(receivedForegroundPayload!.eventType, PushEventType.loanCreated);
-    });
+        expect(receivedForegroundPayload, isNotNull);
+        expect(receivedForegroundPayload!.loanId, 42);
+        expect(receivedForegroundPayload!.eventType, PushEventType.loanCreated);
+      },
+    );
 
-    test('opened app notification invokes onOpenPayload when authenticated', () async {
-      final container = createContainer(user: testUser);
-      addTearDown(container.dispose);
+    test(
+      'opened app notification invokes onOpenPayload when authenticated',
+      () async {
+        final container = createContainer(user: testUser);
+        addTearDown(container.dispose);
 
-      PushPayload? openedPayload;
-      final controller = container.read(notificationsControllerProvider.notifier);
+        PushPayload? openedPayload;
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
 
-      await controller.initialize(
-        onOpenPayload: (payload) {
-          openedPayload = payload;
-        },
-      );
+        await controller.initialize(
+          onOpenPayload: (payload) {
+            openedPayload = payload;
+          },
+        );
 
-      const payload = PushPayload(
-        schemaVersion: '1',
-        eventType: PushEventType.loanAccepted,
-        loanId: 88,
-        messageId: 'msg_open_1',
-      );
+        const payload = PushPayload(
+          schemaVersion: '1',
+          eventType: PushEventType.loanAccepted,
+          loanId: 88,
+          messageId: 'msg_open_1',
+        );
 
-      fakeService.emitMessageOpenedApp(payload);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        fakeService.emitMessageOpenedApp(payload);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(openedPayload, isNotNull);
-      expect(openedPayload!.loanId, 88);
-      // Authenticated user should NOT have pendingRedirectPath populated
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, isNull);
-    });
+        expect(openedPayload, isNotNull);
+        expect(openedPayload!.loanId, 88);
+        // Authenticated user should NOT have pendingRedirectPath populated
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          isNull,
+        );
+      },
+    );
 
     test('opened app notification deduplicates duplicate messageId', () async {
       final container = createContainer(user: testUser);
       addTearDown(container.dispose);
 
       int openCount = 0;
-      final controller = container.read(notificationsControllerProvider.notifier);
+      final controller = container.read(
+        notificationsControllerProvider.notifier,
+      );
 
       await controller.initialize(
         onOpenPayload: (payload) {
@@ -274,87 +331,117 @@ void main() {
       expect(openCount, 1); // Should not increase
     });
 
-    test('opened notification when unauthenticated saves pendingRedirectPath for post-login', () async {
-      final container = createContainer(user: null);
-      addTearDown(container.dispose);
+    test(
+      'opened notification when unauthenticated saves pendingRedirectPath for post-login',
+      () async {
+        final container = createContainer(user: null);
+        addTearDown(container.dispose);
 
-      int openCount = 0;
-      final controller = container.read(notificationsControllerProvider.notifier);
+        int openCount = 0;
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
 
-      await controller.initialize(
-        onOpenPayload: (_) {
-          openCount++;
-        },
-      );
+        await controller.initialize(
+          onOpenPayload: (_) {
+            openCount++;
+          },
+        );
 
-      const payload = PushPayload(
-        schemaVersion: '1',
-        eventType: PushEventType.loanCommentAdded,
-        loanId: 99,
-        messageId: 'msg_unauth_1',
-      );
-
-      fakeService.emitMessageOpenedApp(payload);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-
-      // onOpenPayload was not invoked directly
-      expect(openCount, 0);
-      // but pending redirect path was recorded
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, '/loans/99');
-
-      // Now consumed
-      controller.consumePendingRedirect();
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, isNull);
-    });
-
-    test('terminated cold start initial message is processed on initialize', () async {
-      final container = createContainer(user: testUser);
-      addTearDown(container.dispose);
-
-      PushPayload? openedPayload;
-
-      fakeService.setInitialMessage(
-        const PushPayload(
+        const payload = PushPayload(
           schemaVersion: '1',
-          eventType: PushEventType.loanRejected,
-          loanId: 77,
-          messageId: 'cold_start_msg_1',
-        ),
-      );
+          eventType: PushEventType.loanCommentAdded,
+          loanId: 99,
+          messageId: 'msg_unauth_1',
+        );
 
-      final controller = container.read(notificationsControllerProvider.notifier);
-      await controller.initialize(
-        onOpenPayload: (payload) {
-          openedPayload = payload;
-        },
-      );
+        fakeService.emitMessageOpenedApp(payload);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      expect(openedPayload, isNotNull);
-      expect(openedPayload!.loanId, 77);
-      // Authenticated user should NOT have pendingRedirectPath populated
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, isNull);
-    });
+        // onOpenPayload was not invoked directly
+        expect(openCount, 0);
+        // but pending redirect path was recorded
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          '/loans/99',
+        );
 
-    test('revokeAndCleanupToken clears pendingRedirectPath and registered token', () async {
-      final container = createContainer(user: null);
-      addTearDown(container.dispose);
+        // Now consumed
+        controller.consumePendingRedirect();
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          isNull,
+        );
+      },
+    );
 
-      final controller = container.read(notificationsControllerProvider.notifier);
-      await controller.initialize();
+    test(
+      'terminated cold start initial message is processed on initialize',
+      () async {
+        final container = createContainer(user: testUser);
+        addTearDown(container.dispose);
 
-      const payload = PushPayload(
-        schemaVersion: '1',
-        eventType: PushEventType.loanCreated,
-        loanId: 101,
-        messageId: 'msg_revoke_test',
-      );
+        PushPayload? openedPayload;
 
-      fakeService.emitMessageOpenedApp(payload);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, '/loans/101');
+        fakeService.setInitialMessage(
+          const PushPayload(
+            schemaVersion: '1',
+            eventType: PushEventType.loanRejected,
+            loanId: 77,
+            messageId: 'cold_start_msg_1',
+          ),
+        );
 
-      await controller.revokeAndCleanupToken();
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, isNull);
-    });
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+        await controller.initialize(
+          onOpenPayload: (payload) {
+            openedPayload = payload;
+          },
+        );
+
+        expect(openedPayload, isNotNull);
+        expect(openedPayload!.loanId, 77);
+        // Authenticated user should NOT have pendingRedirectPath populated
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'revokeAndCleanupToken clears pendingRedirectPath and registered token',
+      () async {
+        final container = createContainer(user: null);
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+        await controller.initialize();
+
+        const payload = PushPayload(
+          schemaVersion: '1',
+          eventType: PushEventType.loanCreated,
+          loanId: 101,
+          messageId: 'msg_revoke_test',
+        );
+
+        fakeService.emitMessageOpenedApp(payload);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          '/loans/101',
+        );
+
+        await controller.revokeAndCleanupToken();
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          isNull,
+        );
+      },
+    );
   });
 }

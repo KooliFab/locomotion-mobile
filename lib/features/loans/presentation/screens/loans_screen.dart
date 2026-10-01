@@ -48,8 +48,9 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
   @override
   Widget build(BuildContext context) {
     final dashboardAsync = ref.watch(loansDashboardControllerProvider);
-    final cancelledOrRejectedAsync =
-        ref.watch(cancelledOrRejectedLoansProvider);
+    final cancelledOrRejectedAsync = ref.watch(
+      cancelledOrRejectedLoansProvider,
+    );
     final currentUser = ref.watch(authControllerProvider).value;
 
     return Scaffold(
@@ -81,19 +82,20 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
             final waitingLoans = userId == null
                 ? <Loan>[]
                 : dashboard.waiting.loans
-                    .where((l) => l.borrowerUserId == userId)
-                    .toList();
+                      .where((l) => l.borrowerUserId == userId)
+                      .toList();
             final waitingTotal = dashboard.waiting.total;
 
             // 2. Acceptées / confirmées (future) - strictly filter for borrower role
             final futureLoans = userId == null
                 ? <Loan>[]
                 : dashboard.future.loans
-                    .where((l) => l.borrowerUserId == userId)
-                    .toList();
+                      .where((l) => l.borrowerUserId == userId)
+                      .toList();
             // If some loans in future were owner loans, the displayed count must reflect borrower loans
             // when total <= loans.length, or show total if un-truncated
-            final futureTotal = dashboard.future.total > dashboard.future.loans.length
+            final futureTotal =
+                dashboard.future.total > dashboard.future.loans.length
                 ? dashboard.future.total
                 : futureLoans.length;
 
@@ -101,9 +103,10 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
             final startedLoans = userId == null
                 ? <Loan>[]
                 : dashboard.started.loans
-                    .where((l) => l.borrowerUserId == userId)
-                    .toList();
-            final startedTotal = dashboard.started.total > dashboard.started.loans.length
+                      .where((l) => l.borrowerUserId == userId)
+                      .toList();
+            final startedTotal =
+                dashboard.started.total > dashboard.started.loans.length
                 ? dashboard.started.total
                 : startedLoans.length;
 
@@ -111,9 +114,10 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
             final completedLoans = userId == null
                 ? <Loan>[]
                 : dashboard.completed.loans
-                    .where((l) => l.borrowerUserId == userId)
-                    .toList();
-            final completedTotal = dashboard.completed.total > dashboard.completed.loans.length
+                      .where((l) => l.borrowerUserId == userId)
+                      .toList();
+            final completedTotal =
+                dashboard.completed.total > dashboard.completed.loans.length
                 ? dashboard.completed.total
                 : completedLoans.length;
 
@@ -121,14 +125,19 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
             final cancelledOrRejectedLoans = userId == null
                 ? <Loan>[]
                 : (cancelledOrRejectedAsync.value ?? <Loan>[])
-                    .where((l) => l.borrowerUserId == null || l.borrowerUserId == userId)
-                    .toList();
+                      .where(
+                        (l) =>
+                            l.borrowerUserId == null ||
+                            l.borrowerUserId == userId,
+                      )
+                      .toList();
 
             // Owner section: Demandes à traiter (need_approval)
             final needApprovalLoans = dashboard.needApproval.loans;
             final needApprovalTotal = dashboard.needApproval.total;
 
-            final isEmptyOverall = waitingLoans.isEmpty &&
+            final isEmptyOverall =
+                waitingLoans.isEmpty &&
                 futureLoans.isEmpty &&
                 startedLoans.isEmpty &&
                 completedLoans.isEmpty &&
@@ -307,7 +316,9 @@ class _LoansScreenState extends ConsumerState<LoansScreen>
                     if (customRoute != null) {
                       context.push(customRoute);
                     } else {
-                      context.push(AppRoutes.loansListPath(status: filterStatus));
+                      context.push(
+                        AppRoutes.loansListPath(status: filterStatus),
+                      );
                     }
                   },
                   child: const Text('Voir tout'),
@@ -370,8 +381,10 @@ class _LoanCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: LoanStatusHelper.backgroundColor(status),
                       borderRadius: BorderRadius.circular(6),

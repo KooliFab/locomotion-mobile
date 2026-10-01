@@ -3,10 +3,7 @@ import '../../../../core/error/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/loan.dart';
 
-enum OwnerDecisionType {
-  accept,
-  reject,
-}
+enum OwnerDecisionType { accept, reject }
 
 class OwnerDecisionDialog extends StatefulWidget {
   final Loan loan;
@@ -68,14 +65,16 @@ class _OwnerDecisionDialogState extends State<OwnerDecisionDialog> {
                 ? e.message
                 : 'Le véhicule n\'est pas disponible sur cette période.';
           } else if (e is ForbiddenException ||
-              (e is ServerException && (e.statusCode == 403 || e.statusCode == 404))) {
+              (e is ServerException &&
+                  (e.statusCode == 403 || e.statusCode == 404))) {
             _isAccessLost = true;
             _errorMessage =
                 'Cette demande n\'est plus disponible ou a déjà été traitée.';
           } else if (e is AppException) {
             _errorMessage = e.message;
           } else {
-            _errorMessage = 'Une erreur inattendue est survenue. Veuillez réessayer.';
+            _errorMessage =
+                'Une erreur inattendue est survenue. Veuillez réessayer.';
           }
         });
         if (_isAccessLost) {
@@ -88,7 +87,9 @@ class _OwnerDecisionDialogState extends State<OwnerDecisionDialog> {
   @override
   Widget build(BuildContext context) {
     final title = _isAccept ? 'Accepter la demande' : 'Refuser la demande';
-    final actionLabel = _isAccept ? 'Confirmer l\'acceptation' : 'Confirmer le refus';
+    final actionLabel = _isAccept
+        ? 'Confirmer l\'acceptation'
+        : 'Confirmer le refus';
     final actionColor = _isAccept ? AppColors.success : AppColors.danger;
     final hintText = _isAccept
         ? 'Ajouter un mot pour l\'emprunteur (facultatif)...'
@@ -122,7 +123,10 @@ class _OwnerDecisionDialogState extends State<OwnerDecisionDialog> {
               _isAccept
                   ? 'Vous vous apprêtez à accepter la demande de prêt pour "${widget.loan.displayLoanableName}".'
                   : 'Vous vous apprêtez à refuser la demande de prêt pour "${widget.loan.displayLoanableName}".',
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 16),
             if (_errorMessage != null) ...[
@@ -199,7 +203,9 @@ class _OwnerDecisionDialogState extends State<OwnerDecisionDialog> {
               const SizedBox(height: 12),
             ],
             Text(
-              _isAccept ? 'Commentaire (facultatif)' : 'Motif / Commentaire (conseillé)',
+              _isAccept
+                  ? 'Commentaire (facultatif)'
+                  : 'Motif / Commentaire (conseillé)',
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,

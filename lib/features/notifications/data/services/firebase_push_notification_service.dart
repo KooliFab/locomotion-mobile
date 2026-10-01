@@ -8,7 +8,7 @@ class FirebasePushNotificationService implements PushNotificationService {
   final FirebaseMessaging _messaging;
 
   FirebasePushNotificationService({FirebaseMessaging? messaging})
-      : _messaging = messaging ?? FirebaseMessaging.instance;
+    : _messaging = messaging ?? FirebaseMessaging.instance;
 
   @override
   Future<void> initialize() async {
@@ -45,7 +45,9 @@ class FirebasePushNotificationService implements PushNotificationService {
     try {
       return await _messaging.getToken();
     } catch (e, stack) {
-      debugPrint('[PushNotificationService] Failed to obtain FCM token: $e\n$stack');
+      debugPrint(
+        '[PushNotificationService] Failed to obtain FCM token: $e\n$stack',
+      );
       return null;
     }
   }

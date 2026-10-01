@@ -8,7 +8,8 @@ class FakePushNotificationService implements PushNotificationService {
   PushPayload? initialMessage;
 
   final _tokenRefreshController = StreamController<String>.broadcast();
-  final _foregroundMessageController = StreamController<PushPayload>.broadcast();
+  final _foregroundMessageController =
+      StreamController<PushPayload>.broadcast();
   final _messageOpenedAppController = StreamController<PushPayload>.broadcast();
 
   bool isInitialized = false;
@@ -38,10 +39,12 @@ class FakePushNotificationService implements PushNotificationService {
   Stream<String> get onTokenRefresh => _tokenRefreshController.stream;
 
   @override
-  Stream<PushPayload> get onForegroundMessage => _foregroundMessageController.stream;
+  Stream<PushPayload> get onForegroundMessage =>
+      _foregroundMessageController.stream;
 
   @override
-  Stream<PushPayload> get onMessageOpenedApp => _messageOpenedAppController.stream;
+  Stream<PushPayload> get onMessageOpenedApp =>
+      _messageOpenedAppController.stream;
 
   @override
   Future<PushPayload?> getInitialMessage() async {

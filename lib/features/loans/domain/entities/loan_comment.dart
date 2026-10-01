@@ -25,7 +25,8 @@ abstract class LoanComment with _$LoanComment {
     if (copy['author'] is Map<String, dynamic>) {
       final authorMap = copy['author'] as Map<String, dynamic>;
       copy['author_id'] ??= authorMap['id'];
-      copy['author_name'] ??= authorMap['full_name'] ??
+      copy['author_name'] ??=
+          authorMap['full_name'] ??
           '${authorMap['name'] ?? ''} ${authorMap['last_name'] ?? ''}'.trim();
     }
     return copy;

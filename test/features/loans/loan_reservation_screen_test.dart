@@ -25,7 +25,7 @@ class _FakeLoanablesRepo implements LoanablesRepository {
   List<LoanableAvailabilityInterval> unavailableIntervals;
 
   _FakeLoanablesRepo({List<LoanableAvailabilityInterval>? unavailableIntervals})
-      : unavailableIntervals = unavailableIntervals ?? [];
+    : unavailableIntervals = unavailableIntervals ?? [];
 
   @override
   Future<LoanablesPage> getLoanables({
@@ -76,8 +76,7 @@ class _FakeLoansRepo implements LoansRepository {
     int perPage = 10,
     String? status,
     int? borrowerUserId,
-  }) async =>
-      const LoanPagination();
+  }) async => const LoanPagination();
 
   @override
   Future<Loan> cancelLoan(int id) async => throw UnimplementedError();

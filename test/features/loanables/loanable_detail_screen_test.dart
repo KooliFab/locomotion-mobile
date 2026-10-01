@@ -109,9 +109,7 @@ void main() {
               windowError: windowError,
             ),
           ),
-          authControllerProvider.overrideWith(
-            () => _FakeAuthController(user),
-          ),
+          authControllerProvider.overrideWith(() => _FakeAuthController(user)),
         ],
       );
       addTearDown(container.dispose);
@@ -275,19 +273,20 @@ void main() {
       expect(buttonCar.onPressed, isNull);
     });
 
-    testWidgets('CTA is enabled on unrestricted vehicle (bike) for logged-in user', (
-      tester,
-    ) async {
-      await pumpDetail(
-        tester,
-        detail: _detail(type: 'bike'),
-        user: testUser,
-      );
-      final buttonBike = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Continuer vers la demande'),
-      );
-      expect(buttonBike.onPressed, isNotNull);
-    });
+    testWidgets(
+      'CTA is enabled on unrestricted vehicle (bike) for logged-in user',
+      (tester) async {
+        await pumpDetail(
+          tester,
+          detail: _detail(type: 'bike'),
+          user: testUser,
+        );
+        final buttonBike = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Continuer vers la demande'),
+        );
+        expect(buttonBike.onPressed, isNotNull);
+      },
+    );
 
     testWidgets('shows incidents section when present', (tester) async {
       final detail = _detail(

@@ -13,7 +13,12 @@ class LoanSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+    DateFormat dateFormat;
+    try {
+      dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+    } catch (_) {
+      dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+    }
 
     return Scaffold(
       appBar: AppBar(

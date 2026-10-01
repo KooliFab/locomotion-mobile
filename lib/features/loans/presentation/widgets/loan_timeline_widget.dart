@@ -74,7 +74,9 @@ class LoanTimelineWidget extends StatelessWidget {
       );
     }
 
-    if (loan.actualReturnAt != null && loan.parsedStatus.value != 'requested' && loan.parsedStatus.value != 'canceled') {
+    if (loan.actualReturnAt != null &&
+        loan.parsedStatus.value != 'requested' &&
+        loan.parsedStatus.value != 'canceled') {
       events.add(
         _TimelineItem(
           title: 'Véhicule retourné',
@@ -90,7 +92,9 @@ class LoanTimelineWidget extends StatelessWidget {
       events.add(
         _TimelineItem(
           title: 'Validation par le propriétaire',
-          subtitle: LoanDateFormatter.formatInVehicleZone(loan.ownerValidatedAt),
+          subtitle: LoanDateFormatter.formatInVehicleZone(
+            loan.ownerValidatedAt,
+          ),
           icon: Icons.verified_user_rounded,
           color: Colors.purple,
           isCompleted: true,
@@ -102,7 +106,9 @@ class LoanTimelineWidget extends StatelessWidget {
       events.add(
         _TimelineItem(
           title: 'Validation par l\'emprunteur',
-          subtitle: LoanDateFormatter.formatInVehicleZone(loan.borrowerValidatedAt),
+          subtitle: LoanDateFormatter.formatInVehicleZone(
+            loan.borrowerValidatedAt,
+          ),
           icon: Icons.done_all_rounded,
           color: Colors.blue,
           isCompleted: true,
@@ -131,10 +137,7 @@ class LoanTimelineWidget extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Historique de la réservation',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),

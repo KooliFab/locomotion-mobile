@@ -52,7 +52,9 @@ void main() {
   );
 
   group('ForegroundNotificationBanner Widget Test', () {
-    testWidgets('displays SnackBar with title, body, and Voir action', (tester) async {
+    testWidgets('displays SnackBar with title, body, and Voir action', (
+      tester,
+    ) async {
       String? navigatedPath;
 
       final router = GoRouter(
@@ -112,58 +114,72 @@ void main() {
   });
 
   group('ProfileScreen Notifications Status', () {
-    testWidgets('displays "Activées" when notifications permission is granted', (tester) async {
-      final notifController = _TestNotificationsController(
-        const NotificationsState(isPermissionGranted: true),
-      );
+    testWidgets(
+      'displays "Activées" when notifications permission is granted',
+      (tester) async {
+        final notifController = _TestNotificationsController(
+          const NotificationsState(isPermissionGranted: true),
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            userBalanceControllerProvider.overrideWith(() => _FakeUserBalanceController(15.0)),
-            notificationsControllerProvider.overrideWith(() => notifController),
-          ],
-          child: const MaterialApp(
-            home: ProfileScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              userBalanceControllerProvider.overrideWith(
+                () => _FakeUserBalanceController(15.0),
+              ),
+              notificationsControllerProvider.overrideWith(
+                () => notifController,
+              ),
+            ],
+            child: const MaterialApp(home: ProfileScreen()),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('Notifications push'), findsOneWidget);
-      expect(find.text('Activées'), findsOneWidget);
-    });
+        expect(find.text('Notifications push'), findsOneWidget);
+        expect(find.text('Activées'), findsOneWidget);
+      },
+    );
 
-    testWidgets('displays "Notifications désactivées" and requests permission when tapped', (tester) async {
-      final notifController = _TestNotificationsController(
-        const NotificationsState(isPermissionGranted: false),
-      );
+    testWidgets(
+      'displays "Notifications désactivées" and requests permission when tapped',
+      (tester) async {
+        final notifController = _TestNotificationsController(
+          const NotificationsState(isPermissionGranted: false),
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            userBalanceControllerProvider.overrideWith(() => _FakeUserBalanceController(0.0)),
-            notificationsControllerProvider.overrideWith(() => notifController),
-          ],
-          child: const MaterialApp(
-            home: ProfileScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              userBalanceControllerProvider.overrideWith(
+                () => _FakeUserBalanceController(0.0),
+              ),
+              notificationsControllerProvider.overrideWith(
+                () => notifController,
+              ),
+            ],
+            child: const MaterialApp(home: ProfileScreen()),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('Notifications push'), findsOneWidget);
-      expect(find.text('Notifications désactivées'), findsOneWidget);
+        expect(find.text('Notifications push'), findsOneWidget);
+        expect(find.text('Notifications désactivées'), findsOneWidget);
 
-      // Tap on the Notifications tile
-      await tester.tap(find.text('Notifications push'));
-      await tester.pumpAndSettle();
+        // Tap on the Notifications tile
+        await tester.tap(find.text('Notifications push'));
+        await tester.pumpAndSettle();
 
-      expect(notifController.requestPermissionCalled, isTrue);
-    });
+        expect(notifController.requestPermissionCalled, isTrue);
+      },
+    );
   });
 }

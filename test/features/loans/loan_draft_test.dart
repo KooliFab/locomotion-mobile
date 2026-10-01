@@ -40,17 +40,20 @@ void main() {
       expect(draft.scheduleValidationError, contains('heure de départ'));
     });
 
-    test('schedule validation rejects departure date in the past for vehicle timezone', () {
-      final draft = baseDraft.copyWith(
-        departureDate: '2020-01-01',
-        vehicleTimezone: 'America/Montreal',
-      );
-      expect(draft.isValid, isFalse);
-      expect(
-        draft.scheduleValidationError,
-        contains('ne peut pas être dans le passé'),
-      );
-    });
+    test(
+      'schedule validation rejects departure date in the past for vehicle timezone',
+      () {
+        final draft = baseDraft.copyWith(
+          departureDate: '2020-01-01',
+          vehicleTimezone: 'America/Montreal',
+        );
+        expect(draft.isValid, isFalse);
+        expect(
+          draft.scheduleValidationError,
+          contains('ne peut pas être dans le passé'),
+        );
+      },
+    );
 
     test('schedule validation enforces min loan duration bound', () {
       final draft = baseDraft.copyWith(durationInMinutes: 30); // min is 60

@@ -42,7 +42,8 @@ class PushTokensRemoteDataSourceImpl implements PushTokensRemoteDataSource {
     }
 
     // Response structure from Laravel: JsonResource { id, platform, installation_id, ... }
-    final json = rawData.containsKey('data') && rawData['data'] is Map<String, dynamic>
+    final json =
+        rawData.containsKey('data') && rawData['data'] is Map<String, dynamic>
         ? rawData['data'] as Map<String, dynamic>
         : rawData;
 
@@ -59,7 +60,9 @@ class PushTokensRemoteDataSourceImpl implements PushTokensRemoteDataSource {
   }
 
   @override
-  Future<void> revokeTokenByInstallation({required String installationId}) async {
+  Future<void> revokeTokenByInstallation({
+    required String installationId,
+  }) async {
     await _client.delete<void>(
       '/auth/user/push-tokens/installations/$installationId',
     );
@@ -67,8 +70,6 @@ class PushTokensRemoteDataSourceImpl implements PushTokensRemoteDataSource {
 
   @override
   Future<void> revokeTokenById({required int id}) async {
-    await _client.delete<void>(
-      '/auth/user/push-tokens/$id',
-    );
+    await _client.delete<void>('/auth/user/push-tokens/$id');
   }
 }

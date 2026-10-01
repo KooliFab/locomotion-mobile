@@ -92,6 +92,7 @@ class LoanCreationController extends _$LoanCreationController {
 
   // --- Navigation between steps ---
   Future<bool> goToTripDetailsStep() async {
+    if (state.isCheckingAvailability || state.isSubmitting) return false;
     final validationError = state.draft.scheduleValidationError;
     if (validationError != null) {
       state = state.copyWith(generalError: validationError);
@@ -185,7 +186,9 @@ class LoanCreationController extends _$LoanCreationController {
       int.parse(reqTimeParts[0]),
       int.parse(reqTimeParts[1]),
     );
-    final reqEndDt = reqStartDt.add(Duration(minutes: draft.durationInMinutes!));
+    final reqEndDt = reqStartDt.add(
+      Duration(minutes: draft.durationInMinutes!),
+    );
 
     final reqStartStr = depStr;
     final reqEndStr =
@@ -201,21 +204,23 @@ class LoanCreationController extends _$LoanCreationController {
         // Compare rawStart and rawEnd strings (vehicle-local wall-clock) directly.
         // Fallback to formatted start/end if rawStart/rawEnd are null.
         // Intersect check: intervalStart < reqEnd && intervalEnd > reqStart
-        final intervalStartStr = interval.rawStart?.trim() ??
+        final intervalStartStr =
+            interval.rawStart?.trim() ??
             '${interval.start.year.toString().padLeft(4, '0')}-'
-            '${interval.start.month.toString().padLeft(2, '0')}-'
-            '${interval.start.day.toString().padLeft(2, '0')} '
-            '${interval.start.hour.toString().padLeft(2, '0')}:'
-            '${interval.start.minute.toString().padLeft(2, '0')}:'
-            '${interval.start.second.toString().padLeft(2, '0')}';
+                '${interval.start.month.toString().padLeft(2, '0')}-'
+                '${interval.start.day.toString().padLeft(2, '0')} '
+                '${interval.start.hour.toString().padLeft(2, '0')}:'
+                '${interval.start.minute.toString().padLeft(2, '0')}:'
+                '${interval.start.second.toString().padLeft(2, '0')}';
 
-        final intervalEndStr = interval.rawEnd?.trim() ??
+        final intervalEndStr =
+            interval.rawEnd?.trim() ??
             '${interval.end.year.toString().padLeft(4, '0')}-'
-            '${interval.end.month.toString().padLeft(2, '0')}-'
-            '${interval.end.day.toString().padLeft(2, '0')} '
-            '${interval.end.hour.toString().padLeft(2, '0')}:'
-            '${interval.end.minute.toString().padLeft(2, '0')}:'
-            '${interval.end.second.toString().padLeft(2, '0')}';
+                '${interval.end.month.toString().padLeft(2, '0')}-'
+                '${interval.end.day.toString().padLeft(2, '0')} '
+                '${interval.end.hour.toString().padLeft(2, '0')}:'
+                '${interval.end.minute.toString().padLeft(2, '0')}:'
+                '${interval.end.second.toString().padLeft(2, '0')}';
 
         if (intervalStartStr.compareTo(reqEndStr) < 0 &&
             intervalEndStr.compareTo(reqStartStr) > 0) {
@@ -336,9 +341,12 @@ class LoanCreationController extends _$LoanCreationController {
         targetStep = 1;
       }
 
-      final isAvailabilityError = e.message.toLowerCase().contains('pas disponible') ||
+      final isAvailabilityError =
+          e.message.toLowerCase().contains('pas disponible') ||
           (fieldMap.containsKey('departure_at') &&
-              fieldMap['departure_at']!.toLowerCase().contains('pas disponible'));
+              fieldMap['departure_at']!.toLowerCase().contains(
+                'pas disponible',
+              ));
 
       state = state.copyWith(
         isSubmitting: false,
