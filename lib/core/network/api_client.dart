@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/env.dart';
 import '../error/exceptions.dart';
 import '../storage/secure_storage.dart';
@@ -26,17 +27,19 @@ class ApiClient {
     );
 
     baseDio.interceptors.add(AuthInterceptor(storageService, baseDio));
-    baseDio.interceptors.add(
-      LogInterceptor(
-        requestHeader: false,
-        requestBody:
-            false, // Ne pas tracer les corps de requête pour protéger la confidentialité des messages privés
-        responseBody:
-            false, // Ne pas tracer les corps de réponse (données privées, messages et commentaires)
-        responseHeader: false,
-        error: true,
-      ),
-    );
+    if (kDebugMode) {
+      baseDio.interceptors.add(
+        LogInterceptor(
+          requestHeader: false,
+          requestBody:
+              false, // Ne pas tracer les corps de requête pour protéger la confidentialité des messages privés
+          responseBody:
+              false, // Ne pas tracer les corps de réponse (données privées, messages et commentaires)
+          responseHeader: false,
+          error: true,
+        ),
+      );
+    }
 
     return ApiClient._(baseDio);
   }
