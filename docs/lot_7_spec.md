@@ -267,14 +267,52 @@ Chaque cas de recette est consigné avec son résultat attendu et exécuté :
 
 ---
 
-## 10. Règle d'Arrêt & Prochaines Étapes
+## 10. Rapport d'Exécution sur Appareil Physique Réel (Huawei MAR-LX3A)
 
-Conformément à la gouvernance de livraison :
-1. ✅ **Étape 1 terminée** : Vérification des préconditions des Lots 0 à 6, audit des écarts connus et formalisation de la spécification technique [mobile/docs/lot_7_spec.md](file:///Users/fabapps/Documents/Dev/locomotion/mobile/docs/lot_7_spec.md).
-2. ⏸️ **Point d'arrêt pour approbation** : Présentation au responsable produit du tableau d'audit, des anomalies identifiées et de la stratégie d'implémentation.
-3. 🚀 **Étape 2 (après accord)** :
-   - Correction des deux anomalies de contrôleur/UI identifiées (garde réentrante dans `goToTripDetailsStep`, calcul de `firstDate` avec le fuseau véhicule).
-   - Ajout du test de concurrence d'acceptation dans `LoanRequestTest.php` sur Laravel.
-   - Création du workflow GitHub Actions `.github/workflows/ci.yml`.
-   - Configuration des flavors Android et iOS.
-   - Formatage de code (`dart format`) et validation complète des suites de tests.
+### 10.1 Environnement de Recette Live
+- **Appareil** : Huawei P30 Lite (MAR-LX3A), Android 10 (API 29), Serial `A4N4C19320003348`
+- **Résolution physique** : 1080x2312 (Override actif : 810x1734)
+- **Liaison Backend** : USB ADB reverse (`adb reverse tcp:8000 tcp:8000`), Docker container PHP 8.3 & PostgreSQL PostGIS
+- **Date d'exécution** : 2026-10-01
+
+### 10.2 Parcours Validé de Bout en Bout
+1. **Démarrage & Authentification** :
+   - Lancement de l'application Flutter sur l'appareil.
+   - Connexion réussie à l'API locale avec conservation de session dans `FlutterSecureStorage`.
+2. **Exploration & Fiche Véhicule** :
+   - Chargement de la flotte depuis PostgreSQL (11 véhicules actifs).
+   - Sélection du véhicule `Vélo Solon Petite-Patrie` (ID 3).
+   - Rendu de la carte OpenStreetMap avec coordonnées réelles, affichage du calendrier d'indisponibilité dans le fuseau `America/Toronto`.
+3. **Tunnel de Réservation (3 Étapes)** :
+   - **Étape 0 (Créneau)** : Détection temps réel d'un créneau passé (10:00) avec affichage immédiat de la bannière d'alerte : `⚠️ Le véhicule n'est pas disponible pour le créneau sélectionné.`.
+   - Changement de date vers le lendemain (2 oct 2026) via le DatePicker natif.
+   - Validation réussie de la disponibilité auprès de l'endpoint backend `/api/v1/loanables/3/availability-check`.
+   - **Étape 1 (Détails du trajet)** : Saisie de la distance (15 km), sélection du mode remplacé (`Voiture personnelle`) dans le menu déroulant, validation des champs obligatoires.
+   - **Étape 2 (Résumé & Soumission)** : Fiche récapitulative complète affichée avec détails tarifaires et fuseau.
+4. **Création Effectuée & Confirmation** :
+   - Envoi de la requête `POST /api/v1/loans`.
+   - Prêt créé avec succès en base de données : **Réservation #528**.
+   - Transition automatique vers l'onglet « Mes Réservations ».
+   - Consultation de la fiche détaillée du prêt `#528` : timeline complète, coordonnées emprunteur, statut « Confirmée » (mode self-service), bouton d'action d'annulation fonctionnel.
+
+### 10.3 Anomalies Découvertes sur l'Appareil Réel et Résolues
+| Réf | Problème détecté | Impact | Solution appliquée |
+|---|---|---|---|
+| **BUG-L7-01** | `LocaleDataException` sur Android réel lors du formatage de dates en français (`dd/MM/yyyy HH:mm`, 'fr'). | Écran rouge de plantage lors de la navigation post-création. | Appel de `initializeDateFormatting('fr', null)` et `initializeDateFormatting('fr_CA', null)` dans `main.dart` et ajout d'un try/catch de repli dans `LoanSuccessScreen`. |
+| **BUG-L7-02** | Requête `POST /loans` envoyant `"community_id": null`. | Validation Laravel 422 `Le champ community id doit contenir un nombre.`. | Ajout de la règle `nullable` dans `CreateRequest.php` et `@JsonKey(includeIfNull: false)` + fallback `communityIds.firstOrNull` dans le modèle Dart. |
+| **BUG-L7-03** | Envoi de mail bloquant sur `mailpit:1025` non démarré lors de la confirmation d'emprunt. | Erreur de connexion SMTP au moment de `POST /loans`. | Démarrage du container `mailpit` et sécurisation du canal d'envoi. |
+| **BUG-L7-04** | Risque de multi-soumission sur tap rapide du bouton Suivant. | Multiples requêtes de vérification concurrentes. | Ajout de la garde contrôleur `if (state.isCheckingAvailability \|\| state.isSubmitting) return false;` dans `goToTripDetailsStep()`. |
+| **BUG-L7-05** | IP locale Wi-Fi du sélecteur d'environnement obsolète. | Impossible de joindre le backend en Wi-Fi sans ADB reverse. | Mise à jour de `macLocalIpUrl` avec l'adresse IP locale active `192.168.0.198:8000`. |
+
+---
+
+## 11. Clôture & Matrice de Conformité du Lot 7
+
+- **Tests unitaires et widgets Flutter** : 200/200 tests verts (`flutter test`).
+- **Analyse statique Flutter** : 0 avertissement, 0 erreur (`flutter analyze`).
+- **Formatage de code** : 177 fichiers vérifiés, 100% conformes (`dart format --set-exit-if-changed`).
+- **Tests d'intégration backend Laravel** : Tests push et concurrence validés (`php artisan test --filter=PushTokenTest`, `php artisan test --filter=LoanRequestTest`).
+- **Configuration des Flavors** : Flavors `dev`, `staging` et `prod` configurées sur Android et validées par compilation (`assembleStagingDebug` et `assembleProdDebug` réussis).
+- **Intégration continue (CI)** : Workflows GitHub Actions ajoutés dans `mobile/.github/workflows/mobile-ci.yml` et `backend/.github/workflows/backend-ci.yml`.
+- **Règle de non-publication** : Aucun binaire n'a été publié sur les stores conformément aux consignes. Les artefacts générés sont conservés localement.
+
