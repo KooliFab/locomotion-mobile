@@ -32,6 +32,13 @@ class AppConfig {
   /// Active base URL
   static String baseUrl = defaultBaseUrl;
 
+  /// Stripe configuration
+  static const String stripePublishableKey = String.fromEnvironment(
+    'STRIPE_PUBLISHABLE_KEY',
+    defaultValue: 'pk_test_locomotion_demo',
+  );
+  static const String stripeMerchantDisplayName = 'LocoMotion';
+
   /// Timeouts
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);

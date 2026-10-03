@@ -171,6 +171,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               subtitle: borrowerStatus.label,
               onTap: () => context.push(AppRoutes.borrower),
             ),
+            _MenuItem(
+              icon: Icons.credit_card_outlined,
+              title: 'Moyens de paiement',
+              subtitle: 'Cartes bancaires & Stripe',
+              onTap: () => context.push(AppRoutes.paymentMethods),
+            ),
           ]),
           const SizedBox(height: 16),
 

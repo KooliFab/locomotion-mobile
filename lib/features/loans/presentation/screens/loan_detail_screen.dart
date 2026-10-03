@@ -10,6 +10,7 @@ import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_status.dart';
 import '../controllers/loans_controller.dart';
 import '../widgets/loan_comments_section.dart';
+import '../widgets/loan_prepayment_modal.dart';
 import '../widgets/loan_status_helper.dart';
 import '../widgets/loan_timeline_widget.dart';
 import '../widgets/owner_decision_dialog.dart';
@@ -322,6 +323,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           final canOwnerReject = loan.canOwnerReject(currentUser?.id);
           final canOwnerCancel = loan.canOwnerCancel(currentUser?.id);
           final canBorrowerCancel = loan.canBorrowerCancel(currentUser?.id);
+          final canBorrowerPrepay = loan.canBorrowerPrepay(currentUser?.id);
           final canCancel = canBorrowerCancel || canOwnerCancel;
           final canUpdateDates = loan.canBorrowerUpdateDates(currentUser?.id);
           final canComment =
@@ -544,6 +546,74 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               ),
                             ],
                           ],
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Caution active banner
+                  if (loan.hasAuthorizedDeposit) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.verified_user_outlined,
+                            color: Colors.blue.shade700,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Caution autorisée : ${loan.depositAuthorizedDollars != null ? '${loan.depositAuthorizedDollars!.toStringAsFixed(2)} \$' : '250,00 \$'} CAD',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  'Empreinte bancaire Stripe retenue sans encaissement direct.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Borrower Prepayment Action (Prépayer & bloquer la caution)
+                  if (canBorrowerPrepay) ...[
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      key: const Key('action_prepay_button'),
+                      onPressed: () => LoanPrepaymentModal.show(context, loan),
+                      icon: const Icon(Icons.payment_outlined, size: 20),
+                      label: const Text(
+                        'Prépayer & bloquer la caution',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),

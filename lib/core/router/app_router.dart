@@ -19,6 +19,7 @@ import '../../features/loans/presentation/screens/loan_success_screen.dart';
 import '../../features/loans/presentation/screens/loans_list_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
 import '../../features/notifications/presentation/controllers/notifications_controller.dart';
+import '../../features/profile/presentation/screens/payment_methods_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../theme/app_colors.dart';
 import 'routes.dart';
@@ -103,6 +104,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: AppRoutes.borrowerForm,
             builder: (context, state) => const BorrowerFormScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.paymentMethods,
+            builder: (context, state) => const PaymentMethodsScreen(),
           ),
           GoRoute(
             path: AppRoutes.loanableDetail,

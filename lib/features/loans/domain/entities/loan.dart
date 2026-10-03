@@ -62,6 +62,9 @@ abstract class Loan with _$Loan {
     String? comment,
     @Default([]) List<LoanComment> comments,
     @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'deposit_status') String? depositStatus,
+    @JsonKey(name: 'deposit_authorized_cents') int? depositAuthorizedCents,
+    @JsonKey(name: 'deposit_expires_at') DateTime? depositExpiresAt,
   }) = _Loan;
 
   LoanStatus get parsedStatus => LoanStatus.fromString(status);
@@ -72,6 +75,20 @@ abstract class Loan with _$Loan {
   double? get totalCost => borrowerTotal;
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
+
+  bool get hasAuthorizedDeposit => depositStatus == 'authorized';
+  double? get depositAuthorizedDollars =>
+      depositAuthorizedCents != null ? depositAuthorizedCents! / 100.0 : null;
+
+  /// Borrower can prepay when accepted and not yet prepaid
+  bool canBorrowerPrepay(int? currentUserId) {
+    if (borrowerUserId != null &&
+        currentUserId != null &&
+        borrowerUserId != currentUserId) {
+      return false;
+    }
+    return parsedStatus == LoanStatus.accepted && prepaidAt == null;
+  }
 
   /// Determines if the current user has owner access to this loan.
   /// Checks via `loanable.mergedUserRoles` (top-level key as per LoanLoanableResource)

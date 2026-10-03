@@ -37,6 +37,9 @@ class ApiEndpoints {
 
   // Payments & Invoices
   static const String paymentMethods = '/payment_methods';
+  static String paymentMethodDetail(int id) => '/payment_methods/$id';
+  static String loanPaymentIntent(int loanId) => '/loans/$loanId/payment-intent';
+  static String loanPrepay(int loanId) => '/loans/$loanId/prepay';
   static const String invoices = '/invoices';
   static const String pricings = '/pricings';
 

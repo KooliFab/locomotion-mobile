@@ -60,6 +60,11 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
+  depositStatus: json['deposit_status'] as String?,
+  depositAuthorizedCents: (json['deposit_authorized_cents'] as num?)?.toInt(),
+  depositExpiresAt: json['deposit_expires_at'] == null
+      ? null
+      : DateTime.parse(json['deposit_expires_at'] as String),
 );
 
 Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
@@ -96,4 +101,7 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'comment': instance.comment,
   'comments': instance.comments,
   'created_at': instance.createdAt?.toIso8601String(),
+  'deposit_status': instance.depositStatus,
+  'deposit_authorized_cents': instance.depositAuthorizedCents,
+  'deposit_expires_at': instance.depositExpiresAt?.toIso8601String(),
 };

@@ -7,6 +7,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String borrower = '/profile/borrower';
   static const String borrowerForm = '/profile/borrower/form';
+  static const String paymentMethods = '/profile/payment-methods';
   static const String loanableDetail = '/loanables/:id';
   static const String loanReservation = '/loanables/:id/reserve';
   static const String loanSuccess = '/loans/:id/success';
