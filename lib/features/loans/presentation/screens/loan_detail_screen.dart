@@ -324,6 +324,13 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           final canOwnerCancel = loan.canOwnerCancel(currentUser?.id);
           final canBorrowerCancel = loan.canBorrowerCancel(currentUser?.id);
           final canBorrowerPrepay = loan.canBorrowerPrepay(currentUser?.id);
+          final canTakeOver = loan.canTakeOver(currentUser?.id);
+          final isTakeOverUpcoming = !canTakeOver &&
+              !loan.departureInspectionCompleted &&
+              status == LoanStatus.confirmed &&
+              (isOwner ||
+                  currentUser?.id == loan.borrowerUserId ||
+                  loan.borrowerUserId == null);
           final canCancel = canBorrowerCancel || canOwnerCancel;
           final canUpdateDates = loan.canBorrowerUpdateDates(currentUser?.id);
           final canComment =
@@ -615,6 +622,106 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                      ),
+                    ),
+                  ],
+
+                  // Departure Take-Over Action (Prendre en charge le véhicule)
+                  if (canTakeOver) ...[
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      key: const Key('action_take_over_button'),
+                      onPressed: () =>
+                          context.push(AppRoutes.loanDeparturePath(loan.id)),
+                      icon: const Icon(
+                        Icons.directions_car_filled_outlined,
+                        size: 20,
+                      ),
+                      label: const Text(
+                        'Prendre en charge le véhicule',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Departure window upcoming notice
+                  if (isTakeOverUpcoming) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      key: const Key('take_over_window_upcoming_card'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.blue.shade700,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'La prise en charge sera disponible 1 heure avant le départ.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Certified Departure Inspection Badge
+                  if (loan.departureInspectionCompleted) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      key: const Key('departure_inspection_completed_badge'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.verified_rounded,
+                            color: Colors.green.shade700,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'État des lieux de départ certifié',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

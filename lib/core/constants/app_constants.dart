@@ -23,8 +23,15 @@ class ApiEndpoints {
   static String loanDetail(int id) => '/loans/$id';
 
   // Images
+  static const String images = '/images';
   static String image(int id, {String? size}) =>
       '/images/$id${size != null ? '?size=$size' : ''}';
+
+  // Inspections
+  static String loanDepartureInspection(int loanId) =>
+      '/loans/$loanId/inspections/departure';
+  static String loanInspections(int loanId) =>
+      '/loans/$loanId/inspections';
 
   // Communities
   static const String communities = '/communities';
@@ -55,4 +62,6 @@ class StorageKeys {
   static const String tokenExpiresAt = 'locomotion_token_expires_at';
   static const String cachedUser = 'locomotion_cached_user';
   static const String activeCommunityId = 'locomotion_active_community_id';
+  static String departureDraft(int userId, int loanId) =>
+      'locomotion_departure_draft_${userId}_$loanId';
 }

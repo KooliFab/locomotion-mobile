@@ -12,12 +12,14 @@ class AppRoutes {
   static const String loanReservation = '/loanables/:id/reserve';
   static const String loanSuccess = '/loans/:id/success';
   static const String loanDetail = '/loans/:id';
+  static const String loanDeparture = '/loans/:id/departure';
   static const String loansList = '/loans/all';
 
   static String loanableDetailPath(int id) => '/loanables/$id';
   static String loanReservationPath(int id) => '/loanables/$id/reserve';
   static String loanSuccessPath(int id) => '/loans/$id/success';
   static String loanDetailPath(int id) => '/loans/$id';
+  static String loanDeparturePath(int id) => '/loans/$id/departure';
   static String loansListPath({String? status}) =>
       status != null ? '/loans/all?status=$status' : '/loans/all';
 }

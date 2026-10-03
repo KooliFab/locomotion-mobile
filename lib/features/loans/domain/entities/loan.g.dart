@@ -49,6 +49,8 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   isSelfService: json['is_self_service'] as bool? ?? false,
   estimatedDistance: (json['estimated_distance'] as num?)?.toInt(),
   actualDistance: (json['actual_distance'] as num?)?.toInt(),
+  mileageStart: (json['mileage_start'] as num?)?.toInt(),
+  mileageEnd: (json['mileage_end'] as num?)?.toInt(),
   alternativeTo: json['alternative_to'] as String?,
   alternativeToOther: json['alternative_to_other'] as String?,
   comment: json['comment'] as String?,
@@ -65,6 +67,9 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   depositExpiresAt: json['deposit_expires_at'] == null
       ? null
       : DateTime.parse(json['deposit_expires_at'] as String),
+  departureInspectionCompleted:
+      json['departure_inspection_completed'] as bool? ?? false,
+  inspections: json['inspections'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
@@ -96,6 +101,8 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'is_self_service': instance.isSelfService,
   'estimated_distance': instance.estimatedDistance,
   'actual_distance': instance.actualDistance,
+  'mileage_start': instance.mileageStart,
+  'mileage_end': instance.mileageEnd,
   'alternative_to': instance.alternativeTo,
   'alternative_to_other': instance.alternativeToOther,
   'comment': instance.comment,
@@ -104,4 +111,6 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'deposit_status': instance.depositStatus,
   'deposit_authorized_cents': instance.depositAuthorizedCents,
   'deposit_expires_at': instance.depositExpiresAt?.toIso8601String(),
+  'departure_inspection_completed': instance.departureInspectionCompleted,
+  'inspections': instance.inspections,
 };

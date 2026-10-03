@@ -68,6 +68,10 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>LocoMotion utilise votre position pour afficher les véhicules et vélos disponibles à proximité.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>LocoMotion utilise votre appareil photo pour réaliser l'état des lieux du véhicule au départ et au retour.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LocoMotion accède à votre galerie pour vous permettre de sélectionner les photos de l'état des lieux.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

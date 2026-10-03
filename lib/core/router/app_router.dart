@@ -13,6 +13,7 @@ import '../../features/loanables/presentation/screens/loanable_detail_screen.dar
 import '../../features/loanables/presentation/controllers/loanables_controller.dart';
 import '../../features/loanables/domain/entities/loanable.dart';
 import '../../features/loans/domain/entities/loan.dart';
+import '../../features/loans/presentation/screens/loan_departure_inspection_screen.dart';
 import '../../features/loans/presentation/screens/loan_detail_screen.dart';
 import '../../features/loans/presentation/screens/loan_reservation_screen.dart';
 import '../../features/loans/presentation/screens/loan_success_screen.dart';
@@ -180,6 +181,25 @@ GoRouter appRouter(Ref ref) {
               }
               final extra = state.extra;
               return LoanDetailScreen(
+                loanId: id,
+                initialLoan: extra is Loan ? extra : null,
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.loanDeparture,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return Scaffold(
+                  appBar: AppBar(title: const Text('Prise en charge')),
+                  body: const Center(
+                    child: Text('Identifiant de réservation invalide.'),
+                  ),
+                );
+              }
+              final extra = state.extra;
+              return LoanDepartureInspectionScreen(
                 loanId: id,
                 initialLoan: extra is Loan ? extra : null,
               );

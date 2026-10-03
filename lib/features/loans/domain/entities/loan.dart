@@ -57,6 +57,8 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'is_self_service') @Default(false) bool isSelfService,
     @JsonKey(name: 'estimated_distance') int? estimatedDistance,
     @JsonKey(name: 'actual_distance') int? actualDistance,
+    @JsonKey(name: 'mileage_start') int? mileageStart,
+    @JsonKey(name: 'mileage_end') int? mileageEnd,
     @JsonKey(name: 'alternative_to') String? alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     String? comment,
@@ -65,6 +67,10 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'deposit_status') String? depositStatus,
     @JsonKey(name: 'deposit_authorized_cents') int? depositAuthorizedCents,
     @JsonKey(name: 'deposit_expires_at') DateTime? depositExpiresAt,
+    @JsonKey(name: 'departure_inspection_completed')
+    @Default(false)
+    bool departureInspectionCompleted,
+    Map<String, dynamic>? inspections,
   }) = _Loan;
 
   LoanStatus get parsedStatus => LoanStatus.fromString(status);
@@ -75,6 +81,9 @@ abstract class Loan with _$Loan {
   double? get totalCost => borrowerTotal;
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
+
+  bool get isMotorized =>
+      loanable?.type == 'car' || loanable?.type == 'car_trailer';
 
   bool get hasAuthorizedDeposit => depositStatus == 'authorized';
   double? get depositAuthorizedDollars =>
@@ -88,6 +97,42 @@ abstract class Loan with _$Loan {
       return false;
     }
     return parsedStatus == LoanStatus.accepted && prepaidAt == null;
+  }
+
+  /// Whether the vehicle can be taken over (departure inspection) by the borrower or owner.
+  /// Allowed starting 1 hour before departure_at when the loan is confirmed,
+  /// or when already ongoing if departure inspection is not yet completed.
+  bool canTakeOver(int? currentUserId, {DateTime? now}) {
+    if (departureInspectionCompleted) return false;
+
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    final isOwner = isUserOwner(currentUserId);
+    if (!isBorrower && !isOwner) return false;
+
+    if (parsedStatus == LoanStatus.ongoing) return true;
+
+    if (parsedStatus == LoanStatus.confirmed) {
+      final currentTime = now ?? DateTime.now();
+      final earliestTakeOverTime =
+          departureAt.subtract(const Duration(hours: 1));
+      return currentTime.isAfter(earliestTakeOverTime) ||
+          currentTime.isAtSameMomentAs(earliestTakeOverTime);
+    }
+
+    return false;
+  }
+
+  /// Earliest moment at which departure inspection can start (1 hour before departure).
+  DateTime get earliestDepartureInspectionAt =>
+      departureAt.subtract(const Duration(hours: 1));
+
+  /// Checks if current time is within the allowed departure inspection window.
+  bool isWithinTakeOverWindow([DateTime? now]) {
+    final currentTime = now ?? DateTime.now();
+    return currentTime.isAfter(earliestDepartureInspectionAt) ||
+        currentTime.isAtSameMomentAs(earliestDepartureInspectionAt);
   }
 
   /// Determines if the current user has owner access to this loan.
