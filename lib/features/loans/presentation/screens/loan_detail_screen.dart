@@ -14,6 +14,7 @@ import '../widgets/loan_comments_section.dart';
 import '../widgets/loan_prepayment_modal.dart';
 import '../widgets/loan_status_helper.dart';
 import '../widgets/loan_timeline_widget.dart';
+import '../widgets/loan_extension_bottom_sheet.dart';
 import '../widgets/owner_decision_dialog.dart';
 import '../widgets/update_dates_dialog.dart';
 
@@ -33,6 +34,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
   bool _isDeciding = false;
   bool _isValidating = false;
   bool _isSettling = false;
+  bool _isDecidingExtension = false;
   String? _screenError;
 
 
@@ -273,6 +275,157 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       if (mounted) {
         setState(() {
           _isValidating = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleOpenExtension(Loan loan) async {
+    final res = await LoanExtensionBottomSheet.show(context, loan);
+    if (res == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Demande de prolongation enregistrée.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      ref.invalidate(loanDetailProvider(widget.loanId));
+    }
+  }
+
+  Future<void> _handleAcceptExtension(Loan loan) async {
+    setState(() {
+      _isDecidingExtension = true;
+      _screenError = null;
+    });
+
+    try {
+      await ref
+          .read(loanActionsControllerProvider.notifier)
+          .acceptExtension(loan.id, loanableId: loan.loanableId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Prolongation acceptée avec succès.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e is AppException ? e.message : e.toString();
+        setState(() {
+          _screenError = msg;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDecidingExtension = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRejectExtension(Loan loan) async {
+    setState(() {
+      _isDecidingExtension = true;
+      _screenError = null;
+    });
+
+    try {
+      await ref
+          .read(loanActionsControllerProvider.notifier)
+          .rejectExtension(loan.id, loanableId: loan.loanableId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Demande de prolongation refusée.'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e is AppException ? e.message : e.toString();
+        setState(() {
+          _screenError = msg;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDecidingExtension = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleCancelExtension(Loan loan) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Annuler la prolongation'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir annuler votre demande de prolongation ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Garder'),
+          ),
+          ElevatedButton(
+            key: const Key('confirm_cancel_extension_dialog_button'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Oui, annuler'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _isDecidingExtension = true;
+      _screenError = null;
+    });
+
+    try {
+      await ref
+          .read(loanActionsControllerProvider.notifier)
+          .cancelExtension(loan.id, loanableId: loan.loanableId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Demande de prolongation annulée.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e is AppException ? e.message : e.toString();
+        setState(() {
+          _screenError = msg;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDecidingExtension = false;
         });
       }
     }
@@ -694,6 +847,11 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           final canReturnVehicle = loan.canReturnVehicle(currentUser?.id);
           final canValidateReturn = loan.canValidateReturn(currentUser?.id);
           final canSettleAndClose = loan.canSettleAndClose(currentUser?.id);
+          final canRequestExtension = loan.canRequestExtension(currentUser?.id);
+          final canAcceptExtension = loan.canAcceptExtension(currentUser?.id);
+          final canRejectExtension = loan.canRejectExtension(currentUser?.id);
+          final canCancelExtension = loan.canCancelExtension(currentUser?.id);
+          final hasPendingExtension = loan.hasPendingExtension;
           final isTakeOverUpcoming = !canTakeOver &&
               !loan.departureInspectionCompleted &&
               status == LoanStatus.confirmed &&
@@ -791,6 +949,42 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               color: Colors.grey.shade600,
                             ),
                           ),
+                          if (hasPendingExtension && loan.extendedReturnAt != null) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              key: const Key('slot_pending_extension_badge'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.orange.shade200),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.more_time,
+                                    size: 14,
+                                    color: Colors.orange.shade800,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'Prolongation demandée : +${loan.pendingExtensionAdditionalMinutes ?? ''} min (fin : ${LoanDateFormatter.formatInVehicleZone(loan.extendedReturnAt, vehicleTimezone: loan.loanable?.timezone)})',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.orange.shade900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (loan.loanable?.timezone != null) ...[
                             const SizedBox(height: 4),
                             Text(
@@ -1113,6 +1307,188 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Owner Pending Extension Decision Card
+                  if (hasPendingExtension && (canAcceptExtension || canRejectExtension)) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      key: const Key('owner_pending_extension_card'),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.amber.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.more_time,
+                                color: Colors.amber.shade800,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Demande de prolongation reçue',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'L\'emprunteur demande une prolongation de +${loan.pendingExtensionAdditionalMinutes ?? ''} min (nouveau retour prévu à ${loan.extendedReturnAt != null ? LoanDateFormatter.formatInVehicleZone(loan.extendedReturnAt, vehicleTimezone: loan.loanable?.timezone) : ''}).',
+                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              if (canAcceptExtension)
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    key: const Key('action_accept_extension_button'),
+                                    onPressed: _isDecidingExtension
+                                        ? null
+                                        : () => _handleAcceptExtension(loan),
+                                    icon: _isDecidingExtension
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Icon(Icons.check, size: 18),
+                                    label: const Text('Accepter'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.success,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (canAcceptExtension && canRejectExtension)
+                                const SizedBox(width: 8),
+                              if (canRejectExtension)
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    key: const Key('action_reject_extension_button'),
+                                    onPressed: _isDecidingExtension
+                                        ? null
+                                        : () => _handleRejectExtension(loan),
+                                    icon: const Icon(Icons.close, size: 18),
+                                    label: const Text('Refuser'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.danger,
+                                      side: const BorderSide(color: AppColors.danger),
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Borrower Pending Extension Card
+                  if (hasPendingExtension && canCancelExtension) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      key: const Key('borrower_pending_extension_card'),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.hourglass_top_rounded,
+                                color: Colors.blue.shade700,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Prolongation en attente d\'approbation',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Votre demande de prolongation de +${loan.pendingExtensionAdditionalMinutes ?? ''} min (jusqu\'à ${loan.extendedReturnAt != null ? LoanDateFormatter.formatInVehicleZone(loan.extendedReturnAt, vehicleTimezone: loan.loanable?.timezone) : ''}) est en attente de réponse du propriétaire.',
+                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            key: const Key('action_cancel_extension_button'),
+                            onPressed: _isDecidingExtension
+                                ? null
+                                : () => _handleCancelExtension(loan),
+                            icon: const Icon(Icons.cancel_outlined, size: 16),
+                            label: const Text('Annuler la demande de prolongation'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.danger,
+                              side: const BorderSide(color: AppColors.danger),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Request Extension Action (Prolonger la réservation)
+                  if (canRequestExtension) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const Key('action_request_extension_button'),
+                      onPressed: () => _handleOpenExtension(loan),
+                      icon: const Icon(Icons.more_time_rounded, size: 20),
+                      label: const Text(
+                        'Prolonger la réservation',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

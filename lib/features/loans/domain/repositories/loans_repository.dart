@@ -1,3 +1,4 @@
+import '../entities/extension_estimate.dart';
 import '../entities/loan.dart';
 import '../entities/loan_comment.dart';
 import '../entities/loan_creation_request.dart';
@@ -22,4 +23,9 @@ abstract class LoansRepository {
   Future<Loan> validateLoan(int id);
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
   Future<LoanComment> addComment(int id, String text);
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes);
+  Future<Loan> acceptExtension(int id);
+  Future<Loan> rejectExtension(int id);
+  Future<Loan> cancelExtension(int id);
+  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes);
 }

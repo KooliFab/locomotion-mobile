@@ -1,5 +1,6 @@
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../domain/entities/extension_estimate.dart';
 import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_comment.dart';
 import '../../domain/entities/loan_creation_request.dart';
@@ -24,6 +25,11 @@ abstract class LoansRemoteDataSource {
   Future<Loan> validateLoan(int id);
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
   Future<LoanComment> addComment(int id, String text);
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes);
+  Future<Loan> acceptExtension(int id);
+  Future<Loan> rejectExtension(int id);
+  Future<Loan> cancelExtension(int id);
+  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes);
 }
 
 class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
@@ -261,5 +267,92 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
         ? data['data'] as Map<String, dynamic>
         : data;
     return LoanComment.fromJson(item);
+  }
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/extension',
+      data: {'extension_duration_in_minutes': extensionDurationInMinutes},
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour la demande de prolongation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> acceptExtension(int id) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/extension/accept',
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'acceptation de la prolongation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> rejectExtension(int id) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/extension/reject',
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour le refus de la prolongation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> cancelExtension(int id) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/extension/cancel',
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'annulation de la prolongation du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) async {
+    final response = await _apiClient.get(
+      '${ApiEndpoints.loanDetail(id)}/estimate',
+      queryParameters: {'duration_in_minutes': durationInMinutes},
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'estimation du prêt #$id',
+      );
+    }
+    return ExtensionEstimate.fromJson(data);
   }
 }

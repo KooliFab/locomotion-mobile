@@ -1,3 +1,4 @@
+import '../../domain/entities/extension_estimate.dart';
 import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_comment.dart';
 import '../../domain/entities/loan_creation_request.dart';
@@ -75,5 +76,30 @@ class LoansRepositoryImpl implements LoansRepository {
   @override
   Future<LoanComment> addComment(int id, String text) {
     return _remoteDataSource.addComment(id, text);
+  }
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) {
+    return _remoteDataSource.requestExtension(id, extensionDurationInMinutes);
+  }
+
+  @override
+  Future<Loan> acceptExtension(int id) {
+    return _remoteDataSource.acceptExtension(id);
+  }
+
+  @override
+  Future<Loan> rejectExtension(int id) {
+    return _remoteDataSource.rejectExtension(id);
+  }
+
+  @override
+  Future<Loan> cancelExtension(int id) {
+    return _remoteDataSource.cancelExtension(id);
+  }
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) {
+    return _remoteDataSource.getExtensionEstimate(id, durationInMinutes);
   }
 }

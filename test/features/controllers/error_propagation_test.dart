@@ -6,6 +6,7 @@ import 'package:mobile/features/loanables/domain/entities/loanable_availability.
 import 'package:mobile/features/loanables/domain/entities/loanables_page.dart';
 import 'package:mobile/features/loanables/domain/repositories/loanables_repository.dart';
 import 'package:mobile/features/loanables/presentation/controllers/loanables_controller.dart';
+import 'package:mobile/features/loans/domain/entities/extension_estimate.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
 import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
@@ -112,6 +113,31 @@ class FailingLoansRepository implements LoansRepository {
   @override
   Future<LoanComment> addComment(int id, String text) async {
     throw const ServerException(message: 'Erreur add comment', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async {
+    throw const ServerException(message: 'Erreur request extension', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> acceptExtension(int id) async {
+    throw const ServerException(message: 'Erreur accept extension', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> rejectExtension(int id) async {
+    throw const ServerException(message: 'Erreur reject extension', statusCode: 500);
+  }
+
+  @override
+  Future<Loan> cancelExtension(int id) async {
+    throw const ServerException(message: 'Erreur cancel extension', statusCode: 500);
+  }
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) async {
+    throw const ServerException(message: 'Erreur extension estimate', statusCode: 500);
   }
 }
 

@@ -37,6 +37,7 @@ void invalidateLoanViews(dynamic ref, {int? loanId, int? loanableId}) {
   if (loanableId != null) {
     ref.invalidate(loanableDetailProvider(loanableId));
   }
+  ref.invalidate(loanableAvailabilityWindowProvider);
 }
 
 @Riverpod(keepAlive: true)
@@ -105,20 +106,21 @@ class LoanActionsController extends _$LoanActionsController {
   Future<Loan?> cancel(int loanId, {int? loanableId}) async {
     state = const AsyncLoading();
     Loan? result;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.cancelLoan(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(
         ref,
         loanId: loanId,
         loanableId: loanableId ?? result?.loanableId,
       );
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return result;
   }
 
   Future<Loan?> updateDates({
@@ -129,7 +131,7 @@ class LoanActionsController extends _$LoanActionsController {
   }) async {
     state = const AsyncLoading();
     Loan? result;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.updateLoanDates(
         loanId,
@@ -138,17 +140,18 @@ class LoanActionsController extends _$LoanActionsController {
           durationInMinutes: durationInMinutes,
         ),
       );
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(
         ref,
         loanId: loanId,
         loanableId: loanableId ?? result?.loanableId,
       );
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return result;
   }
 
   Future<LoanComment?> addComment({
@@ -158,73 +161,161 @@ class LoanActionsController extends _$LoanActionsController {
   }) async {
     state = const AsyncLoading();
     LoanComment? comment;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       comment = await repo.addComment(loanId, text);
+      state = const AsyncData(null);
+      return comment;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(ref, loanId: loanId, loanableId: loanableId);
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return comment;
   }
 
   Future<Loan?> accept(int loanId, {String? comment, int? loanableId}) async {
     state = const AsyncLoading();
     Loan? result;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.acceptLoan(loanId, comment: comment);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(
         ref,
         loanId: loanId,
         loanableId: loanableId ?? result?.loanableId,
       );
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return result;
   }
 
   Future<Loan?> reject(int loanId, {String? comment, int? loanableId}) async {
     state = const AsyncLoading();
     Loan? result;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.rejectLoan(loanId, comment: comment);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(
         ref,
         loanId: loanId,
         loanableId: loanableId ?? result?.loanableId,
       );
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return result;
   }
 
   Future<Loan?> validate(int loanId, {int? loanableId}) async {
     state = const AsyncLoading();
     Loan? result;
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(loansRepositoryProvider);
       result = await repo.validateLoan(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
       invalidateLoanViews(
         ref,
         loanId: loanId,
         loanableId: loanableId ?? result?.loanableId,
       );
-      return;
-    });
-    if (state.hasError) {
-      throw state.error!;
     }
-    return result;
+  }
+
+  Future<Loan?> requestExtension({
+    required int loanId,
+    required int extensionDurationInMinutes,
+    int? loanableId,
+  }) async {
+    state = const AsyncLoading();
+    Loan? result;
+    try {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.requestExtension(loanId, extensionDurationInMinutes);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+    }
+  }
+
+  Future<Loan?> acceptExtension(int loanId, {int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    try {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.acceptExtension(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+    }
+  }
+
+  Future<Loan?> rejectExtension(int loanId, {int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    try {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.rejectExtension(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+    }
+  }
+
+  Future<Loan?> cancelExtension(int loanId, {int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    try {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.cancelExtension(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+    }
   }
 }
 

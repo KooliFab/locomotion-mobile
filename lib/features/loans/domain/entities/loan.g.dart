@@ -77,6 +77,8 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   depositReleasedAt: json['deposit_released_at'] == null
       ? null
       : DateTime.parse(json['deposit_released_at'] as String),
+  extensionDurationInMinutes: (json['extension_duration_in_minutes'] as num?)
+      ?.toInt(),
   inspections: json['inspections'] as Map<String, dynamic>?,
 );
 
@@ -123,5 +125,6 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'return_inspection_completed': instance.returnInspectionCompleted,
   'paid_at': instance.paidAt?.toIso8601String(),
   'deposit_released_at': instance.depositReleasedAt?.toIso8601String(),
+  'extension_duration_in_minutes': instance.extensionDurationInMinutes,
   'inspections': instance.inspections,
 };

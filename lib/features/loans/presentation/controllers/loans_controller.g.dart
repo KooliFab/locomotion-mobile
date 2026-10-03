@@ -348,7 +348,7 @@ final class LoanActionsControllerProvider
 }
 
 String _$loanActionsControllerHash() =>
-    r'546932c9758f19f87973dd0ced7eab4e7f7dd481';
+    r'a12b342e89a454e4458612611e1a28a046da959b';
 
 /// Action controller for borrower actions: cancel, update dates, comment
 

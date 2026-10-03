@@ -5,6 +5,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:mobile/core/error/exceptions.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
 import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mobile/features/loans/domain/entities/extension_estimate.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
 import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
@@ -115,6 +116,57 @@ class _MockLoansRepo implements LoansRepository {
     if (errorToThrow != null) throw errorToThrow!;
     return loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson);
   }
+
+  int requestExtensionCalls = 0;
+  int? lastExtensionDuration;
+  int acceptExtensionCalls = 0;
+  int rejectExtensionCalls = 0;
+  int cancelExtensionCalls = 0;
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async {
+    requestExtensionCalls++;
+    lastExtensionDuration = extensionDurationInMinutes;
+    if (errorToThrow != null) throw errorToThrow!;
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
+      extensionDurationInMinutes: extensionDurationInMinutes,
+    );
+  }
+
+  @override
+  Future<Loan> acceptExtension(int id) async {
+    acceptExtensionCalls++;
+    if (errorToThrow != null) throw errorToThrow!;
+    final base = loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson);
+    return base.copyWith(
+      durationInMinutes:
+          base.extensionDurationInMinutes ?? base.durationInMinutes,
+      extensionDurationInMinutes: null,
+    );
+  }
+
+  @override
+  Future<Loan> rejectExtension(int id) async {
+    rejectExtensionCalls++;
+    if (errorToThrow != null) throw errorToThrow!;
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
+      extensionDurationInMinutes: null,
+    );
+  }
+
+  @override
+  Future<Loan> cancelExtension(int id) async {
+    cancelExtensionCalls++;
+    if (errorToThrow != null) throw errorToThrow!;
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
+      extensionDurationInMinutes: null,
+    );
+  }
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(
+          int id, int durationInMinutes) async =>
+      const ExtensionEstimate(available: true);
 }
 
 class _TestAuthController extends AuthController {

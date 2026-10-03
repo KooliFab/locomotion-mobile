@@ -6,6 +6,9 @@ enum PushEventType {
   loanRejected('loan_rejected'),
   loanCanceled('loan_canceled'),
   loanCommentAdded('loan_comment_added'),
+  loanExtensionRequested('loan_extension_requested'),
+  loanExtensionAccepted('loan_extension_accepted'),
+  loanExtensionRejected('loan_extension_rejected'),
   unknown('unknown');
 
   final String value;

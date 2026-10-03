@@ -10,6 +10,9 @@ void main() {
         'loan_rejected': PushEventType.loanRejected,
         'loan_canceled': PushEventType.loanCanceled,
         'loan_comment_added': PushEventType.loanCommentAdded,
+        'loan_extension_requested': PushEventType.loanExtensionRequested,
+        'loan_extension_accepted': PushEventType.loanExtensionAccepted,
+        'loan_extension_rejected': PushEventType.loanExtensionRejected,
       };
 
       for (final entry in eventTypes.entries) {

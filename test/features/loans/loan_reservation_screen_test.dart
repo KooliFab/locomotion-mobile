@@ -11,6 +11,7 @@ import 'package:mobile/features/loanables/domain/entities/loanables_page.dart';
 import 'package:mobile/features/loanables/domain/entities/vehicle_local_dates.dart';
 import 'package:mobile/features/loanables/domain/repositories/loanables_repository.dart';
 import 'package:mobile/features/loanables/presentation/controllers/loanables_controller.dart';
+import 'package:mobile/features/loans/domain/entities/extension_estimate.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
 import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
@@ -98,6 +99,24 @@ class _FakeLoansRepo implements LoansRepository {
 
   @override
   Future<LoanComment> addComment(int id, String text) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> acceptExtension(int id) async => throw UnimplementedError();
+
+  @override
+  Future<Loan> rejectExtension(int id) async => throw UnimplementedError();
+
+  @override
+  Future<Loan> cancelExtension(int id) async => throw UnimplementedError();
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(
+          int id, int durationInMinutes) async =>
       throw UnimplementedError();
 }
 

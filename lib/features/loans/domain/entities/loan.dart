@@ -75,10 +75,59 @@ abstract class Loan with _$Loan {
     bool returnInspectionCompleted,
     @JsonKey(name: 'paid_at') DateTime? paidAt,
     @JsonKey(name: 'deposit_released_at') DateTime? depositReleasedAt,
+    @JsonKey(name: 'extension_duration_in_minutes')
+    int? extensionDurationInMinutes,
     Map<String, dynamic>? inspections,
   }) = _Loan;
 
   LoanStatus get parsedStatus => LoanStatus.fromString(status);
+
+  bool get hasPendingExtension => extensionDurationInMinutes != null;
+  DateTime? get extendedReturnAt => hasPendingExtension
+      ? departureAt.add(Duration(minutes: extensionDurationInMinutes!))
+      : null;
+  int? get pendingExtensionAdditionalMinutes => hasPendingExtension
+      ? (extensionDurationInMinutes! - durationInMinutes)
+      : null;
+
+  /// Whether an extension can be requested:
+  /// Must be ongoing or confirmed (or ended without return inspection completed),
+  /// user must be participant, and there must not already be an extension pending.
+  bool canRequestExtension(int? currentUserId) {
+    if (hasPendingExtension) return false;
+    final s = parsedStatus;
+    if (s != LoanStatus.ongoing &&
+        s != LoanStatus.confirmed &&
+        !(s == LoanStatus.ended && !returnInspectionCompleted)) {
+      return false;
+    }
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    final isOwner = isUserOwner(currentUserId);
+    return isBorrower || isOwner;
+  }
+
+  /// Whether an extension can be accepted by owner/co-owner
+  bool canAcceptExtension(int? currentUserId) {
+    if (!hasPendingExtension) return false;
+    return isUserOwner(currentUserId);
+  }
+
+  /// Whether an extension can be rejected by owner/co-owner
+  bool canRejectExtension(int? currentUserId) {
+    if (!hasPendingExtension) return false;
+    return isUserOwner(currentUserId);
+  }
+
+  /// Whether a pending extension can be cancelled by the borrower
+  bool canCancelExtension(int? currentUserId) {
+    if (!hasPendingExtension) return false;
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    return isBorrower;
+  }
 
   DateTime get startAt => departureAt;
   DateTime get endAt =>

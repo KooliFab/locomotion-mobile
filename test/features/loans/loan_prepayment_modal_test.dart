@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/services/stripe_payment_service.dart';
 import 'package:mobile/features/loans/data/repositories/loan_payment_repository_impl.dart';
+import 'package:mobile/features/loans/domain/entities/extension_estimate.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
 import 'package:mobile/features/loans/domain/entities/loan_comment.dart';
 import 'package:mobile/features/loans/domain/entities/loan_creation_request.dart';
@@ -132,6 +133,24 @@ class StubLoansRepository implements LoansRepository {
   @override
   Future<Loan> updateLoanDates(
           int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> acceptExtension(int id) => throw UnimplementedError();
+
+  @override
+  Future<Loan> rejectExtension(int id) => throw UnimplementedError();
+
+  @override
+  Future<Loan> cancelExtension(int id) => throw UnimplementedError();
+
+  @override
+  Future<ExtensionEstimate> getExtensionEstimate(
+          int id, int durationInMinutes) =>
       throw UnimplementedError();
 }
 
