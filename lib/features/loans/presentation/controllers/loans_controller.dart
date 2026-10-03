@@ -207,4 +207,24 @@ class LoanActionsController extends _$LoanActionsController {
     }
     return result;
   }
+
+  Future<Loan?> validate(int loanId, {int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.validateLoan(loanId);
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+      return;
+    });
+    if (state.hasError) {
+      throw state.error!;
+    }
+    return result;
+  }
 }
+

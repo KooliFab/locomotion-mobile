@@ -30,4 +30,33 @@ class LoanInspectionRepositoryImpl implements LoanInspectionRepository {
   @override
   Future<LoanInspection?> getDepartureInspection(int loanId) =>
       _remoteDataSource.getDepartureInspection(loanId);
+
+  @override
+  Future<LoanInspection> submitReturnInspection({
+    required int loanId,
+    required Map<String, dynamic> payload,
+    String? idempotencyKey,
+  }) =>
+      _remoteDataSource.submitReturnInspection(
+        loanId: loanId,
+        payload: payload,
+        idempotencyKey: idempotencyKey,
+      );
+
+  @override
+  Future<LoanInspection?> getReturnInspection(int loanId) =>
+      _remoteDataSource.getReturnInspection(loanId);
+
+  @override
+  Future<Map<String, dynamic>> settleLoan({
+    required int loanId,
+    bool releaseDeposit = true,
+    int incidentClaimCents = 0,
+  }) =>
+      _remoteDataSource.settleLoan(
+        loanId: loanId,
+        releaseDeposit: releaseDeposit,
+        incidentClaimCents: incidentClaimCents,
+      );
 }
+

@@ -63,6 +63,11 @@ class LoansRepositoryImpl implements LoansRepository {
   }
 
   @override
+  Future<Loan> validateLoan(int id) {
+    return _remoteDataSource.validateLoan(id);
+  }
+
+  @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) {
     return _remoteDataSource.updateLoanDates(id, request);
   }

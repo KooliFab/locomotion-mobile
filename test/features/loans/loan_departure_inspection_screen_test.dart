@@ -66,6 +66,29 @@ class _FakeInspectionRepo implements LoanInspectionRepository {
 
   @override
   Future<LoanInspection?> getDepartureInspection(int loanId) async => null;
+
+  @override
+  Future<LoanInspection> submitReturnInspection({
+    required int loanId,
+    required Map<String, dynamic> payload,
+    String? idempotencyKey,
+  }) async {
+    return LoanInspection(
+      loanId: loanId,
+      inspectionType: 'return',
+      sealedHash: 'sealed_123',
+    );
+  }
+
+  @override
+  Future<LoanInspection?> getReturnInspection(int loanId) async => null;
+
+  @override
+  Future<Map<String, dynamic>> settleLoan({
+    required int loanId,
+    bool releaseDeposit = true,
+    int incidentClaimCents = 0,
+  }) async => {'status': 'completed'};
 }
 
 class _FakeLoansRepo implements LoansRepository {
@@ -80,6 +103,9 @@ class _FakeLoansRepo implements LoansRepository {
 
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
+
+  @override
+  Future<Loan> validateLoan(int id) => throw UnimplementedError();
 
   @override
   Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();

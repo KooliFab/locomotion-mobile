@@ -109,6 +109,12 @@ class _MockLoansRepo implements LoansRepository {
   @override
   Future<Loan> createLoan(LoanCreationRequest request) async =>
       throw UnimplementedError();
+
+  @override
+  Future<Loan> validateLoan(int id) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    return loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson);
+  }
 }
 
 class _TestAuthController extends AuthController {

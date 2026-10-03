@@ -21,6 +21,7 @@ abstract class LoansRemoteDataSource {
   Future<Loan> cancelLoan(int id);
   Future<Loan> acceptLoan(int id, {String? comment});
   Future<Loan> rejectLoan(int id, {String? comment});
+  Future<Loan> validateLoan(int id);
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request);
   Future<LoanComment> addComment(int id, String text);
 }
@@ -201,6 +202,23 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     if (data is! Map<String, dynamic>) {
       throw FormatException(
         'Format de réponse invalide pour le refus du prêt #$id',
+      );
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
+  }
+
+  @override
+  Future<Loan> validateLoan(int id) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.loanDetail(id)}/validate',
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour la validation du prêt #$id',
       );
     }
     final item = data['data'] is Map<String, dynamic>

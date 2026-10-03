@@ -69,6 +69,14 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
       : DateTime.parse(json['deposit_expires_at'] as String),
   departureInspectionCompleted:
       json['departure_inspection_completed'] as bool? ?? false,
+  returnInspectionCompleted:
+      json['return_inspection_completed'] as bool? ?? false,
+  paidAt: json['paid_at'] == null
+      ? null
+      : DateTime.parse(json['paid_at'] as String),
+  depositReleasedAt: json['deposit_released_at'] == null
+      ? null
+      : DateTime.parse(json['deposit_released_at'] as String),
   inspections: json['inspections'] as Map<String, dynamic>?,
 );
 
@@ -112,5 +120,8 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'deposit_authorized_cents': instance.depositAuthorizedCents,
   'deposit_expires_at': instance.depositExpiresAt?.toIso8601String(),
   'departure_inspection_completed': instance.departureInspectionCompleted,
+  'return_inspection_completed': instance.returnInspectionCompleted,
+  'paid_at': instance.paidAt?.toIso8601String(),
+  'deposit_released_at': instance.depositReleasedAt?.toIso8601String(),
   'inspections': instance.inspections,
 };

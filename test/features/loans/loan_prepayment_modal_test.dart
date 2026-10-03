@@ -105,6 +105,9 @@ class StubLoansRepository implements LoansRepository {
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
 
   @override
+  Future<Loan> validateLoan(int id) => throw UnimplementedError();
+
+  @override
   Future<Loan> createLoan(LoanCreationRequest request) =>
       throw UnimplementedError();
 

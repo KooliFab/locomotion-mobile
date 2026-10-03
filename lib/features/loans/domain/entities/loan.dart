@@ -70,6 +70,11 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'departure_inspection_completed')
     @Default(false)
     bool departureInspectionCompleted,
+    @JsonKey(name: 'return_inspection_completed')
+    @Default(false)
+    bool returnInspectionCompleted,
+    @JsonKey(name: 'paid_at') DateTime? paidAt,
+    @JsonKey(name: 'deposit_released_at') DateTime? depositReleasedAt,
     Map<String, dynamic>? inspections,
   }) = _Loan;
 
@@ -86,6 +91,8 @@ abstract class Loan with _$Loan {
       loanable?.type == 'car' || loanable?.type == 'car_trailer';
 
   bool get hasAuthorizedDeposit => depositStatus == 'authorized';
+  bool get isDepositReleased =>
+      depositStatus == 'released' || depositReleasedAt != null;
   double? get depositAuthorizedDollars =>
       depositAuthorizedCents != null ? depositAuthorizedCents! / 100.0 : null;
 
@@ -97,6 +104,48 @@ abstract class Loan with _$Loan {
       return false;
     }
     return parsedStatus == LoanStatus.accepted && prepaidAt == null;
+  }
+
+  /// Whether the vehicle can be returned (return inspection) by borrower or owner.
+  bool canReturnVehicle(int? currentUserId) {
+    if (returnInspectionCompleted) return false;
+
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    final isOwner = isUserOwner(currentUserId);
+    if (!isBorrower && !isOwner) return false;
+
+    return parsedStatus == LoanStatus.ongoing || parsedStatus == LoanStatus.ended;
+  }
+
+  /// Whether the loan can be settled and closed by borrower or owner.
+  bool canSettleAndClose(int? currentUserId) {
+    if (paidAt != null || parsedStatus == LoanStatus.completed) return false;
+
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    final isOwner = isUserOwner(currentUserId);
+    if (!isBorrower && !isOwner) return false;
+
+    return parsedStatus == LoanStatus.ended ||
+        parsedStatus == LoanStatus.validated;
+  }
+
+  /// Whether current user can perform final validation on returned loan.
+  bool canValidateReturn(int? currentUserId) {
+    if (parsedStatus != LoanStatus.ended) return false;
+
+    final isOwner = isUserOwner(currentUserId);
+    if (isOwner && ownerValidatedAt == null) return true;
+
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    if (isBorrower && borrowerValidatedAt == null) return true;
+
+    return false;
   }
 
   /// Whether the vehicle can be taken over (departure inspection) by the borrower or owner.

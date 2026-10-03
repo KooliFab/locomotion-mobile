@@ -14,4 +14,19 @@ abstract class LoanInspectionRepository {
   });
 
   Future<LoanInspection?> getDepartureInspection(int loanId);
+
+  Future<LoanInspection> submitReturnInspection({
+    required int loanId,
+    required Map<String, dynamic> payload,
+    String? idempotencyKey,
+  });
+
+  Future<LoanInspection?> getReturnInspection(int loanId);
+
+  Future<Map<String, dynamic>> settleLoan({
+    required int loanId,
+    bool releaseDeposit = true,
+    int incidentClaimCents = 0,
+  });
 }
+
