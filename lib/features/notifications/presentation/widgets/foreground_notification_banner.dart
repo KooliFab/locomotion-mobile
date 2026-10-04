@@ -32,7 +32,12 @@ class ForegroundNotificationBanner {
           onPressed: () {
             final targetContext = context ?? rootNavigatorKey.currentContext;
             if (targetContext != null) {
-              targetContext.push('/loans/${payload.loanId}');
+              if (payload.eventType == PushEventType.incidentCreated &&
+                  payload.incidentId != null) {
+                targetContext.push('/incidents/${payload.incidentId}');
+              } else if (payload.loanId != null) {
+                targetContext.push('/loans/${payload.loanId}');
+              }
             }
           },
         ),

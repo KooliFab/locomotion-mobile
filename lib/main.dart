@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/notifications/domain/entities/push_payload.dart';
 import 'features/notifications/presentation/controllers/notifications_controller.dart';
 import 'features/notifications/presentation/widgets/foreground_notification_banner.dart';
 
@@ -66,7 +67,12 @@ class _LocoMotionAppState extends ConsumerState<LocoMotionApp> {
             onOpenPayload: (payload) {
               final context = rootNavigatorKey.currentContext;
               if (context != null) {
-                context.push('/loans/${payload.loanId}');
+                if (payload.eventType == PushEventType.incidentCreated &&
+                    payload.incidentId != null) {
+                  context.push('/incidents/${payload.incidentId}');
+                } else if (payload.loanId != null) {
+                  context.push('/loans/${payload.loanId}');
+                }
               }
             },
           );

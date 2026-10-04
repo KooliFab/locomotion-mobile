@@ -307,6 +307,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 AppConfig.androidEmulatorUrl,
                                 currentBaseUrl,
                               ),
+                              _buildUrlChip(
+                                ref,
+                                'Staging',
+                                AppConfig.stagingUrl,
+                                currentBaseUrl,
+                              ),
                             ],
                           ),
                         ],

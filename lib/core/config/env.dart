@@ -15,8 +15,17 @@ class AppConfig {
   static const String androidEmulatorUrl = 'http://10.0.2.2:8000/api/v1';
   static const String iosSimulatorUrl = 'http://localhost:8000/api/v1';
 
+  static const String stagingUrl = 'https://staging.locomotion.app/api/v1';
+  static const String customBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+
   /// Default API base URL depending on environment
   static String get defaultBaseUrl {
+    if (customBaseUrl.isNotEmpty) {
+      return customBaseUrl;
+    }
     if (kIsWeb) {
       return 'http://localhost:8000/api/v1';
     }

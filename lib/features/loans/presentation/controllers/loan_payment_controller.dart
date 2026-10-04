@@ -49,6 +49,8 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
   late final LoansRepository _loansRepository;
   late final StripePaymentService _stripeService;
 
+  final Map<int, String> _paidContributionIntentIds = {};
+
   @override
   LoanPaymentState build() {
     _repository = ref.watch(loanPaymentRepositoryProvider);
@@ -152,8 +154,12 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
       return false;
     }
 
-    // Étape 1 : Présentation de la feuille de paiement pour la contribution
-    if (hasContribution) {
+    // Étape 1 : Présentation de la feuille de paiement pour la contribution si pas déjà payée
+    final alreadyPaidContributionId = _paidContributionIntentIds[loanId];
+    final bool shouldChargeContribution =
+        hasContribution && alreadyPaidContributionId == null;
+
+    if (shouldChargeContribution) {
       state = const LoanPaymentProcessing(
         message: 'Règlement de la contribution...',
       );
@@ -178,6 +184,11 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
                 'Le paiement de la contribution a été refusé.',
           );
           return false;
+        }
+
+        final extractedId = _extractPaymentIntentId(contributionSecret);
+        if (extractedId != null) {
+          _paidContributionIntentIds[loanId] = extractedId;
         }
       } catch (e) {
         state = LoanPaymentError('Erreur Stripe : ${e.toString()}');
@@ -223,9 +234,8 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
       message: 'Validation du prépaiement et de la caution...',
     );
 
-    final contributionId = hasContribution
-        ? _extractPaymentIntentId(contributionSecret)
-        : null;
+    final contributionId = alreadyPaidContributionId ??
+        (hasContribution ? _extractPaymentIntentId(contributionSecret) : null);
     final depositId = hasDeposit
         ? _extractPaymentIntentId(depositSecret)
         : null;
@@ -238,6 +248,7 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
         depositPaymentIntentId: depositId,
       );
 
+      _paidContributionIntentIds.remove(loanId);
       invalidateLoanViews(ref, loanId: loanId);
       state = LoanPaymentSuccess(confirmedLoan);
       return true;
