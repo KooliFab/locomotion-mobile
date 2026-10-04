@@ -20,6 +20,7 @@ class AppRoutes {
   static const String fleetDetail = '/fleet/:id';
   static const String fleetEdit = '/fleet/:id/edit';
   static const String fleetPreview = '/fleet/:id/preview';
+  static const String fleetAvailability = '/fleet/:id/availability';
 
   static String loanableDetailPath(int id) => '/loanables/$id';
   static String loanReservationPath(int id) => '/loanables/$id/reserve';
@@ -32,4 +33,5 @@ class AppRoutes {
   static String fleetDetailPath(int id) => '/fleet/$id';
   static String fleetEditPath(int id) => '/fleet/$id/edit';
   static String fleetPreviewPath(int id) => '/fleet/$id/preview';
+  static String fleetAvailabilityPath(int id) => '/fleet/$id/availability';
 }

@@ -25,6 +25,7 @@ import '../../features/fleet/presentation/screens/owner_fleet_screen.dart';
 import '../../features/fleet/presentation/screens/owner_vehicle_detail_screen.dart';
 import '../../features/fleet/presentation/screens/vehicle_form_screen.dart';
 import '../../features/fleet/presentation/screens/vehicle_preview_screen.dart';
+import '../../features/availability/presentation/screens/vehicle_availability_screen.dart';
 import '../../features/notifications/presentation/controllers/notifications_controller.dart';
 import '../../features/profile/presentation/screens/payment_methods_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -270,6 +271,16 @@ GoRouter appRouter(Ref ref) {
                 return const _InvalidLoanableIdScreen();
               }
               return VehiclePreviewScreen(vehicleId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.fleetAvailability,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              return VehicleAvailabilityScreen(vehicleId: id);
             },
           ),
         ],

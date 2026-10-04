@@ -250,6 +250,29 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
             ),
           ),
         ),
+        // Availability Management Tile
+        Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: AppColors.background,
+              child: Icon(Icons.calendar_month, color: AppColors.primary),
+            ),
+            title: const Text(
+              'Disponibilités & Calendrier',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: Text(
+              v.availabilityMode == 'never'
+                  ? 'Mode restreint (créneaux fermés par défaut)'
+                  : 'Gérer les indisponibilités ponctuelles & récurrentes',
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            onTap: () => context.push(AppRoutes.fleetAvailabilityPath(v.id)),
+          ),
+        ),
         const SizedBox(height: 16),
 
         // Action Buttons Row
