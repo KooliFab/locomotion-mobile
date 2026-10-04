@@ -9,6 +9,7 @@ enum PushEventType {
   loanExtensionRequested('loan_extension_requested'),
   loanExtensionAccepted('loan_extension_accepted'),
   loanExtensionRejected('loan_extension_rejected'),
+  incidentCreated('incident_created'),
   unknown('unknown');
 
   final String value;
@@ -26,7 +27,9 @@ enum PushEventType {
 class PushPayload {
   final String schemaVersion;
   final PushEventType eventType;
-  final int loanId;
+  final int? loanId;
+  final int? incidentId;
+  final int? loanableId;
   final String? messageId;
   final String? title;
   final String? body;
@@ -34,7 +37,9 @@ class PushPayload {
   const PushPayload({
     required this.schemaVersion,
     required this.eventType,
-    required this.loanId,
+    this.loanId,
+    this.incidentId,
+    this.loanableId,
     this.messageId,
     this.title,
     this.body,
@@ -44,7 +49,8 @@ class PushPayload {
   /// Returns null if:
   /// - schema_version is not '1'
   /// - event_type is unknown
-  /// - loan_id is missing, non-numeric, or <= 0
+  /// - loan_id is missing, non-numeric, or <= 0 (for loan events)
+  /// - incident_id is missing, non-numeric, or <= 0 (for incident events)
   static PushPayload? tryParse({
     required Map<String, dynamic> data,
     String? messageId,
@@ -70,17 +76,35 @@ class PushPayload {
 
     final rawLoanId = data['loan_id'];
     final loanId = int.tryParse(rawLoanId?.toString() ?? '');
-    if (loanId == null || loanId <= 0) {
-      debugPrint(
-        '[PushNotification] Ignored payload with invalid loan_id: $rawLoanId',
-      );
-      return null;
+
+    final rawIncidentId = data['incident_id'];
+    final incidentId = int.tryParse(rawIncidentId?.toString() ?? '');
+
+    final rawLoanableId = data['loanable_id'];
+    final loanableId = int.tryParse(rawLoanableId?.toString() ?? '');
+
+    if (eventType == PushEventType.incidentCreated) {
+      if (incidentId == null || incidentId <= 0) {
+        debugPrint(
+          '[PushNotification] Ignored payload with invalid incident_id: $rawIncidentId',
+        );
+        return null;
+      }
+    } else {
+      if (loanId == null || loanId <= 0) {
+        debugPrint(
+          '[PushNotification] Ignored payload with invalid loan_id: $rawLoanId',
+        );
+        return null;
+      }
     }
 
     return PushPayload(
       schemaVersion: schemaVersion!,
       eventType: eventType,
       loanId: loanId,
+      incidentId: incidentId,
+      loanableId: loanableId,
       messageId: messageId,
       title: title,
       body: body,
@@ -89,6 +113,11 @@ class PushPayload {
 
   /// Safe string for logging without exposing any sensitive or private data
   String toSafeLogString() {
-    return 'PushPayload(schemaVersion: $schemaVersion, eventType: ${eventType.value}, loanId: $loanId, messageId: $messageId)';
+    final extra = [
+      if (incidentId != null) 'incidentId: $incidentId',
+      if (loanableId != null) 'loanableId: $loanableId',
+    ];
+    final extraStr = extra.isNotEmpty ? ', ${extra.join(', ')}' : '';
+    return 'PushPayload(schemaVersion: $schemaVersion, eventType: ${eventType.value}, loanId: $loanId$extraStr, messageId: $messageId)';
   }
 }

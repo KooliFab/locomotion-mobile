@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/network/network_providers.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../loans/presentation/controllers/loans_controller.dart';
@@ -320,7 +321,13 @@ class NotificationsController extends _$NotificationsController {
     }
 
     // Target route
-    final targetPath = '/loans/${payload.loanId}';
+    final String targetPath;
+    if (payload.eventType == PushEventType.incidentCreated &&
+        payload.incidentId != null) {
+      targetPath = AppRoutes.incidentDetailPath(payload.incidentId!);
+    } else {
+      targetPath = '/loans/${payload.loanId}';
+    }
 
     final authState = ref.read(authControllerProvider);
     final isLoggedIn = authState.value != null;

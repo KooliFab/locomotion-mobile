@@ -224,7 +224,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               icon: Icons.help_outline_rounded,
               title: 'Aide & Signalement',
               subtitle: 'Signaler un incident',
-              onTap: () {},
+              onTap: () => context.push(AppRoutes.incidents),
             ),
             _MenuItem(
               icon: Icons.logout_rounded,

@@ -376,6 +376,38 @@ void main() {
     );
 
     test(
+      'opened incident notification when unauthenticated saves /incidents/:id pendingRedirectPath',
+      () async {
+        final container = createContainer(user: null);
+        addTearDown(container.dispose);
+
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+
+        await controller.initialize(
+          onOpenPayload: (_) {},
+        );
+
+        const payload = PushPayload(
+          schemaVersion: '1',
+          eventType: PushEventType.incidentCreated,
+          incidentId: 78,
+          loanableId: 14,
+          messageId: 'msg_inc_open_1',
+        );
+
+        fakeService.emitMessageOpenedApp(payload);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          '/incidents/78',
+        );
+      },
+    );
+
+    test(
       'terminated cold start initial message is processed on initialize',
       () async {
         final container = createContainer(user: testUser);

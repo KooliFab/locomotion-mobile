@@ -163,6 +163,7 @@ class _LoanReturnInspectionScreenState
                     controller,
                     isMotorized,
                     mileageStart,
+                    loan,
                   ),
                   const SizedBox(height: 20),
 
@@ -633,6 +634,7 @@ class _LoanReturnInspectionScreenState
     LoanReturnController controller,
     bool isMotorized,
     int? mileageStart,
+    Loan loan,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,6 +657,31 @@ class _LoanReturnInspectionScreenState
             controller.toggleNewDamages(val, isMotorized, mileageStart);
           },
         ),
+        if (draft.newDamagesDeclared && loan.loanableId != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('open_detailed_incident_report_button'),
+            onPressed: () {
+              context.push(
+                AppRoutes.incidentReportPath(
+                  loanableId: loan.loanableId!,
+                  vehicleName: loan.loanableName,
+                  loanId: loan.id,
+                  ownerName: loan.ownerUserName,
+                  ownerPhone: loan.ownerUserPhone,
+                  ownerEmail: loan.ownerUserEmail,
+                ),
+              );
+            },
+            icon: const Icon(Icons.assignment_late_outlined, size: 18),
+            label: const Text('Ouvrir un signalement d\'incident détaillé'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.warning,
+              side: const BorderSide(color: AppColors.warning),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         const SizedBox(height: 8),
         TextField(
           key: const Key('comments_input'),

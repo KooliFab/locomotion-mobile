@@ -26,6 +26,9 @@ import '../../features/fleet/presentation/screens/owner_vehicle_detail_screen.da
 import '../../features/fleet/presentation/screens/vehicle_form_screen.dart';
 import '../../features/fleet/presentation/screens/vehicle_preview_screen.dart';
 import '../../features/availability/presentation/screens/vehicle_availability_screen.dart';
+import '../../features/incidents/presentation/screens/incident_detail_screen.dart';
+import '../../features/incidents/presentation/screens/incident_report_screen.dart';
+import '../../features/incidents/presentation/screens/incidents_list_screen.dart';
 import '../../features/notifications/presentation/controllers/notifications_controller.dart';
 import '../../features/profile/presentation/screens/payment_methods_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -281,6 +284,45 @@ GoRouter appRouter(Ref ref) {
                 return const _InvalidLoanableIdScreen();
               }
               return VehicleAvailabilityScreen(vehicleId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.incidents,
+            builder: (context, state) {
+              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
+              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '');
+              return IncidentsListScreen(loanId: loanId, loanableId: loanableId);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.incidentReport,
+            builder: (context, state) {
+              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '') ?? 0;
+              final vehicleName = state.uri.queryParameters['vehicle_name'];
+              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
+              final ownerName = state.uri.queryParameters['owner_name'];
+              final ownerPhone = state.uri.queryParameters['owner_phone'];
+              final ownerEmail = state.uri.queryParameters['owner_email'];
+              return IncidentReportScreen(
+                loanableId: loanableId,
+                vehicleName: vehicleName,
+                loanId: loanId,
+                ownerName: ownerName,
+                ownerPhone: ownerPhone,
+                ownerEmail: ownerEmail,
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.incidentDetail,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const Scaffold(
+                  body: Center(child: Text('Identifiant d\'incident invalide.')),
+                );
+              }
+              return IncidentDetailScreen(incidentId: id);
             },
           ),
         ],

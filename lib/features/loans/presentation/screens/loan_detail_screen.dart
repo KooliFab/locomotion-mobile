@@ -765,6 +765,25 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       appBar: AppBar(
         title: Text('Réservation #${widget.loanId}'),
         actions: [
+          if (loanAsync.hasValue && loanAsync.value?.loanableId != null)
+            IconButton(
+              key: const Key('report_incident_button'),
+              icon: const Icon(Icons.report_problem_outlined),
+              tooltip: 'Signaler un incident',
+              onPressed: () {
+                final loan = loanAsync.value!;
+                context.push(
+                  AppRoutes.incidentReportPath(
+                    loanableId: loan.loanableId!,
+                    vehicleName: loan.loanableName,
+                    loanId: loan.id,
+                    ownerName: loan.ownerUserName,
+                    ownerPhone: loan.ownerUserPhone,
+                    ownerEmail: loan.ownerUserEmail,
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => ref.invalidate(loanDetailProvider(widget.loanId)),
@@ -1792,6 +1811,73 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                             ),
                           ),
                       ],
+                    ),
+                  ],
+
+                  // Incident Reporting Card
+                  if (loan.loanableId != null) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      key: const Key('incident_assistance_card'),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.orange.shade200),
+                      ),
+                      color: Colors.orange.shade50.withValues(alpha: 0.5),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.report_problem_outlined,
+                              color: Colors.orange.shade800,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Incident ou imprévu ?',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Panne, retard, crevaison ou dommage : signalez-le sans attendre.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              key: const Key('report_incident_link_button'),
+                              onPressed: () {
+                                context.push(
+                                  AppRoutes.incidentReportPath(
+                                    loanableId: loan.loanableId!,
+                                    vehicleName: loan.loanableName,
+                                    loanId: loan.id,
+                                    ownerName: loan.ownerUserName,
+                                    ownerPhone: loan.ownerUserPhone,
+                                    ownerEmail: loan.ownerUserEmail,
+                                  ),
+                                );
+                              },
+                              child: const Text('Signaler'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
 

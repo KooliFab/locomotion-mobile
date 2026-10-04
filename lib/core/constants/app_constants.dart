@@ -53,6 +53,14 @@ class ApiEndpoints {
   static const String invoices = '/invoices';
   static const String pricings = '/pricings';
 
+  // Incidents
+  static const String incidents = '/incidents';
+  static String incidentDetail(int id) => '/incidents/$id';
+  static String incidentComplete(int id) => '/incidents/$id/complete';
+  static String incidentReopen(int id) => '/incidents/$id/reopen';
+  static String incidentNotes(int id) => '/incidents/$id/note';
+  static String incidentBlock(int id) => '/incidents/$id/block';
+
   // Status & GBFS
   static const String status = '/status';
   static const String stats = '/stats';

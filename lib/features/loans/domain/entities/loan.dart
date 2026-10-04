@@ -273,6 +273,68 @@ abstract class Loan with _$Loan {
     return false;
   }
 
+  Map<String, dynamic>? get _ownerUserRole {
+    final directRoles = loanable?.mergedUserRoles;
+    if (directRoles != null) {
+      for (final r in directRoles) {
+        final role = r['role']?.toString();
+        if (role == 'owner' || role == 'coowner') {
+          return r;
+        }
+      }
+    }
+    if (loanable?.details != null) {
+      final roles = loanable!.details!['merged_user_roles'];
+      if (roles is List) {
+        for (final r in roles) {
+          if (r is Map<String, dynamic>) {
+            final role = r['role']?.toString();
+            if (role == 'owner' || role == 'coowner') {
+              return r;
+            }
+          } else if (r is Map) {
+            final role = r['role']?.toString();
+            if (role == 'owner' || role == 'coowner') {
+              return Map<String, dynamic>.from(r);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  String? get ownerUserName {
+    final r = _ownerUserRole;
+    if (r == null) return null;
+    if (r['user'] is Map) {
+      final u = r['user'] as Map;
+      final first = u['first_name']?.toString() ?? '';
+      final last = u['last_name']?.toString() ?? '';
+      final full = '$first $last'.trim();
+      return full.isNotEmpty ? full : u['name']?.toString();
+    }
+    return r['name']?.toString();
+  }
+
+  String? get ownerUserEmail {
+    final r = _ownerUserRole;
+    if (r == null) return null;
+    if (r['user'] is Map) {
+      return (r['user'] as Map)['email']?.toString();
+    }
+    return r['email']?.toString();
+  }
+
+  String? get ownerUserPhone {
+    final r = _ownerUserRole;
+    if (r == null) return null;
+    if (r['user'] is Map) {
+      return (r['user'] as Map)['phone']?.toString();
+    }
+    return r['phone']?.toString();
+  }
+
   /// Policy deduction for owner accept:
   /// Laravel LoanPolicy: status must be 'requested', user must be (co)owner or loan admin.
   bool canOwnerAccept(int? currentUserId) {

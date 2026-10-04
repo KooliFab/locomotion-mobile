@@ -273,6 +273,28 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
             onTap: () => context.push(AppRoutes.fleetAvailabilityPath(v.id)),
           ),
         ),
+        // Incidents Management Tile
+        Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            key: const Key('vehicle_incidents_tile'),
+            leading: const CircleAvatar(
+              backgroundColor: AppColors.background,
+              child: Icon(Icons.report_problem_outlined, color: AppColors.warning),
+            ),
+            title: const Text(
+              'Incidents & Dommages',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: const Text(
+              'Consulter l\'historique et les signalements en cours',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            onTap: () => context.push('${AppRoutes.incidents}?loanable_id=${v.id}'),
+          ),
+        ),
         const SizedBox(height: 16),
 
         // Action Buttons Row
