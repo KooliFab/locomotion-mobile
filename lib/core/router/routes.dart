@@ -15,6 +15,11 @@ class AppRoutes {
   static const String loanDeparture = '/loans/:id/departure';
   static const String loanReturn = '/loans/:id/return';
   static const String loansList = '/loans/all';
+  static const String fleet = '/fleet';
+  static const String fleetCreate = '/fleet/new';
+  static const String fleetDetail = '/fleet/:id';
+  static const String fleetEdit = '/fleet/:id/edit';
+  static const String fleetPreview = '/fleet/:id/preview';
 
   static String loanableDetailPath(int id) => '/loanables/$id';
   static String loanReservationPath(int id) => '/loanables/$id/reserve';
@@ -24,4 +29,7 @@ class AppRoutes {
   static String loanReturnPath(int id) => '/loans/$id/return';
   static String loansListPath({String? status}) =>
       status != null ? '/loans/all?status=$status' : '/loans/all';
+  static String fleetDetailPath(int id) => '/fleet/$id';
+  static String fleetEditPath(int id) => '/fleet/$id/edit';
+  static String fleetPreviewPath(int id) => '/fleet/$id/preview';
 }

@@ -172,6 +172,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               onTap: () => context.push(AppRoutes.borrower),
             ),
             _MenuItem(
+              icon: Icons.directions_car_outlined,
+              title: 'Ma flotte de véhicules',
+              subtitle: 'Véhicules partagés, calendrier & suspension',
+              onTap: () => context.push(AppRoutes.fleet),
+            ),
+            _MenuItem(
               icon: Icons.credit_card_outlined,
               title: 'Moyens de paiement',
               subtitle: 'Cartes bancaires & Stripe',

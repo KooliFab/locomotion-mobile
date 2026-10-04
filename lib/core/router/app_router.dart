@@ -20,6 +20,11 @@ import '../../features/loans/presentation/screens/loan_reservation_screen.dart';
 import '../../features/loans/presentation/screens/loan_success_screen.dart';
 import '../../features/loans/presentation/screens/loans_list_screen.dart';
 import '../../features/loans/presentation/screens/loans_screen.dart';
+import '../../features/fleet/domain/entities/fleet_vehicle.dart';
+import '../../features/fleet/presentation/screens/owner_fleet_screen.dart';
+import '../../features/fleet/presentation/screens/owner_vehicle_detail_screen.dart';
+import '../../features/fleet/presentation/screens/vehicle_form_screen.dart';
+import '../../features/fleet/presentation/screens/vehicle_preview_screen.dart';
 import '../../features/notifications/presentation/controllers/notifications_controller.dart';
 import '../../features/profile/presentation/screens/payment_methods_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -223,6 +228,48 @@ GoRouter appRouter(Ref ref) {
                 loanId: id,
                 initialLoan: extra is Loan ? extra : null,
               );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.fleet,
+            builder: (context, state) => const OwnerFleetScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.fleetCreate,
+            builder: (context, state) => const VehicleFormScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.fleetDetail,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              return OwnerVehicleDetailScreen(vehicleId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.fleetEdit,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              final extra = state.extra;
+              return VehicleFormScreen(
+                vehicleId: id,
+                initialVehicle: extra is FleetVehicle ? extra : null,
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.fleetPreview,
+            builder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null || id <= 0) {
+                return const _InvalidLoanableIdScreen();
+              }
+              return VehiclePreviewScreen(vehicleId: id);
             },
           ),
         ],

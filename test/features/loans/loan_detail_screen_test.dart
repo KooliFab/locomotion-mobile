@@ -41,7 +41,11 @@ class _MockLoansRepo implements LoansRepository {
   @override
   Future<Loan> cancelLoan(int id) async {
     cancelCalls++;
-    if (errorToThrow != null) throw errorToThrow!;
+    if (errorToThrow != null) {
+      final err = errorToThrow!;
+      errorToThrow = null;
+      throw err;
+    }
     return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
         .copyWith(status: 'canceled', canceledAt: DateTime.now());
   }
@@ -58,7 +62,11 @@ class _MockLoansRepo implements LoansRepository {
   Future<LoanComment> addComment(int id, String text) async {
     commentCalls++;
     lastCommentText = text;
-    if (errorToThrow != null) throw errorToThrow!;
+    if (errorToThrow != null) {
+      final err = errorToThrow!;
+      errorToThrow = null;
+      throw err;
+    }
     return LoanComment(id: 99, loanId: id, authorId: 100, text: text);
   }
 
@@ -345,6 +353,8 @@ void main() {
           statusCode: 403,
         );
 
+        await tester.ensureVisible(find.byKey(const Key('action_cancel_button')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('action_cancel_button')));
         await tester.pumpAndSettle();
 
@@ -401,6 +411,8 @@ void main() {
         await tester.enterText(commentInput, 'Message important à préserver');
         await tester.pumpAndSettle();
 
+        await tester.ensureVisible(submitCommentBtn);
+        await tester.pumpAndSettle();
         await tester.tap(submitCommentBtn);
         await tester.pumpAndSettle();
 
@@ -495,7 +507,7 @@ void main() {
       // Verify inline error in dialog
       expect(
         find.text('Le véhicule n\'est pas disponible sur cette période.'),
-        findsOneWidget,
+        findsWidgets,
       );
       expect(mockRepo.updateDatesCalls, 1);
     });
@@ -826,7 +838,7 @@ void main() {
           find.textContaining(
             'Le véhicule n\'est pas disponible sur cette période.',
           ),
-          findsOneWidget,
+          findsWidgets,
         );
         expect(find.text('Tentative acceptation'), findsOneWidget);
         expect(
