@@ -701,8 +701,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
   }
 
   Future<void> _handleSettleLoan(Loan loan) async {
-    final confirmed = await _showFinancialBreakdownDialog(context, loan);
-    if (confirmed != true) return;
+    if (loan.paidAt == null) {
+      final confirmed = await _showFinancialBreakdownDialog(context, loan);
+      if (confirmed != true) return;
+    }
 
     setState(() {
       _isSettling = true;
@@ -716,12 +718,38 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Prêt clôturé et caution libérée avec succès.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        final settleState = ref.read(loanSettleControllerProvider);
+        final responseData =
+            settleState is LoanSettleSuccess ? settleState.data : null;
+        final depositStatus = responseData?['deposit_status'];
+        final isDepositReleased = depositStatus == 'released' ||
+            responseData?['deposit_released'] == true;
+        final isReleaseFailed = depositStatus == 'release_failed' ||
+            responseData?['deposit_release_failed'] == true;
+
+        if (isReleaseFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Prêt clôturé, mais la libération de la caution a échoué. Vous pouvez réessayer.'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        } else if (isDepositReleased) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Prêt clôturé et caution libérée avec succès.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Prêt clôturé avec succès.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
       } else {
         final settleState = ref.read(loanSettleControllerProvider);
         final errorMsg = settleState is LoanSettleError
@@ -1664,29 +1692,81 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.teal.shade50,
+                        color: loan.isDepositReleaseFailed
+                            ? Colors.amber.shade50
+                            : Colors.teal.shade50,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.teal.shade200),
+                        border: Border.all(
+                          color: loan.isDepositReleaseFailed
+                              ? Colors.amber.shade300
+                              : Colors.teal.shade200,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.check_circle_rounded,
-                            color: Colors.teal.shade700,
+                            loan.isDepositReleaseFailed
+                                ? Icons.warning_amber_rounded
+                                : Icons.check_circle_rounded,
+                            color: loan.isDepositReleaseFailed
+                                ? Colors.amber.shade800
+                                : Colors.teal.shade700,
                             size: 22,
                           ),
                           const SizedBox(width: 10),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Règlement finalisé et caution libérée',
+                              loan.isDepositReleaseFailed
+                                  ? 'Règlement finalisé — échec de libération caution'
+                                  : (loan.isMotorized && !loan.isDepositReleased
+                                      ? 'Règlement finalisé'
+                                      : 'Règlement finalisé et caution libérée'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.teal,
+                                color: loan.isDepositReleaseFailed
+                                    ? Colors.amber.shade900
+                                    : Colors.teal,
                                 fontSize: 14,
                               ),
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ],
+
+                  // Retry Deposit Release Action if initial release failed
+                  if (loan.canRetryReleaseDeposit(currentUser?.id)) ...[
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      key: const Key('action_retry_release_deposit_button'),
+                      onPressed:
+                          _isSettling ? null : () => _handleSettleLoan(loan),
+                      icon: const Icon(
+                        Icons.replay_rounded,
+                        size: 20,
+                      ),
+                      label: _isSettling
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              'Réessayer la libération de la caution',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.warning,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],

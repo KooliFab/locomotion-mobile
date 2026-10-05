@@ -142,8 +142,21 @@ abstract class Loan with _$Loan {
   bool get hasAuthorizedDeposit => depositStatus == 'authorized';
   bool get isDepositReleased =>
       depositStatus == 'released' || depositReleasedAt != null;
+  bool get isDepositReleaseFailed => depositStatus == 'release_failed';
   double? get depositAuthorizedDollars =>
       depositAuthorizedCents != null ? depositAuthorizedCents! / 100.0 : null;
+
+  /// Whether deposit release can be retried without re-billing
+  bool canRetryReleaseDeposit(int? currentUserId) {
+    if (paidAt == null && parsedStatus != LoanStatus.completed) return false;
+    if (depositStatus != 'release_failed' && depositStatus != 'release_pending') return false;
+
+    final isBorrower = borrowerUserId == null ||
+        currentUserId == null ||
+        borrowerUserId == currentUserId;
+    final isOwner = isUserOwner(currentUserId);
+    return isBorrower || isOwner;
+  }
 
   /// Borrower can prepay when accepted and not yet prepaid
   bool canBorrowerPrepay(int? currentUserId) {

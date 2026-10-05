@@ -322,5 +322,57 @@ void main() {
       expect(find.byKey(const Key('loan_settled_badge')), findsOneWidget);
       expect(find.text('Règlement finalisé et caution libérée'), findsOneWidget);
     });
+
+    testWidgets('renders failed deposit release badge and retry button when depositStatus is release_failed', (
+      tester,
+    ) async {
+      final failedDepositLoan = baseOngoingLoan.copyWith(
+        status: 'completed',
+        returnInspectionCompleted: true,
+        paidAt: DateTime.now(),
+        depositStatus: 'release_failed',
+        loanable: const Loanable(
+          id: 1,
+          name: 'Voiture Partagée',
+          type: 'car',
+          mergedUserRoles: [
+            {'user_id': 99, 'role': 'owner'},
+          ],
+        ),
+      );
+      final loansRepo = _MockLoansRepo(failedDepositLoan);
+      final inspectionRepo = _MockInspectionRepo();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(() => _FakeAuthController(currentUser)),
+            loansRepositoryProvider.overrideWithValue(loansRepo),
+            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
+            loanDetailProvider(301).overrideWith((ref) => failedDepositLoan),
+          ],
+          child: const MaterialApp(
+            home: LoanDetailScreen(loanId: 301),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('loan_settled_badge')), findsOneWidget);
+      expect(find.text('Règlement finalisé — échec de libération caution'), findsOneWidget);
+
+      final retryButton = find.byKey(const Key('action_retry_release_deposit_button'));
+      expect(retryButton, findsOneWidget);
+      expect(find.text('Réessayer la libération de la caution'), findsOneWidget);
+
+      // Tapping retry directly calls settle without the billing confirmation dialog
+      await tester.tap(retryButton);
+      await tester.pumpAndSettle();
+
+      expect(inspectionRepo.settleCalled, isTrue);
+      // Dialog shouldn't open for deposit release retry
+      expect(find.text('Règlement final'), findsNothing);
+    });
   });
 }

@@ -20,6 +20,7 @@ class LoanSettleProcessing extends LoanSettleState {
 
 class LoanSettleSuccess extends LoanSettleState {
   final Map<String, dynamic> responseData;
+  Map<String, dynamic> get data => responseData;
   const LoanSettleSuccess(this.responseData);
 }
 
