@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
+import 'core/config/env.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/notifications/domain/entities/push_payload.dart';
@@ -14,6 +15,9 @@ import 'features/notifications/presentation/widgets/foreground_notification_bann
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Validate configuration for current environment
+  AppConfig.validate();
 
   // Initialise locale data for intl DateFormat
   try {

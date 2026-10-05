@@ -23,7 +23,10 @@ class FakeReturnDraftRepository implements ReturnDraftRepository {
   bool clearDraftCalled = false;
 
   @override
-  Future<ReturnDraft?> getDraft({required int userId, required int loanId}) async {
+  Future<ReturnDraft?> getDraft({
+    required int userId,
+    required int loanId,
+  }) async {
     return _drafts['${userId}_$loanId'];
   }
 
@@ -47,7 +50,10 @@ class FakeReturnInspectionRepository implements LoanInspectionRepository {
   String? lastSubmittedIdempotencyKey;
 
   @override
-  Future<int> uploadInspectionPhoto({required File file, required String field}) async {
+  Future<int> uploadInspectionPhoto({
+    required File file,
+    required String field,
+  }) async {
     if (uploadShouldFail) {
       throw Exception('Photo upload failed: Network Error');
     }
@@ -124,15 +130,18 @@ class FakeReturnLoansRepository implements LoansRepository {
   }
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
   @override
   Future<Loan> validateLoan(int id) => throw UnimplementedError();
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
   @override
@@ -145,12 +154,15 @@ class FakeReturnLoansRepository implements LoansRepository {
     int? borrowerUserId,
   }) => throw UnimplementedError();
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
   @override
-  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) => throw UnimplementedError();
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
 
   @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
   @override
@@ -158,7 +170,10 @@ class FakeReturnLoansRepository implements LoansRepository {
   @override
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 void main() {
@@ -186,80 +201,94 @@ void main() {
   });
 
   group('LoanReturnController Unit Tests', () {
-    test('initializes default draft for motorized vehicle with 5 photo slots', () async {
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+    test(
+      'initializes default draft for motorized vehicle with 5 photo slots',
+      () async {
+        final controller = container.read(
+          loanReturnControllerProvider(42).notifier,
+        );
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
-        mileageStart: 120000,
-        initialOdometer: 120000,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: true,
+          mileageStart: 120000,
+          initialOdometer: 120000,
+        );
 
-      final state = container.read(loanReturnControllerProvider(42));
-      expect(state.isLoading, isFalse);
-      expect(state.draft.loanId, 42);
-      expect(state.draft.userId, 1);
-      expect(state.draft.odometerKm, 120000);
-      expect(state.draft.fuelBatteryLevelPercent, 80);
-      expect(state.draft.cleanlinessRating, 4);
-      expect(state.draft.photos.containsKey('dashboard_odometer'), isTrue);
-      expect(state.draft.photos.containsKey('front'), isTrue);
-      expect(state.draft.photos.containsKey('back'), isTrue);
-      expect(state.draft.photos.containsKey('left_side'), isTrue);
-      expect(state.draft.photos.containsKey('right_side'), isTrue);
-      expect(state.canSubmit, isFalse); // Photos not uploaded yet
-    });
+        final state = container.read(loanReturnControllerProvider(42));
+        expect(state.isLoading, isFalse);
+        expect(state.draft.loanId, 42);
+        expect(state.draft.userId, 1);
+        expect(state.draft.odometerKm, 120000);
+        expect(state.draft.fuelBatteryLevelPercent, 80);
+        expect(state.draft.cleanlinessRating, 4);
+        expect(state.draft.photos.containsKey('dashboard_odometer'), isTrue);
+        expect(state.draft.photos.containsKey('front'), isTrue);
+        expect(state.draft.photos.containsKey('back'), isTrue);
+        expect(state.draft.photos.containsKey('left_side'), isTrue);
+        expect(state.draft.photos.containsKey('right_side'), isTrue);
+        expect(state.canSubmit, isFalse); // Photos not uploaded yet
+      },
+    );
 
-    test('initializes default draft for non-motorized vehicle without odometer requirement', () async {
-      final controller =
-          container.read(loanReturnControllerProvider(43).notifier);
+    test(
+      'initializes default draft for non-motorized vehicle without odometer requirement',
+      () async {
+        final controller = container.read(
+          loanReturnControllerProvider(43).notifier,
+        );
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 43,
-        requiresMileage: false,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 43,
+          requiresMileage: false,
+          isMotorized: false,
+        );
 
-      final state = container.read(loanReturnControllerProvider(43));
-      expect(state.isLoading, isFalse);
-      expect(state.draft.photos.containsKey('dashboard_odometer'), isFalse);
-      expect(state.draft.photos.containsKey('front'), isTrue);
-      expect(state.draft.checklist.containsKey('lock_secured'), isTrue);
-    });
+        final state = container.read(loanReturnControllerProvider(43));
+        expect(state.isLoading, isFalse);
+        expect(state.draft.photos.containsKey('dashboard_odometer'), isFalse);
+        expect(state.draft.photos.containsKey('front'), isTrue);
+        expect(state.draft.checklist.containsKey('lock_secured'), isTrue);
+      },
+    );
 
-    test('validates odometer: allows 0 km driven, but prevents negative mileage', () async {
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+    test(
+      'validates odometer: allows 0 km driven, but prevents negative mileage',
+      () async {
+        final controller = container.read(
+          loanReturnControllerProvider(42).notifier,
+        );
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
-        mileageStart: 1000,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: true,
+          mileageStart: 1000,
+        );
 
-      // Attempt lower odometer
-      controller.updateOdometer(999, true, 1000);
-      var state = container.read(loanReturnControllerProvider(42));
-      expect(state.errorMessage, contains('ne peut pas être inférieur'));
-      expect(state.canSubmit, isFalse);
+        // Attempt lower odometer
+        controller.updateOdometer(999, true, 1000);
+        var state = container.read(loanReturnControllerProvider(42));
+        expect(state.errorMessage, contains('ne peut pas être inférieur'));
+        expect(state.canSubmit, isFalse);
 
-      // Same as start (0 km return arbitrage)
-      controller.updateOdometer(1000, true, 1000);
-      state = container.read(loanReturnControllerProvider(42));
-      expect(state.errorMessage, isNull);
-    });
+        // Same as start (0 km return arbitrage)
+        controller.updateOdometer(1000, true, 1000);
+        state = container.read(loanReturnControllerProvider(42));
+        expect(state.errorMessage, isNull);
+      },
+    );
 
     test('photo upload updates entry to uploaded and handles errors', () async {
       final tempDir = Directory.systemTemp.createTempSync('lot11_photo_test');
       final tempFile = File('${tempDir.path}/front.jpg');
       await tempFile.writeAsString('bytes');
 
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+      final controller = container.read(
+        loanReturnControllerProvider(42).notifier,
+      );
 
       await controller.initialize(
         userId: 1,
@@ -301,8 +330,9 @@ void main() {
       final tempFile = File('${tempDir.path}/signature.png');
       await tempFile.writeAsString('signature');
 
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+      final controller = container.read(
+        loanReturnControllerProvider(42).notifier,
+      );
 
       await controller.initialize(
         userId: 1,
@@ -324,90 +354,101 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('submitReturn posts inspection, clears local draft, and produces sealed hash', () async {
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+    test(
+      'submitReturn posts inspection, clears local draft, and produces sealed hash',
+      () async {
+        final controller = container.read(
+          loanReturnControllerProvider(42).notifier,
+        );
 
-      // Prepopulate valid draft with all 5 uploaded photos
-      const validDraft = ReturnDraft(
-        userId: 1,
-        loanId: 42,
-        odometerKm: 550,
-        fuelBatteryLevelPercent: 90,
-        cleanlinessRating: 5,
-        checklist: {'key_returned': true},
-        photos: {
-          'dashboard_odometer': DraftPhotoEntry(
-            field: 'dashboard_odometer',
-            status: DraftPhotoStatus.uploaded,
-            imageId: 1,
-          ),
-          'front': DraftPhotoEntry(
-            field: 'front',
-            status: DraftPhotoStatus.uploaded,
-            imageId: 2,
-          ),
-          'back': DraftPhotoEntry(
-            field: 'back',
-            status: DraftPhotoStatus.uploaded,
-            imageId: 3,
-          ),
-          'left_side': DraftPhotoEntry(
-            field: 'left_side',
-            status: DraftPhotoStatus.uploaded,
-            imageId: 4,
-          ),
-          'right_side': DraftPhotoEntry(
-            field: 'right_side',
-            status: DraftPhotoStatus.uploaded,
-            imageId: 5,
-          ),
-        },
-      );
-      await fakeDraftRepo.saveDraft(validDraft);
+        // Prepopulate valid draft with all 5 uploaded photos
+        const validDraft = ReturnDraft(
+          userId: 1,
+          loanId: 42,
+          odometerKm: 550,
+          fuelBatteryLevelPercent: 90,
+          cleanlinessRating: 5,
+          checklist: {'key_returned': true},
+          photos: {
+            'dashboard_odometer': DraftPhotoEntry(
+              field: 'dashboard_odometer',
+              status: DraftPhotoStatus.uploaded,
+              imageId: 1,
+            ),
+            'front': DraftPhotoEntry(
+              field: 'front',
+              status: DraftPhotoStatus.uploaded,
+              imageId: 2,
+            ),
+            'back': DraftPhotoEntry(
+              field: 'back',
+              status: DraftPhotoStatus.uploaded,
+              imageId: 3,
+            ),
+            'left_side': DraftPhotoEntry(
+              field: 'left_side',
+              status: DraftPhotoStatus.uploaded,
+              imageId: 4,
+            ),
+            'right_side': DraftPhotoEntry(
+              field: 'right_side',
+              status: DraftPhotoStatus.uploaded,
+              imageId: 5,
+            ),
+          },
+        );
+        await fakeDraftRepo.saveDraft(validDraft);
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
-        mileageStart: 500,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: true,
+          mileageStart: 500,
+        );
 
-      var state = container.read(loanReturnControllerProvider(42));
-      expect(state.canSubmit, isTrue);
+        var state = container.read(loanReturnControllerProvider(42));
+        expect(state.canSubmit, isTrue);
 
-      await controller.submitReturn(
-        loanId: 42,
-        requiresMileage: true,
-        mileageStart: 500,
-      );
+        await controller.submitReturn(
+          loanId: 42,
+          requiresMileage: true,
+          mileageStart: 500,
+        );
 
-      state = container.read(loanReturnControllerProvider(42));
-      expect(state.isSubmitting, isFalse);
-      expect(state.submissionSuccess, isNotNull);
-      expect(state.submissionSuccess!.sealedHash, 'sealed_return_hash_xyz_789');
-      expect(fakeDraftRepo.clearDraftCalled, isTrue);
-      expect(fakeInspectionRepo.lastSubmittedPayload?['odometer_km'], 550);
-    });
+        state = container.read(loanReturnControllerProvider(42));
+        expect(state.isSubmitting, isFalse);
+        expect(state.submissionSuccess, isNotNull);
+        expect(
+          state.submissionSuccess!.sealedHash,
+          'sealed_return_hash_xyz_789',
+        );
+        expect(fakeDraftRepo.clearDraftCalled, isTrue);
+        expect(fakeInspectionRepo.lastSubmittedPayload?['odometer_km'], 550);
+      },
+    );
 
-    test('checkServerStatus recovers inspection when server has recorded returnInspectionCompleted', () async {
-      final controller =
-          container.read(loanReturnControllerProvider(42).notifier);
+    test(
+      'checkServerStatus recovers inspection when server has recorded returnInspectionCompleted',
+      () async {
+        final controller = container.read(
+          loanReturnControllerProvider(42).notifier,
+        );
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
-        mileageStart: 500,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: true,
+          mileageStart: 500,
+        );
 
-      fakeLoansRepo.returnCompletedInspection = true;
-      await controller.checkServerStatus(42);
+        fakeLoansRepo.returnCompletedInspection = true;
+        await controller.checkServerStatus(42);
 
-      final state = container.read(loanReturnControllerProvider(42));
-      expect(state.submissionSuccess, isNotNull);
-      expect(state.submissionSuccess!.inspectionType, 'return');
-      expect(fakeDraftRepo.clearDraftCalled, isTrue);
-    });
+        final state = container.read(loanReturnControllerProvider(42));
+        expect(state.submissionSuccess, isNotNull);
+        expect(state.submissionSuccess!.inspectionType, 'return');
+        expect(fakeDraftRepo.clearDraftCalled, isTrue);
+      },
+    );
   });
 }

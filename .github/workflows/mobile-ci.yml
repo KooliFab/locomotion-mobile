@@ -40,7 +40,7 @@ jobs:
         run: flutter test --coverage
 
       - name: Build Staging APK
-        run: flutter build apk --flavor staging --debug
+        run: flutter build apk --flavor staging -t lib/main_staging.dart --dart-define=APP_ENV=staging
 
       - name: Build Production APK
-        run: flutter build apk --flavor prod --debug
+        run: flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=APP_ENV=prod --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_locomotion_ci_mock

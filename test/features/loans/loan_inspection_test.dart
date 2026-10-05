@@ -34,11 +34,7 @@ void main() {
     });
 
     test('DepartureDraft isReadyForSubmission for motorized car', () {
-      var draft = const DepartureDraft(
-        userId: 1,
-        loanId: 42,
-        odometerKm: null,
-      );
+      var draft = const DepartureDraft(userId: 1, loanId: 42, odometerKm: null);
 
       // Incomplete without odometer
       expect(draft.isReadyForSubmission(requiresMileage: true), false);
@@ -94,7 +90,10 @@ void main() {
       );
 
       // No photos -> not ready
-      expect(draft.isReadyForSubmission(requiresMileage: false), false);
+      expect(
+        draft.isReadyForSubmission(requiresMileage: false, isMotorized: false),
+        false,
+      );
 
       // Front photo uploaded -> ready
       draft = draft.copyWith(
@@ -106,7 +105,10 @@ void main() {
           ),
         },
       );
-      expect(draft.isReadyForSubmission(requiresMileage: false), true);
+      expect(
+        draft.isReadyForSubmission(requiresMileage: false, isMotorized: false),
+        true,
+      );
     });
 
     test('Loan.canTakeOver logic', () {

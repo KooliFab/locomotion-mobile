@@ -27,7 +27,10 @@ class FakeDepartureDraftRepository implements DepartureDraftRepository {
   }
 
   @override
-  Future<DepartureDraft?> getDraft({required int userId, required int loanId}) async {
+  Future<DepartureDraft?> getDraft({
+    required int userId,
+    required int loanId,
+  }) async {
     return _drafts['${userId}_$loanId'];
   }
 
@@ -46,7 +49,10 @@ class FakeLoanInspectionRepository implements LoanInspectionRepository {
   String? lastSubmittedIdempotencyKey;
 
   @override
-  Future<int> uploadInspectionPhoto({required File file, required String field}) async {
+  Future<int> uploadInspectionPhoto({
+    required File file,
+    required String field,
+  }) async {
     if (uploadShouldFail) {
       throw Exception('Photo upload failed: Network Error');
     }
@@ -198,7 +204,10 @@ class FakeLoansRepository implements LoansRepository {
   }
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) {
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) {
     throw UnimplementedError();
   }
 }
@@ -218,7 +227,9 @@ void main() {
       container = ProviderContainer(
         overrides: [
           departureDraftRepositoryProvider.overrideWithValue(fakeDraftRepo),
-          loanInspectionRepositoryProvider.overrideWithValue(fakeInspectionRepo),
+          loanInspectionRepositoryProvider.overrideWithValue(
+            fakeInspectionRepo,
+          ),
           loansRepositoryProvider.overrideWithValue(fakeLoansRepo),
         ],
       );
@@ -228,25 +239,33 @@ void main() {
       container.dispose();
     });
 
-    test('initializes default draft with checklist for motorized vehicle', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
+    test(
+      'initializes default draft with checklist for motorized vehicle',
+      () async {
+        final controller = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
 
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
-        initialOdometer: 110000,
-      );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: true,
+          initialOdometer: 110000,
+        );
 
-      final state = container.read(loanDepartureControllerProvider(42));
-      expect(state.isLoading, isFalse);
-      expect(state.draft.loanId, 42);
-      expect(state.draft.userId, 1);
-      expect(state.draft.odometerKm, 110000);
-      expect(state.draft.checklist.containsKey('key_present'), isTrue);
-      expect(state.draft.checklist.containsKey('insurance_paper_present'), isTrue);
-      expect(state.canSubmit, isFalse); // Photos not yet added
-    });
+        final state = container.read(loanDepartureControllerProvider(42));
+        expect(state.isLoading, isFalse);
+        expect(state.draft.loanId, 42);
+        expect(state.draft.userId, 1);
+        expect(state.draft.odometerKm, 110000);
+        expect(state.draft.checklist.containsKey('key_present'), isTrue);
+        expect(
+          state.draft.checklist.containsKey('insurance_paper_present'),
+          isTrue,
+        );
+        expect(state.canSubmit, isFalse); // Photos not yet added
+      },
+    );
 
     test('initializes from existing persisted draft', () async {
       await fakeDraftRepo.saveDraft(
@@ -258,50 +277,58 @@ void main() {
         ),
       );
 
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: true,
+      final controller = container.read(
+        loanDepartureControllerProvider(42).notifier,
       );
+      await controller.initialize(userId: 1, loanId: 42, requiresMileage: true);
 
       final state = container.read(loanDepartureControllerProvider(42));
       expect(state.draft.odometerKm, 125000);
       expect(state.draft.cleanlinessRating, 5);
     });
 
-    test('recovers interrupted uploading photos on initialization into recoverable error state', () async {
-      // Draft had a photo uploading when app closed
-      await fakeDraftRepo.saveDraft(
-        const DepartureDraft(
+    test(
+      'recovers interrupted uploading photos on initialization into recoverable error state',
+      () async {
+        // Draft had a photo uploading when app closed
+        await fakeDraftRepo.saveDraft(
+          const DepartureDraft(
+            userId: 1,
+            loanId: 42,
+            photos: {
+              'front': DraftPhotoEntry(
+                field: 'front',
+                localPath: '/tmp/front.jpg',
+                status: DraftPhotoStatus.uploading,
+              ),
+            },
+          ),
+        );
+
+        final controller = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
+        await controller.initialize(
           userId: 1,
           loanId: 42,
-          photos: {
-            'front': DraftPhotoEntry(
-              field: 'front',
-              localPath: '/tmp/front.jpg',
-              status: DraftPhotoStatus.uploading,
-            ),
-          },
-        ),
-      );
+          requiresMileage: false,
+        );
 
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: false,
-      );
-
-      final state = container.read(loanDepartureControllerProvider(42));
-      expect(state.draft.photos['front']?.status, DraftPhotoStatus.error);
-      expect(state.draft.photos['front']?.errorMessage, contains('interrompu'));
-      expect(state.errorMessage, contains('interrompu'));
-      expect(state.canSubmit, isFalse);
-    });
+        final state = container.read(loanDepartureControllerProvider(42));
+        expect(state.draft.photos['front']?.status, DraftPhotoStatus.error);
+        expect(
+          state.draft.photos['front']?.errorMessage,
+          contains('interrompu'),
+        );
+        expect(state.errorMessage, contains('interrompu'));
+        expect(state.canSubmit, isFalse);
+      },
+    );
 
     test('updating fields modifies draft and updates canSubmit', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
+      final controller = container.read(
+        loanDepartureControllerProvider(42).notifier,
+      );
       await controller.initialize(
         userId: 1,
         loanId: 42,
@@ -321,15 +348,19 @@ void main() {
     });
 
     test('photo upload success lifecycle', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
+      final controller = container.read(
+        loanDepartureControllerProvider(42).notifier,
+      );
       await controller.initialize(
         userId: 1,
         loanId: 42,
         requiresMileage: false,
+        isMotorized: false,
       );
 
       final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/test_bike.jpg')..writeAsStringSync('fake');
+      final tempFile = File('${tempDir.path}/test_bike.jpg')
+        ..writeAsStringSync('fake');
 
       fakeInspectionRepo.uploadedPhotoId = 777;
       await controller.attachAndUploadPhoto(
@@ -341,69 +372,81 @@ void main() {
       final state = container.read(loanDepartureControllerProvider(42));
       expect(state.draft.photos['front']?.status, DraftPhotoStatus.uploaded);
       expect(state.draft.photos['front']?.imageId, 777);
-      expect(state.canSubmit, isTrue); // Non-motorized vehicle with front photo is ready!
+      expect(
+        state.canSubmit,
+        isTrue,
+      ); // Non-motorized vehicle with front photo is ready!
 
       tempDir.deleteSync(recursive: true);
     });
 
-    test('photo upload failure marks status as error and allows retry', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
+    test(
+      'photo upload failure marks status as error and allows retry',
+      () async {
+        final controller = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: false,
+          isMotorized: false,
+        );
+
+        final tempDir = Directory.systemTemp.createTempSync();
+        final tempFile = File('${tempDir.path}/test_err.jpg')
+          ..writeAsStringSync('fake');
+
+        fakeInspectionRepo.uploadShouldFail = true;
+        await controller.attachAndUploadPhoto(
+          field: 'front',
+          file: tempFile,
+          requiresMileage: false,
+        );
+
+        var state = container.read(loanDepartureControllerProvider(42));
+        expect(state.draft.photos['front']?.status, DraftPhotoStatus.error);
+        expect(state.canSubmit, isFalse);
+
+        // Now retry with failure resolved
+        fakeInspectionRepo.uploadShouldFail = false;
+        fakeInspectionRepo.uploadedPhotoId = 778;
+        await controller.retryUpload(field: 'front', requiresMileage: false);
+
+        state = container.read(loanDepartureControllerProvider(42));
+        expect(state.draft.photos['front']?.status, DraftPhotoStatus.uploaded);
+        expect(state.draft.photos['front']?.imageId, 778);
+
+        // Removing photo
+        controller.removePhoto('front', false);
+        state = container.read(loanDepartureControllerProvider(42));
+        expect(state.draft.photos.containsKey('front'), isFalse);
+
+        tempDir.deleteSync(recursive: true);
+      },
+    );
+
+    test('submitDeparture succeeds, clears draft, and updates loan', () async {
+      final controller = container.read(
+        loanDepartureControllerProvider(42).notifier,
+      );
       await controller.initialize(
         userId: 1,
         loanId: 42,
         requiresMileage: false,
+        isMotorized: false,
       );
 
       final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/test_err.jpg')..writeAsStringSync('fake');
-
-      fakeInspectionRepo.uploadShouldFail = true;
+      final tempFile = File('${tempDir.path}/front.jpg')
+        ..writeAsStringSync('fake');
       await controller.attachAndUploadPhoto(
         field: 'front',
         file: tempFile,
         requiresMileage: false,
       );
 
-      var state = container.read(loanDepartureControllerProvider(42));
-      expect(state.draft.photos['front']?.status, DraftPhotoStatus.error);
-      expect(state.canSubmit, isFalse);
-
-      // Now retry with failure resolved
-      fakeInspectionRepo.uploadShouldFail = false;
-      fakeInspectionRepo.uploadedPhotoId = 778;
-      await controller.retryUpload(
-        field: 'front',
-        requiresMileage: false,
-      );
-
-      state = container.read(loanDepartureControllerProvider(42));
-      expect(state.draft.photos['front']?.status, DraftPhotoStatus.uploaded);
-      expect(state.draft.photos['front']?.imageId, 778);
-
-      // Removing photo
-      controller.removePhoto('front', false);
-      state = container.read(loanDepartureControllerProvider(42));
-      expect(state.draft.photos.containsKey('front'), isFalse);
-
-      tempDir.deleteSync(recursive: true);
-    });
-
-    test('submitDeparture succeeds, clears draft, and updates loan', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: false,
-      );
-
-      final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/front.jpg')..writeAsStringSync('fake');
-      await controller.attachAndUploadPhoto(field: 'front', file: tempFile, requiresMileage: false);
-
-      await controller.submitDeparture(
-        loanId: 42,
-        requiresMileage: false,
-      );
+      await controller.submitDeparture(loanId: 42, requiresMileage: false);
 
       final state = container.read(loanDepartureControllerProvider(42));
       expect(state.isSubmitting, isFalse);
@@ -416,116 +459,166 @@ void main() {
     });
 
     test('submitDeparture fails if draft is incomplete', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
+      final controller = container.read(
+        loanDepartureControllerProvider(42).notifier,
+      );
       await controller.initialize(
         userId: 1,
         loanId: 42,
         requiresMileage: true, // Motorized requires 5 photos and odometer
+        isMotorized: true,
       );
 
-      await controller.submitDeparture(
-        loanId: 42,
-        requiresMileage: true,
-      );
+      await controller.submitDeparture(loanId: 42, requiresMileage: true);
 
       final state = container.read(loanDepartureControllerProvider(42));
       expect(state.errorMessage, contains('obligatoires'));
       expect(state.submissionSuccess, isNull);
     });
 
-    test('submitDeparture recovers when server status has departureInspectionCompleted == true', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: false,
-      );
+    test(
+      'submitDeparture recovers when server status has departureInspectionCompleted == true',
+      () async {
+        final controller = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: false,
+          isMotorized: false,
+        );
 
-      final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/front.jpg')..writeAsStringSync('fake');
-      await controller.attachAndUploadPhoto(field: 'front', file: tempFile, requiresMileage: false);
+        final tempDir = Directory.systemTemp.createTempSync();
+        final tempFile = File('${tempDir.path}/front.jpg')
+          ..writeAsStringSync('fake');
+        await controller.attachAndUploadPhoto(
+          field: 'front',
+          file: tempFile,
+          requiresMileage: false,
+        );
 
-      fakeInspectionRepo.submitShouldFail = true;
-      fakeLoansRepo.returnCompletedInspection = true;
-      fakeLoansRepo.returnStatus = 'ongoing';
+        fakeInspectionRepo.submitShouldFail = true;
+        fakeLoansRepo.returnCompletedInspection = true;
+        fakeLoansRepo.returnStatus = 'ongoing';
 
-      await controller.submitDeparture(
-        loanId: 42,
-        requiresMileage: false,
-      );
+        await controller.submitDeparture(loanId: 42, requiresMileage: false);
 
-      final state = container.read(loanDepartureControllerProvider(42));
-      expect(state.isSubmitting, isFalse);
-      expect(state.submissionSuccess, isNotNull);
-      expect(fakeDraftRepo.clearDraftCalled, isTrue);
-      expect(fakeLoansRepo.lastRefreshedLoanId, 42);
+        final state = container.read(loanDepartureControllerProvider(42));
+        expect(state.isSubmitting, isFalse);
+        expect(state.submissionSuccess, isNotNull);
+        expect(fakeDraftRepo.clearDraftCalled, isTrue);
+        expect(fakeLoansRepo.lastRefreshedLoanId, 42);
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
 
-    test('submitDeparture preserves draft and does not report success when server inspection is not completed', () async {
-      final controller = container.read(loanDepartureControllerProvider(42).notifier);
-      await controller.initialize(
-        userId: 1,
-        loanId: 42,
-        requiresMileage: false,
-      );
+    test(
+      'submitDeparture preserves draft and does not report success when server inspection is not completed',
+      () async {
+        final controller = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
+        await controller.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: false,
+          isMotorized: false,
+        );
 
-      final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/front.jpg')..writeAsStringSync('fake');
-      await controller.attachAndUploadPhoto(field: 'front', file: tempFile, requiresMileage: false);
+        final tempDir = Directory.systemTemp.createTempSync();
+        final tempFile = File('${tempDir.path}/front.jpg')
+          ..writeAsStringSync('fake');
+        await controller.attachAndUploadPhoto(
+          field: 'front',
+          file: tempFile,
+          requiresMileage: false,
+        );
 
-      fakeInspectionRepo.submitShouldFail = true;
-      fakeDraftRepo.clearDraftCalled = false;
-      fakeLoansRepo.returnCompletedInspection = false; // Ongoing but inspection not completed!
-      fakeLoansRepo.returnStatus = 'ongoing';
+        fakeInspectionRepo.submitShouldFail = true;
+        fakeDraftRepo.clearDraftCalled = false;
+        fakeLoansRepo.returnCompletedInspection =
+            false; // Ongoing but inspection not completed!
+        fakeLoansRepo.returnStatus = 'ongoing';
 
-      await controller.submitDeparture(
-        loanId: 42,
-        requiresMileage: false,
-      );
+        await controller.submitDeparture(loanId: 42, requiresMileage: false);
 
-      final state = container.read(loanDepartureControllerProvider(42));
-      expect(state.isSubmitting, isFalse);
-      expect(state.submissionSuccess, isNull);
-      expect(fakeDraftRepo.clearDraftCalled, isFalse); // DRAFT PRESERVED
-      expect(state.errorMessage, contains("L'état des lieux n'a pas été enregistré"));
+        final state = container.read(loanDepartureControllerProvider(42));
+        expect(state.isSubmitting, isFalse);
+        expect(state.submissionSuccess, isNull);
+        expect(fakeDraftRepo.clearDraftCalled, isFalse); // DRAFT PRESERVED
+        expect(
+          state.errorMessage,
+          contains("L'état des lieux n'a pas été enregistré"),
+        );
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
 
-    test('controller instances are isolated per loanId and obsolete photo uploads do not bleed', () async {
-      final controller42 = container.read(loanDepartureControllerProvider(42).notifier);
-      final controller43 = container.read(loanDepartureControllerProvider(43).notifier);
+    test(
+      'controller instances are isolated per loanId and obsolete photo uploads do not bleed',
+      () async {
+        final controller42 = container.read(
+          loanDepartureControllerProvider(42).notifier,
+        );
+        final controller43 = container.read(
+          loanDepartureControllerProvider(43).notifier,
+        );
 
-      await controller42.initialize(userId: 1, loanId: 42, requiresMileage: false);
-      await controller43.initialize(userId: 1, loanId: 43, requiresMileage: false);
+        await controller42.initialize(
+          userId: 1,
+          loanId: 42,
+          requiresMileage: false,
+        );
+        await controller43.initialize(
+          userId: 1,
+          loanId: 43,
+          requiresMileage: false,
+        );
 
-      final state42Initial = container.read(loanDepartureControllerProvider(42));
-      final state43Initial = container.read(loanDepartureControllerProvider(43));
-      expect(state42Initial.draft.loanId, 42);
-      expect(state43Initial.draft.loanId, 43);
+        final state42Initial = container.read(
+          loanDepartureControllerProvider(42),
+        );
+        final state43Initial = container.read(
+          loanDepartureControllerProvider(43),
+        );
+        expect(state42Initial.draft.loanId, 42);
+        expect(state43Initial.draft.loanId, 43);
 
-      final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/front42.jpg')..writeAsStringSync('photo for loan 42');
+        final tempDir = Directory.systemTemp.createTempSync();
+        final tempFile = File('${tempDir.path}/front42.jpg')
+          ..writeAsStringSync('photo for loan 42');
 
-      await controller42.attachAndUploadPhoto(
-        field: 'front',
-        file: tempFile,
-        requiresMileage: false,
-      );
+        await controller42.attachAndUploadPhoto(
+          field: 'front',
+          file: tempFile,
+          requiresMileage: false,
+        );
 
-      final state42After = container.read(loanDepartureControllerProvider(42));
-      final state43After = container.read(loanDepartureControllerProvider(43));
+        final state42After = container.read(
+          loanDepartureControllerProvider(42),
+        );
+        final state43After = container.read(
+          loanDepartureControllerProvider(43),
+        );
 
-      // Loan 42 has photo 'front' uploaded with imageId
-      expect(state42After.draft.photos['front']?.status, DraftPhotoStatus.uploaded);
-      expect(state42After.draft.photos['front']?.imageId, 888);
-      // Loan 43 photo 'front' was not modified and has no imageId
-      expect(state43After.draft.photos['front']?.status, DraftPhotoStatus.notTaken);
-      expect(state43After.draft.photos['front']?.imageId, isNull);
+        // Loan 42 has photo 'front' uploaded with imageId
+        expect(
+          state42After.draft.photos['front']?.status,
+          DraftPhotoStatus.uploaded,
+        );
+        expect(state42After.draft.photos['front']?.imageId, 888);
+        // Loan 43 photo 'front' was not modified and has no imageId
+        expect(
+          state43After.draft.photos['front']?.status,
+          DraftPhotoStatus.notTaken,
+        );
+        expect(state43After.draft.photos['front']?.imageId, isNull);
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
   });
 }

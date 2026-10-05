@@ -1,17 +1,57 @@
-# mobile
+# LocoMotion Mobile App (Flutter)
 
-A new Flutter project.
+Application mobile LocoMotion pour les emprunts et partages de véhicules, développée en Flutter / Dart avec gestion d'état Riverpod.
 
-## Getting Started
+## 1. Environnements et points d'entrée
 
-This project is a starting point for a Flutter application.
+L'application supporte trois environnements (`dev`, `staging`, `prod`) avec des configurations distinctes, validation d'URL HTTPS et contrôle de clés Stripe.
 
-A few resources to get you started if this is your first Flutter project:
+Pour le détail complet, consultez la documentation dédiée : [docs/environments.md](docs/environments.md).
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+| Environnement | Point d'entrée | Flavor Android | Scheme iOS | URL API par défaut |
+|---|---|---|---|---|
+| **dev** | `lib/main_dev.dart` | `dev` | `Runner` | Machine locale / Wi-Fi (`192.168.0.198:8000/api/v1` ou `10.0.2.2:8000/api/v1`) |
+| **staging** | `lib/main_staging.dart` | `staging` | `Runner` | `https://staging.locomotion.app/api/v1` |
+| **prod** | `lib/main_prod.dart` | `prod` | `Runner` | `https://api.locomotion.app/api/v1` |
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 2. Commandes de lancement et build
+
+### Android
+
+```bash
+# Développement local
+flutter run --flavor dev -t lib/main_dev.dart
+
+# Build APK Staging
+flutter build apk --flavor staging -t lib/main_staging.dart --dart-define=APP_ENV=staging
+
+# Build AppBundle Production (Google Play)
+flutter build appbundle --flavor prod -t lib/main_prod.dart \
+  --dart-define=APP_ENV=prod \
+  --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_key
+```
+
+### iOS
+
+```bash
+# Développement local
+flutter run -t lib/main_dev.dart
+
+# Build Archive IPA Staging (TestFlight)
+flutter build ipa -t lib/main_staging.dart --dart-define=APP_ENV=staging
+
+# Build Archive IPA Production (App Store)
+flutter build ipa -t lib/main_prod.dart \
+  --dart-define=APP_ENV=prod \
+  --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_key
+```
+
+## 3. Signature Android Release
+
+Pour signer les binaires release, configurez `android/key.properties` (voir `android/key.properties.example`) ou définissez les variables d'environnement `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+
+## 4. Tests
+
+```bash
+flutter test
+```
