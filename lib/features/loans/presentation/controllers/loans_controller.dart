@@ -85,6 +85,9 @@ Future<Loan> loanDetail(Ref ref, int id) async {
 @riverpod
 Future<List<Loan>> cancelledOrRejectedLoans(Ref ref) async {
   final user = ref.watch(authControllerProvider).value;
+  if (user == null) {
+    return const [];
+  }
   final repository = ref.watch(loansRepositoryProvider);
 
   // Status enum filter with comma separation as supported by WebQueryBuilder
@@ -92,7 +95,7 @@ Future<List<Loan>> cancelledOrRejectedLoans(Ref ref) async {
     page: 1,
     perPage: 20,
     status: 'canceled,rejected',
-    borrowerUserId: user?.id,
+    borrowerUserId: user.id,
   );
   return page.data;
 }
