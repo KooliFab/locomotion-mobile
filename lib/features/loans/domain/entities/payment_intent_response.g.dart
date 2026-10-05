@@ -14,6 +14,13 @@ _StripePaymentParams _$StripePaymentParamsFromJson(Map<String, dynamic> json) =>
           json['contribution_payment_intent_client_secret'] as String?,
       depositPaymentIntentClientSecret:
           json['deposit_payment_intent_client_secret'] as String?,
+      contributionPaymentIntentId:
+          json['contribution_payment_intent_id'] as String?,
+      depositPaymentIntentId: json['deposit_payment_intent_id'] as String?,
+      contributionAlreadyPaid:
+          json['contribution_already_paid'] as bool? ?? false,
+      depositAlreadyAuthorized:
+          json['deposit_already_authorized'] as bool? ?? false,
       publishableKey: json['publishable_key'] as String?,
     );
 
@@ -26,6 +33,10 @@ Map<String, dynamic> _$StripePaymentParamsToJson(
       instance.contributionPaymentIntentClientSecret,
   'deposit_payment_intent_client_secret':
       instance.depositPaymentIntentClientSecret,
+  'contribution_payment_intent_id': instance.contributionPaymentIntentId,
+  'deposit_payment_intent_id': instance.depositPaymentIntentId,
+  'contribution_already_paid': instance.contributionAlreadyPaid,
+  'deposit_already_authorized': instance.depositAlreadyAuthorized,
   'publishable_key': instance.publishableKey,
 };
 

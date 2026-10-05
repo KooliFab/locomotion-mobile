@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StripePaymentParams {
 
-@JsonKey(name: 'customer_id') String get customerId;@JsonKey(name: 'ephemeral_key_secret') String get ephemeralKeySecret;@JsonKey(name: 'contribution_payment_intent_client_secret') String? get contributionPaymentIntentClientSecret;@JsonKey(name: 'deposit_payment_intent_client_secret') String? get depositPaymentIntentClientSecret;@JsonKey(name: 'publishable_key') String? get publishableKey;
+@JsonKey(name: 'customer_id') String get customerId;@JsonKey(name: 'ephemeral_key_secret') String get ephemeralKeySecret;@JsonKey(name: 'contribution_payment_intent_client_secret') String? get contributionPaymentIntentClientSecret;@JsonKey(name: 'deposit_payment_intent_client_secret') String? get depositPaymentIntentClientSecret;@JsonKey(name: 'contribution_payment_intent_id') String? get contributionPaymentIntentId;@JsonKey(name: 'deposit_payment_intent_id') String? get depositPaymentIntentId;@JsonKey(name: 'contribution_already_paid') bool get contributionAlreadyPaid;@JsonKey(name: 'deposit_already_authorized') bool get depositAlreadyAuthorized;@JsonKey(name: 'publishable_key') String? get publishableKey;
 /// Create a copy of StripePaymentParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StripePaymentParamsCopyWith<StripePaymentParams> get copyWith => _$StripePaymen
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StripePaymentParams&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.ephemeralKeySecret, ephemeralKeySecret) || other.ephemeralKeySecret == ephemeralKeySecret)&&(identical(other.contributionPaymentIntentClientSecret, contributionPaymentIntentClientSecret) || other.contributionPaymentIntentClientSecret == contributionPaymentIntentClientSecret)&&(identical(other.depositPaymentIntentClientSecret, depositPaymentIntentClientSecret) || other.depositPaymentIntentClientSecret == depositPaymentIntentClientSecret)&&(identical(other.publishableKey, publishableKey) || other.publishableKey == publishableKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StripePaymentParams&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.ephemeralKeySecret, ephemeralKeySecret) || other.ephemeralKeySecret == ephemeralKeySecret)&&(identical(other.contributionPaymentIntentClientSecret, contributionPaymentIntentClientSecret) || other.contributionPaymentIntentClientSecret == contributionPaymentIntentClientSecret)&&(identical(other.depositPaymentIntentClientSecret, depositPaymentIntentClientSecret) || other.depositPaymentIntentClientSecret == depositPaymentIntentClientSecret)&&(identical(other.contributionPaymentIntentId, contributionPaymentIntentId) || other.contributionPaymentIntentId == contributionPaymentIntentId)&&(identical(other.depositPaymentIntentId, depositPaymentIntentId) || other.depositPaymentIntentId == depositPaymentIntentId)&&(identical(other.contributionAlreadyPaid, contributionAlreadyPaid) || other.contributionAlreadyPaid == contributionAlreadyPaid)&&(identical(other.depositAlreadyAuthorized, depositAlreadyAuthorized) || other.depositAlreadyAuthorized == depositAlreadyAuthorized)&&(identical(other.publishableKey, publishableKey) || other.publishableKey == publishableKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,customerId,ephemeralKeySecret,contributionPaymentIntentClientSecret,depositPaymentIntentClientSecret,publishableKey);
+int get hashCode => Object.hash(runtimeType,customerId,ephemeralKeySecret,contributionPaymentIntentClientSecret,depositPaymentIntentClientSecret,contributionPaymentIntentId,depositPaymentIntentId,contributionAlreadyPaid,depositAlreadyAuthorized,publishableKey);
 
 @override
 String toString() {
-  return 'StripePaymentParams(customerId: $customerId, ephemeralKeySecret: $ephemeralKeySecret, contributionPaymentIntentClientSecret: $contributionPaymentIntentClientSecret, depositPaymentIntentClientSecret: $depositPaymentIntentClientSecret, publishableKey: $publishableKey)';
+  return 'StripePaymentParams(customerId: $customerId, ephemeralKeySecret: $ephemeralKeySecret, contributionPaymentIntentClientSecret: $contributionPaymentIntentClientSecret, depositPaymentIntentClientSecret: $depositPaymentIntentClientSecret, contributionPaymentIntentId: $contributionPaymentIntentId, depositPaymentIntentId: $depositPaymentIntentId, contributionAlreadyPaid: $contributionAlreadyPaid, depositAlreadyAuthorized: $depositAlreadyAuthorized, publishableKey: $publishableKey)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StripePaymentParamsCopyWith<$Res>  {
   factory $StripePaymentParamsCopyWith(StripePaymentParams value, $Res Function(StripePaymentParams) _then) = _$StripePaymentParamsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'customer_id') String customerId,@JsonKey(name: 'ephemeral_key_secret') String ephemeralKeySecret,@JsonKey(name: 'contribution_payment_intent_client_secret') String? contributionPaymentIntentClientSecret,@JsonKey(name: 'deposit_payment_intent_client_secret') String? depositPaymentIntentClientSecret,@JsonKey(name: 'publishable_key') String? publishableKey
+@JsonKey(name: 'customer_id') String customerId,@JsonKey(name: 'ephemeral_key_secret') String ephemeralKeySecret,@JsonKey(name: 'contribution_payment_intent_client_secret') String? contributionPaymentIntentClientSecret,@JsonKey(name: 'deposit_payment_intent_client_secret') String? depositPaymentIntentClientSecret,@JsonKey(name: 'contribution_payment_intent_id') String? contributionPaymentIntentId,@JsonKey(name: 'deposit_payment_intent_id') String? depositPaymentIntentId,@JsonKey(name: 'contribution_already_paid') bool contributionAlreadyPaid,@JsonKey(name: 'deposit_already_authorized') bool depositAlreadyAuthorized,@JsonKey(name: 'publishable_key') String? publishableKey
 });
 
 
@@ -65,13 +65,17 @@ class _$StripePaymentParamsCopyWithImpl<$Res>
 
 /// Create a copy of StripePaymentParams
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? customerId = null,Object? ephemeralKeySecret = null,Object? contributionPaymentIntentClientSecret = freezed,Object? depositPaymentIntentClientSecret = freezed,Object? publishableKey = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? customerId = null,Object? ephemeralKeySecret = null,Object? contributionPaymentIntentClientSecret = freezed,Object? depositPaymentIntentClientSecret = freezed,Object? contributionPaymentIntentId = freezed,Object? depositPaymentIntentId = freezed,Object? contributionAlreadyPaid = null,Object? depositAlreadyAuthorized = null,Object? publishableKey = freezed,}) {
   return _then(_self.copyWith(
 customerId: null == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
 as String,ephemeralKeySecret: null == ephemeralKeySecret ? _self.ephemeralKeySecret : ephemeralKeySecret // ignore: cast_nullable_to_non_nullable
 as String,contributionPaymentIntentClientSecret: freezed == contributionPaymentIntentClientSecret ? _self.contributionPaymentIntentClientSecret : contributionPaymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
 as String?,depositPaymentIntentClientSecret: freezed == depositPaymentIntentClientSecret ? _self.depositPaymentIntentClientSecret : depositPaymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
-as String?,publishableKey: freezed == publishableKey ? _self.publishableKey : publishableKey // ignore: cast_nullable_to_non_nullable
+as String?,contributionPaymentIntentId: freezed == contributionPaymentIntentId ? _self.contributionPaymentIntentId : contributionPaymentIntentId // ignore: cast_nullable_to_non_nullable
+as String?,depositPaymentIntentId: freezed == depositPaymentIntentId ? _self.depositPaymentIntentId : depositPaymentIntentId // ignore: cast_nullable_to_non_nullable
+as String?,contributionAlreadyPaid: null == contributionAlreadyPaid ? _self.contributionAlreadyPaid : contributionAlreadyPaid // ignore: cast_nullable_to_non_nullable
+as bool,depositAlreadyAuthorized: null == depositAlreadyAuthorized ? _self.depositAlreadyAuthorized : depositAlreadyAuthorized // ignore: cast_nullable_to_non_nullable
+as bool,publishableKey: freezed == publishableKey ? _self.publishableKey : publishableKey // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -157,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'publishable_key')  String? publishableKey)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'contribution_payment_intent_id')  String? contributionPaymentIntentId, @JsonKey(name: 'deposit_payment_intent_id')  String? depositPaymentIntentId, @JsonKey(name: 'contribution_already_paid')  bool contributionAlreadyPaid, @JsonKey(name: 'deposit_already_authorized')  bool depositAlreadyAuthorized, @JsonKey(name: 'publishable_key')  String? publishableKey)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StripePaymentParams() when $default != null:
-return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.publishableKey);case _:
+return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.contributionPaymentIntentId,_that.depositPaymentIntentId,_that.contributionAlreadyPaid,_that.depositAlreadyAuthorized,_that.publishableKey);case _:
   return orElse();
 
 }
@@ -178,10 +182,10 @@ return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaym
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'publishable_key')  String? publishableKey)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'contribution_payment_intent_id')  String? contributionPaymentIntentId, @JsonKey(name: 'deposit_payment_intent_id')  String? depositPaymentIntentId, @JsonKey(name: 'contribution_already_paid')  bool contributionAlreadyPaid, @JsonKey(name: 'deposit_already_authorized')  bool depositAlreadyAuthorized, @JsonKey(name: 'publishable_key')  String? publishableKey)  $default,) {final _that = this;
 switch (_that) {
 case _StripePaymentParams():
-return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.publishableKey);case _:
+return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.contributionPaymentIntentId,_that.depositPaymentIntentId,_that.contributionAlreadyPaid,_that.depositAlreadyAuthorized,_that.publishableKey);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +202,10 @@ return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaym
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'publishable_key')  String? publishableKey)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'customer_id')  String customerId, @JsonKey(name: 'ephemeral_key_secret')  String ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret')  String? contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret')  String? depositPaymentIntentClientSecret, @JsonKey(name: 'contribution_payment_intent_id')  String? contributionPaymentIntentId, @JsonKey(name: 'deposit_payment_intent_id')  String? depositPaymentIntentId, @JsonKey(name: 'contribution_already_paid')  bool contributionAlreadyPaid, @JsonKey(name: 'deposit_already_authorized')  bool depositAlreadyAuthorized, @JsonKey(name: 'publishable_key')  String? publishableKey)?  $default,) {final _that = this;
 switch (_that) {
 case _StripePaymentParams() when $default != null:
-return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.publishableKey);case _:
+return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaymentIntentClientSecret,_that.depositPaymentIntentClientSecret,_that.contributionPaymentIntentId,_that.depositPaymentIntentId,_that.contributionAlreadyPaid,_that.depositAlreadyAuthorized,_that.publishableKey);case _:
   return null;
 
 }
@@ -213,13 +217,17 @@ return $default(_that.customerId,_that.ephemeralKeySecret,_that.contributionPaym
 @JsonSerializable()
 
 class _StripePaymentParams implements StripePaymentParams {
-  const _StripePaymentParams({@JsonKey(name: 'customer_id') required this.customerId, @JsonKey(name: 'ephemeral_key_secret') required this.ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret') this.contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret') this.depositPaymentIntentClientSecret, @JsonKey(name: 'publishable_key') this.publishableKey});
+  const _StripePaymentParams({@JsonKey(name: 'customer_id') required this.customerId, @JsonKey(name: 'ephemeral_key_secret') required this.ephemeralKeySecret, @JsonKey(name: 'contribution_payment_intent_client_secret') this.contributionPaymentIntentClientSecret, @JsonKey(name: 'deposit_payment_intent_client_secret') this.depositPaymentIntentClientSecret, @JsonKey(name: 'contribution_payment_intent_id') this.contributionPaymentIntentId, @JsonKey(name: 'deposit_payment_intent_id') this.depositPaymentIntentId, @JsonKey(name: 'contribution_already_paid') this.contributionAlreadyPaid = false, @JsonKey(name: 'deposit_already_authorized') this.depositAlreadyAuthorized = false, @JsonKey(name: 'publishable_key') this.publishableKey});
   factory _StripePaymentParams.fromJson(Map<String, dynamic> json) => _$StripePaymentParamsFromJson(json);
 
 @override@JsonKey(name: 'customer_id') final  String customerId;
 @override@JsonKey(name: 'ephemeral_key_secret') final  String ephemeralKeySecret;
 @override@JsonKey(name: 'contribution_payment_intent_client_secret') final  String? contributionPaymentIntentClientSecret;
 @override@JsonKey(name: 'deposit_payment_intent_client_secret') final  String? depositPaymentIntentClientSecret;
+@override@JsonKey(name: 'contribution_payment_intent_id') final  String? contributionPaymentIntentId;
+@override@JsonKey(name: 'deposit_payment_intent_id') final  String? depositPaymentIntentId;
+@override@JsonKey(name: 'contribution_already_paid') final  bool contributionAlreadyPaid;
+@override@JsonKey(name: 'deposit_already_authorized') final  bool depositAlreadyAuthorized;
 @override@JsonKey(name: 'publishable_key') final  String? publishableKey;
 
 /// Create a copy of StripePaymentParams
@@ -235,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StripePaymentParams&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.ephemeralKeySecret, ephemeralKeySecret) || other.ephemeralKeySecret == ephemeralKeySecret)&&(identical(other.contributionPaymentIntentClientSecret, contributionPaymentIntentClientSecret) || other.contributionPaymentIntentClientSecret == contributionPaymentIntentClientSecret)&&(identical(other.depositPaymentIntentClientSecret, depositPaymentIntentClientSecret) || other.depositPaymentIntentClientSecret == depositPaymentIntentClientSecret)&&(identical(other.publishableKey, publishableKey) || other.publishableKey == publishableKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StripePaymentParams&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.ephemeralKeySecret, ephemeralKeySecret) || other.ephemeralKeySecret == ephemeralKeySecret)&&(identical(other.contributionPaymentIntentClientSecret, contributionPaymentIntentClientSecret) || other.contributionPaymentIntentClientSecret == contributionPaymentIntentClientSecret)&&(identical(other.depositPaymentIntentClientSecret, depositPaymentIntentClientSecret) || other.depositPaymentIntentClientSecret == depositPaymentIntentClientSecret)&&(identical(other.contributionPaymentIntentId, contributionPaymentIntentId) || other.contributionPaymentIntentId == contributionPaymentIntentId)&&(identical(other.depositPaymentIntentId, depositPaymentIntentId) || other.depositPaymentIntentId == depositPaymentIntentId)&&(identical(other.contributionAlreadyPaid, contributionAlreadyPaid) || other.contributionAlreadyPaid == contributionAlreadyPaid)&&(identical(other.depositAlreadyAuthorized, depositAlreadyAuthorized) || other.depositAlreadyAuthorized == depositAlreadyAuthorized)&&(identical(other.publishableKey, publishableKey) || other.publishableKey == publishableKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,customerId,ephemeralKeySecret,contributionPaymentIntentClientSecret,depositPaymentIntentClientSecret,publishableKey);
+int get hashCode => Object.hash(runtimeType,customerId,ephemeralKeySecret,contributionPaymentIntentClientSecret,depositPaymentIntentClientSecret,contributionPaymentIntentId,depositPaymentIntentId,contributionAlreadyPaid,depositAlreadyAuthorized,publishableKey);
 
 @override
 String toString() {
-  return 'StripePaymentParams(customerId: $customerId, ephemeralKeySecret: $ephemeralKeySecret, contributionPaymentIntentClientSecret: $contributionPaymentIntentClientSecret, depositPaymentIntentClientSecret: $depositPaymentIntentClientSecret, publishableKey: $publishableKey)';
+  return 'StripePaymentParams(customerId: $customerId, ephemeralKeySecret: $ephemeralKeySecret, contributionPaymentIntentClientSecret: $contributionPaymentIntentClientSecret, depositPaymentIntentClientSecret: $depositPaymentIntentClientSecret, contributionPaymentIntentId: $contributionPaymentIntentId, depositPaymentIntentId: $depositPaymentIntentId, contributionAlreadyPaid: $contributionAlreadyPaid, depositAlreadyAuthorized: $depositAlreadyAuthorized, publishableKey: $publishableKey)';
 }
 
 
@@ -255,7 +263,7 @@ abstract mixin class _$StripePaymentParamsCopyWith<$Res> implements $StripePayme
   factory _$StripePaymentParamsCopyWith(_StripePaymentParams value, $Res Function(_StripePaymentParams) _then) = __$StripePaymentParamsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'customer_id') String customerId,@JsonKey(name: 'ephemeral_key_secret') String ephemeralKeySecret,@JsonKey(name: 'contribution_payment_intent_client_secret') String? contributionPaymentIntentClientSecret,@JsonKey(name: 'deposit_payment_intent_client_secret') String? depositPaymentIntentClientSecret,@JsonKey(name: 'publishable_key') String? publishableKey
+@JsonKey(name: 'customer_id') String customerId,@JsonKey(name: 'ephemeral_key_secret') String ephemeralKeySecret,@JsonKey(name: 'contribution_payment_intent_client_secret') String? contributionPaymentIntentClientSecret,@JsonKey(name: 'deposit_payment_intent_client_secret') String? depositPaymentIntentClientSecret,@JsonKey(name: 'contribution_payment_intent_id') String? contributionPaymentIntentId,@JsonKey(name: 'deposit_payment_intent_id') String? depositPaymentIntentId,@JsonKey(name: 'contribution_already_paid') bool contributionAlreadyPaid,@JsonKey(name: 'deposit_already_authorized') bool depositAlreadyAuthorized,@JsonKey(name: 'publishable_key') String? publishableKey
 });
 
 
@@ -272,13 +280,17 @@ class __$StripePaymentParamsCopyWithImpl<$Res>
 
 /// Create a copy of StripePaymentParams
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? customerId = null,Object? ephemeralKeySecret = null,Object? contributionPaymentIntentClientSecret = freezed,Object? depositPaymentIntentClientSecret = freezed,Object? publishableKey = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? customerId = null,Object? ephemeralKeySecret = null,Object? contributionPaymentIntentClientSecret = freezed,Object? depositPaymentIntentClientSecret = freezed,Object? contributionPaymentIntentId = freezed,Object? depositPaymentIntentId = freezed,Object? contributionAlreadyPaid = null,Object? depositAlreadyAuthorized = null,Object? publishableKey = freezed,}) {
   return _then(_StripePaymentParams(
 customerId: null == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
 as String,ephemeralKeySecret: null == ephemeralKeySecret ? _self.ephemeralKeySecret : ephemeralKeySecret // ignore: cast_nullable_to_non_nullable
 as String,contributionPaymentIntentClientSecret: freezed == contributionPaymentIntentClientSecret ? _self.contributionPaymentIntentClientSecret : contributionPaymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
 as String?,depositPaymentIntentClientSecret: freezed == depositPaymentIntentClientSecret ? _self.depositPaymentIntentClientSecret : depositPaymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
-as String?,publishableKey: freezed == publishableKey ? _self.publishableKey : publishableKey // ignore: cast_nullable_to_non_nullable
+as String?,contributionPaymentIntentId: freezed == contributionPaymentIntentId ? _self.contributionPaymentIntentId : contributionPaymentIntentId // ignore: cast_nullable_to_non_nullable
+as String?,depositPaymentIntentId: freezed == depositPaymentIntentId ? _self.depositPaymentIntentId : depositPaymentIntentId // ignore: cast_nullable_to_non_nullable
+as String?,contributionAlreadyPaid: null == contributionAlreadyPaid ? _self.contributionAlreadyPaid : contributionAlreadyPaid // ignore: cast_nullable_to_non_nullable
+as bool,depositAlreadyAuthorized: null == depositAlreadyAuthorized ? _self.depositAlreadyAuthorized : depositAlreadyAuthorized // ignore: cast_nullable_to_non_nullable
+as bool,publishableKey: freezed == publishableKey ? _self.publishableKey : publishableKey // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

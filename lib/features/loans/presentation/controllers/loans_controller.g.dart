@@ -309,7 +309,7 @@ final class CancelledOrRejectedLoansProvider
 }
 
 String _$cancelledOrRejectedLoansHash() =>
-    r'97aa0bff3deec228a16775ae9cb098c0f07bc2ee';
+    r'63fd14f3933253bb401e942b0dafb12cffb7c439';
 
 /// Action controller for borrower actions: cancel, update dates, comment
 

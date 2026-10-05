@@ -32,6 +32,9 @@ abstract class PaymentBreakdown with _$PaymentBreakdown {
     @JsonKey(name: 'security_deposit_cents')
     @Default(0)
     int securityDepositCents,
+    @JsonKey(name: 'contribution_already_paid')
+    @Default(false)
+    bool contributionAlreadyPaid,
   }) = _PaymentBreakdown;
 
   factory PaymentBreakdown.fromJson(Map<String, dynamic> json) =>

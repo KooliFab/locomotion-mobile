@@ -143,11 +143,14 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
         stripeData.contributionPaymentIntentClientSecret;
     final depositSecret = stripeData.depositPaymentIntentClientSecret;
 
+    final isContributionAlreadyPaid = stripeData.contributionAlreadyPaid ||
+        _paidContributionIntentIds.containsKey(loanId);
+
     final hasContribution =
         contributionSecret != null && contributionSecret.isNotEmpty;
     final hasDeposit = depositSecret != null && depositSecret.isNotEmpty;
 
-    if (!hasContribution && !hasDeposit) {
+    if (!hasContribution && !hasDeposit && !isContributionAlreadyPaid) {
       state = const LoanPaymentError(
         'Secret de paiement Stripe manquant pour initialiser la transaction.',
       );
@@ -155,9 +158,10 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
     }
 
     // Étape 1 : Présentation de la feuille de paiement pour la contribution si pas déjà payée
-    final alreadyPaidContributionId = _paidContributionIntentIds[loanId];
+    final alreadyPaidContributionId = stripeData.contributionPaymentIntentId ??
+        _paidContributionIntentIds[loanId];
     final bool shouldChargeContribution =
-        hasContribution && alreadyPaidContributionId == null;
+        hasContribution && !isContributionAlreadyPaid;
 
     if (shouldChargeContribution) {
       state = const LoanPaymentProcessing(
@@ -238,7 +242,7 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
         (hasContribution ? _extractPaymentIntentId(contributionSecret) : null);
     final depositId = hasDeposit
         ? _extractPaymentIntentId(depositSecret)
-        : null;
+        : stripeData.depositPaymentIntentId;
 
     try {
       final confirmedLoan = await _repository.prepay(

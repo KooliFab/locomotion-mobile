@@ -23,6 +23,7 @@ class FakeLoanPaymentRepository implements LoanPaymentRepository {
   String? capturedDepositId;
   int? capturedTipCents;
   bool shouldThrowOnPrepay = false;
+  PaymentIntentResponse? customPaymentIntentResponse;
 
   @override
   Future<PaymentIntentResponse> createPaymentIntent({
@@ -30,6 +31,9 @@ class FakeLoanPaymentRepository implements LoanPaymentRepository {
     int? platformTipCents,
     bool useBalance = true,
   }) async {
+    if (customPaymentIntentResponse != null) {
+      return customPaymentIntentResponse!;
+    }
     return PaymentIntentResponse(
       loanId: loanId,
       financialBreakdown: PaymentBreakdown(
@@ -284,6 +288,95 @@ void main() {
 
       final state = container.read(loanPaymentControllerProvider);
       expect(state, isA<LoanPaymentCanceled>());
+    });
+
+    test(
+        'R05: interruption between two sheets with new container/controller does not recharge contribution',
+        () async {
+      // Container 1: user starts payment, pays contribution, but cancels/interrupts deposit sheet
+      final fakeStripe1 = FakeStripePaymentService();
+      fakeStripe1.statusQueue.addAll([
+        StripeSheetStatus.success, // Step 1: contribution succeeds
+        StripeSheetStatus.canceled, // Step 2: deposit canceled / app closed
+      ]);
+      final fakeRepo1 = FakeLoanPaymentRepository();
+
+      final container1 = ProviderContainer(
+        overrides: [
+          loanPaymentRepositoryProvider.overrideWithValue(fakeRepo1),
+          loansRepositoryProvider.overrideWithValue(fakeLoansRepository),
+          stripePaymentServiceProvider.overrideWithValue(fakeStripe1),
+        ],
+      );
+
+      final controller1 =
+          container1.read(loanPaymentControllerProvider.notifier);
+      final response1 = await controller1.fetchBreakdown(42);
+
+      final success1 = await controller1.confirmPayment(
+        loanId: 42,
+        intentResponse: response1!,
+      );
+
+      expect(success1, isFalse);
+      expect(fakeStripe1.presentCallCount, 2);
+      expect(fakeRepo1.prepayCalled, isFalse);
+
+      // App is terminated and reopened with brand new Container / Controller:
+      container1.dispose();
+
+      final fakeStripe2 = FakeStripePaymentService();
+      fakeStripe2.statusQueue.add(StripeSheetStatus.success); // Only deposit sheet presented
+
+      final fakeRepo2 = FakeLoanPaymentRepository();
+      // Server recognizes contribution is already paid from DB meta:
+      fakeRepo2.customPaymentIntentResponse = const PaymentIntentResponse(
+        loanId: 42,
+        financialBreakdown: PaymentBreakdown(
+          mandatoryContributionCents: 3450,
+          totalEstimatedContributionCents: 3450,
+          remainingContributionToPayCents: 0,
+          contributionAlreadyPaid: true,
+          securityDepositCents: 25000,
+        ),
+        requiresStripeAction: true,
+        stripe: StripePaymentParams(
+          customerId: 'cus_123',
+          ephemeralKeySecret: 'ek_secret_123',
+          contributionPaymentIntentClientSecret: null, // NOT recharged
+          contributionPaymentIntentId: 'pi_contrib_123',
+          contributionAlreadyPaid: true,
+          depositPaymentIntentClientSecret: 'pi_deposit_456_secret_def',
+        ),
+      );
+
+      final container2 = ProviderContainer(
+        overrides: [
+          loanPaymentRepositoryProvider.overrideWithValue(fakeRepo2),
+          loansRepositoryProvider.overrideWithValue(fakeLoansRepository),
+          stripePaymentServiceProvider.overrideWithValue(fakeStripe2),
+        ],
+      );
+
+      final controller2 =
+          container2.read(loanPaymentControllerProvider.notifier);
+      final response2 = await controller2.fetchBreakdown(42);
+
+      final success2 = await controller2.confirmPayment(
+        loanId: 42,
+        intentResponse: response2!,
+      );
+
+      expect(success2, isTrue);
+      // Crucial assertion: contribution sheet was NOT presented again! Exactly 1 sheet (deposit)
+      expect(fakeStripe2.presentCallCount, 1);
+      expect(fakeStripe2.initializedSecrets, ['pi_deposit_456_secret_def']);
+      // Prepay called with previously paid contribution ID and new deposit ID
+      expect(fakeRepo2.prepayCalled, isTrue);
+      expect(fakeRepo2.capturedContributionId, 'pi_contrib_123');
+      expect(fakeRepo2.capturedDepositId, 'pi_deposit_456');
+
+      container2.dispose();
     });
 
     test('when only contribution is required (e.g. bike), presents only 1 sheet and sends deposit null',
