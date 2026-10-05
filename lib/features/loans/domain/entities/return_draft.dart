@@ -30,18 +30,24 @@ abstract class ReturnDraft with _$ReturnDraft {
   bool isReadyForSubmission({
     required bool requiresMileage,
     required int? mileageStart,
+    bool isMotorized = true,
   }) {
     if (requiresMileage) {
       if (odometerKm == null || odometerKm! < 0) return false;
       if (mileageStart != null && odometerKm! < mileageStart) return false;
+    }
 
-      const requiredFields = [
-        'front',
-        'back',
-        'left_side',
-        'right_side',
-        'dashboard_odometer',
-      ];
+    final requiredFields = isMotorized
+        ? [
+            'front',
+            'back',
+            'left_side',
+            'right_side',
+            if (requiresMileage) 'dashboard_odometer',
+          ]
+        : <String>[];
+
+    if (isMotorized) {
       for (final f in requiredFields) {
         final photo = photos[f];
         if (photo == null ||
@@ -51,12 +57,20 @@ abstract class ReturnDraft with _$ReturnDraft {
         }
       }
     } else {
-      // Non-motorized vehicle (Bike / Trailer): at least 'front' or 'overall_view' photo
+      // Non-motorized vehicle (Bike / Trailer / CarTrailer): at least 'front' or 'overall_view' photo
       final front = photos['front'] ?? photos['overall_view'];
       if (front == null ||
           front.status != DraftPhotoStatus.uploaded ||
           front.imageId == null) {
         return false;
+      }
+      if (requiresMileage) {
+        final odoPhoto = photos['dashboard_odometer'];
+        if (odoPhoto == null ||
+            odoPhoto.status != DraftPhotoStatus.uploaded ||
+            odoPhoto.imageId == null) {
+          return false;
+        }
       }
     }
 

@@ -341,5 +341,105 @@ void main() {
       expect(find.text('Véhicule restitué !'), findsOneWidget);
       expect(find.text('sha256_mock_hash_for_return_inspection'), findsOneWidget);
     });
+
+    testWidgets('renders car_trailer return inspection without odometer or dashboard photo', (
+      tester,
+    ) async {
+      final trailerLoan = Loan(
+        id: 203,
+        departureAt: DateTime.now().subtract(const Duration(hours: 2)),
+        durationInMinutes: 120,
+        status: 'ongoing',
+        borrowerUserId: 10,
+        loanableName: 'Remorque porte-voiture',
+        loanable: const Loanable(
+          id: 52,
+          name: 'Remorque porte-voiture',
+          type: 'car_trailer',
+        ),
+      );
+
+      final draftRepo = _FakeReturnDraftRepo();
+      final inspectionRepo = _FakeReturnInspectionRepo();
+      final loansRepo = _FakeLoansRepo();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+            returnDraftRepositoryProvider.overrideWithValue(draftRepo),
+            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
+            loansRepositoryProvider.overrideWithValue(loansRepo),
+            loanDetailProvider(203).overrideWith((ref) => trailerLoan),
+          ],
+          child: MaterialApp(
+            home: LoanReturnInspectionScreen(
+              loanId: 203,
+              initialLoan: trailerLoan,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('État des lieux de retour'), findsOneWidget);
+      expect(find.textContaining('Restitution : Remorque porte-voiture'), findsOneWidget);
+      expect(find.text('Compteur kilométrique de retour (KM) *'), findsNothing);
+      expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
+      expect(find.text('Vue générale du véhicule *'), findsOneWidget);
+    });
+
+    testWidgets('renders car without mileage return inspection without odometer or dashboard photo', (
+      tester,
+    ) async {
+      final flatCarLoan = Loan(
+        id: 204,
+        departureAt: DateTime.now().subtract(const Duration(hours: 2)),
+        durationInMinutes: 120,
+        status: 'ongoing',
+        borrowerUserId: 10,
+        loanableName: 'Citroën Ami',
+        requiresMileage: false,
+        loanable: const Loanable(
+          id: 53,
+          name: 'Citroën Ami',
+          type: 'car',
+        ),
+      );
+
+      final draftRepo = _FakeReturnDraftRepo();
+      final inspectionRepo = _FakeReturnInspectionRepo();
+      final loansRepo = _FakeLoansRepo();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+            returnDraftRepositoryProvider.overrideWithValue(draftRepo),
+            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
+            loansRepositoryProvider.overrideWithValue(loansRepo),
+            loanDetailProvider(204).overrideWith((ref) => flatCarLoan),
+          ],
+          child: MaterialApp(
+            home: LoanReturnInspectionScreen(
+              loanId: 204,
+              initialLoan: flatCarLoan,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('État des lieux de retour'), findsOneWidget);
+      expect(find.textContaining('Restitution : Citroën Ami'), findsOneWidget);
+      expect(find.text('Compteur kilométrique de retour (KM) *'), findsNothing);
+      expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
+      expect(find.text('Face avant *'), findsOneWidget);
+      expect(find.text('Face arrière *'), findsOneWidget);
+      expect(find.text('Côté gauche *'), findsOneWidget);
+      expect(find.text('Côté droit *'), findsOneWidget);
+    });
   });
 }

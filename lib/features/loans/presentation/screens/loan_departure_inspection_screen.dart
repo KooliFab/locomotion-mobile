@@ -65,6 +65,7 @@ class _LoanDepartureInspectionScreenState
     }
 
     final isMotorized = loan.isMotorized;
+    final requiresMileage = loan.requiresMileageTracking;
 
     final state = ref.watch(loanDepartureControllerProvider(widget.loanId));
     final controller = ref.read(loanDepartureControllerProvider(widget.loanId).notifier);
@@ -76,7 +77,8 @@ class _LoanDepartureInspectionScreenState
         controller.initialize(
           userId: currentUser?.id ?? 0,
           loanId: widget.loanId,
-          requiresMileage: isMotorized,
+          requiresMileage: requiresMileage,
+          isMotorized: isMotorized,
           initialOdometer: loan.mileageStart,
         );
       });
@@ -132,6 +134,7 @@ class _LoanDepartureInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                   ),
                   const SizedBox(height: 20),
 
@@ -140,6 +143,7 @@ class _LoanDepartureInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                   ),
                   const SizedBox(height: 20),
 
@@ -153,7 +157,7 @@ class _LoanDepartureInspectionScreenState
                     onPressed: (state.canSubmit && !state.isSubmitting)
                         ? () => controller.submitDeparture(
                               loanId: widget.loanId,
-                              requiresMileage: isMotorized,
+                              requiresMileage: requiresMileage,
                             )
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -318,6 +322,7 @@ class _LoanDepartureInspectionScreenState
     DepartureDraft draft,
     LoanDepartureController controller,
     bool isMotorized,
+    bool requiresMileage,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,7 +333,7 @@ class _LoanDepartureInspectionScreenState
         ),
         const SizedBox(height: 12),
 
-        if (isMotorized) ...[
+        if (requiresMileage) ...[
           TextField(
             key: const Key('odometer_input'),
             controller: _odometerController,
@@ -341,7 +346,7 @@ class _LoanDepartureInspectionScreenState
             ),
             onChanged: (val) {
               final km = int.tryParse(val.trim());
-              controller.updateOdometer(km, isMotorized);
+              controller.updateOdometer(km, requiresMileage);
             },
           ),
           const SizedBox(height: 16),
@@ -411,10 +416,12 @@ class _LoanDepartureInspectionScreenState
     DepartureDraft draft,
     LoanDepartureController controller,
     bool isMotorized,
+    bool requiresMileage,
   ) {
     final photoSlots = isMotorized
         ? [
-            ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
+            if (requiresMileage)
+              ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
             ('front', 'Face avant *'),
             ('back', 'Face arrière *'),
             ('left_side', 'Côté gauche *'),
@@ -423,6 +430,8 @@ class _LoanDepartureInspectionScreenState
         : [
             ('front', 'Vue générale du véhicule *'),
             ('back', 'Détail antivol / accessoires'),
+            if (requiresMileage)
+              ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
           ];
 
     return Column(
@@ -449,6 +458,7 @@ class _LoanDepartureInspectionScreenState
               entry: entry,
               controller: controller,
               isMotorized: isMotorized,
+              requiresMileage: requiresMileage,
             );
           }).toList(),
         ),
@@ -462,6 +472,7 @@ class _LoanDepartureInspectionScreenState
     required DraftPhotoEntry? entry,
     required LoanDepartureController controller,
     required bool isMotorized,
+    required bool requiresMileage,
   }) {
     final status = entry?.status ?? DraftPhotoStatus.notTaken;
     final isUploaded = status == DraftPhotoStatus.uploaded;
@@ -549,7 +560,7 @@ class _LoanDepartureInspectionScreenState
             TextButton(
               onPressed: () => controller.retryUpload(
                 field: field,
-                requiresMileage: isMotorized,
+                requiresMileage: requiresMileage,
               ),
               child: const Text('Réessayer', style: TextStyle(fontSize: 11)),
             ),
@@ -557,7 +568,12 @@ class _LoanDepartureInspectionScreenState
             IconButton.filledTonal(
               key: Key('photo_button_$field'),
               icon: const Icon(Icons.camera_alt_outlined),
-              onPressed: () => _pickPhoto(field, isMotorized, controller),
+              onPressed: () => _pickPhoto(
+                field,
+                isMotorized,
+                requiresMileage,
+                controller,
+              ),
             ),
             const SizedBox(height: 4),
             const Text(
@@ -573,6 +589,7 @@ class _LoanDepartureInspectionScreenState
   Future<void> _pickPhoto(
     String field,
     bool isMotorized,
+    bool requiresMileage,
     LoanDepartureController controller,
   ) async {
     final photoService = ref.read(inspectionPhotoServiceProvider);
@@ -607,7 +624,7 @@ class _LoanDepartureInspectionScreenState
         await controller.attachAndUploadPhoto(
           field: field,
           file: file,
-          requiresMileage: isMotorized,
+          requiresMileage: requiresMileage,
         );
       case PhotoCapturePermissionDenied():
         _showPermissionDeniedDialog();

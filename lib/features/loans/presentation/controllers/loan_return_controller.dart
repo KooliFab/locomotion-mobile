@@ -17,6 +17,8 @@ class ReturnInspectionState {
   final LoanInspection? submissionSuccess;
   final String? errorMessage;
   final bool canSubmit;
+  final bool requiresMileage;
+  final bool isMotorized;
 
   const ReturnInspectionState({
     required this.draft,
@@ -25,6 +27,8 @@ class ReturnInspectionState {
     this.submissionSuccess,
     this.errorMessage,
     this.canSubmit = false,
+    this.requiresMileage = true,
+    this.isMotorized = true,
   });
 
   bool get isUploading =>
@@ -39,6 +43,8 @@ class ReturnInspectionState {
     String? errorMessage,
     bool clearError = false,
     bool? canSubmit,
+    bool? requiresMileage,
+    bool? isMotorized,
   }) {
     return ReturnInspectionState(
       draft: draft ?? this.draft,
@@ -47,6 +53,8 @@ class ReturnInspectionState {
       submissionSuccess: submissionSuccess ?? this.submissionSuccess,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       canSubmit: canSubmit ?? this.canSubmit,
+      requiresMileage: requiresMileage ?? this.requiresMileage,
+      isMotorized: isMotorized ?? this.isMotorized,
     );
   }
 }
@@ -76,6 +84,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
     required int userId,
     required int loanId,
     required bool requiresMileage,
+    bool isMotorized = true,
     int? mileageStart,
     int? initialOdometer,
   }) async {
@@ -83,7 +92,12 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      requiresMileage: requiresMileage,
+      isMotorized: isMotorized,
+    );
 
     try {
       final existingDraft = await _draftRepository.getDraft(
@@ -132,30 +146,37 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
         state = ReturnInspectionState(
           draft: recoveredDraft,
           isLoading: false,
+          requiresMileage: requiresMileage,
+          isMotorized: isMotorized,
           errorMessage: hasInterruptedUploads
               ? 'Téléversement interrompu. Veuillez réessayer.'
               : null,
           canSubmit: recoveredDraft.isReadyForSubmission(
             requiresMileage: requiresMileage,
             mileageStart: mileageStart,
+            isMotorized: isMotorized,
           ),
         );
         return;
       }
 
       // Initialize initial default draft
-      final defaultPhotos = <String, DraftPhotoEntry>{
-        'front': const DraftPhotoEntry(field: 'front'),
-        'back': const DraftPhotoEntry(field: 'back'),
-        'left_side': const DraftPhotoEntry(field: 'left_side'),
-        'right_side': const DraftPhotoEntry(field: 'right_side'),
-      };
+      final defaultPhotos = isMotorized
+          ? <String, DraftPhotoEntry>{
+              'front': const DraftPhotoEntry(field: 'front'),
+              'back': const DraftPhotoEntry(field: 'back'),
+              'left_side': const DraftPhotoEntry(field: 'left_side'),
+              'right_side': const DraftPhotoEntry(field: 'right_side'),
+            }
+          : <String, DraftPhotoEntry>{
+              'front': const DraftPhotoEntry(field: 'front'),
+            };
       if (requiresMileage) {
         defaultPhotos['dashboard_odometer'] =
             const DraftPhotoEntry(field: 'dashboard_odometer');
       }
 
-      final defaultChecklist = requiresMileage
+      final defaultChecklist = isMotorized
           ? {
               'key_returned': true,
               'clean_inside': true,
@@ -183,9 +204,12 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       state = ReturnInspectionState(
         draft: newDraft,
         isLoading: false,
+        requiresMileage: requiresMileage,
+        isMotorized: isMotorized,
         canSubmit: newDraft.isReadyForSubmission(
           requiresMileage: requiresMileage,
           mileageStart: mileageStart,
+          isMotorized: isMotorized,
         ),
       );
     } catch (e) {
@@ -211,7 +235,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       updated,
       requiresMileage,
       mileageStart,
-      overrideErrorMessage: validationError,
+      validationError,
     );
   }
 
@@ -341,6 +365,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
         canSubmit: finalDraft.isReadyForSubmission(
           requiresMileage: requiresMileage,
           mileageStart: mileageStart,
+          isMotorized: state.isMotorized,
         ),
       );
     } catch (e) {
@@ -428,6 +453,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
         canSubmit: finalDraft.isReadyForSubmission(
           requiresMileage: requiresMileage,
           mileageStart: mileageStart,
+          isMotorized: state.isMotorized,
         ),
       );
     } catch (e) {
@@ -512,12 +538,14 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
 
   Future<void> submitReturn({
     required int loanId,
-    required bool requiresMileage,
+    bool? requiresMileage,
     int? mileageStart,
   }) async {
+    final reqM = requiresMileage ?? state.requiresMileage;
     if (!state.draft.isReadyForSubmission(
-      requiresMileage: requiresMileage,
+      requiresMileage: reqM,
       mileageStart: mileageStart,
+      isMotorized: state.isMotorized,
     )) {
       state = state.copyWith(
         errorMessage:
@@ -526,7 +554,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       return;
     }
 
-    if (requiresMileage &&
+    if (reqM &&
         mileageStart != null &&
         state.draft.odometerKm != null &&
         state.draft.odometerKm! < mileageStart) {
@@ -542,7 +570,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
     try {
       final idempotencyKey = _generateUuidV4();
       final payload = <String, dynamic>{
-        if (requiresMileage && state.draft.odometerKm != null)
+        if (reqM && state.draft.odometerKm != null)
           'odometer_km': state.draft.odometerKm,
         'fuel_battery_level_percent': state.draft.fuelBatteryLevelPercent,
         'cleanliness_rating': state.draft.cleanlinessRating,
@@ -645,16 +673,18 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
   }
 
   void _persistDraft(
-    ReturnDraft draft,
-    bool requiresMileage,
-    int? mileageStart, {
+    ReturnDraft draft, [
+    bool? requiresMileage,
+    int? mileageStart,
     String? overrideErrorMessage,
-  }) {
+  ]) {
+    final reqM = requiresMileage ?? state.requiresMileage;
     state = state.copyWith(
       draft: draft,
       canSubmit: draft.isReadyForSubmission(
-        requiresMileage: requiresMileage,
+        requiresMileage: reqM,
         mileageStart: mileageStart,
+        isMotorized: state.isMotorized,
       ),
       errorMessage: overrideErrorMessage,
       clearError: overrideErrorMessage == null,

@@ -74,6 +74,7 @@ class _LoanReturnInspectionScreenState
     }
 
     final isMotorized = loan.isMotorized;
+    final requiresMileage = loan.requiresMileageTracking;
     final mileageStart = loan.mileageStart;
 
     final state = ref.watch(loanReturnControllerProvider(widget.loanId));
@@ -87,7 +88,8 @@ class _LoanReturnInspectionScreenState
         controller.initialize(
           userId: currentUser?.id ?? 0,
           loanId: widget.loanId,
-          requiresMileage: isMotorized,
+          requiresMileage: requiresMileage,
+          isMotorized: isMotorized,
           mileageStart: mileageStart,
           initialOdometer: loan.mileageEnd ?? loan.mileageStart,
         );
@@ -135,6 +137,7 @@ class _LoanReturnInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                     mileageStart,
                   ),
                   const SizedBox(height: 20),
@@ -144,6 +147,7 @@ class _LoanReturnInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                     mileageStart,
                   ),
                   const SizedBox(height: 20),
@@ -153,6 +157,7 @@ class _LoanReturnInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                     mileageStart,
                   ),
                   const SizedBox(height: 20),
@@ -162,6 +167,7 @@ class _LoanReturnInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                     mileageStart,
                     loan,
                   ),
@@ -172,6 +178,7 @@ class _LoanReturnInspectionScreenState
                     state.draft,
                     controller,
                     isMotorized,
+                    requiresMileage,
                     mileageStart,
                     '${currentUser?.firstName ?? ''} ${currentUser?.lastName ?? ''}'
                         .trim(),
@@ -184,7 +191,7 @@ class _LoanReturnInspectionScreenState
                     onPressed: (state.canSubmit && !state.isSubmitting)
                         ? () => controller.submitReturn(
                               loanId: widget.loanId,
-                              requiresMileage: isMotorized,
+                              requiresMileage: requiresMileage,
                               mileageStart: mileageStart,
                             )
                         : null,
@@ -309,6 +316,7 @@ class _LoanReturnInspectionScreenState
     ReturnDraft draft,
     LoanReturnController controller,
     bool isMotorized,
+    bool requiresMileage,
     int? mileageStart,
   ) {
     final items = isMotorized
@@ -343,7 +351,7 @@ class _LoanReturnInspectionScreenState
               controller.toggleChecklistItem(
                 item.$1,
                 val ?? false,
-                isMotorized,
+                requiresMileage,
                 mileageStart,
               );
             },
@@ -357,6 +365,7 @@ class _LoanReturnInspectionScreenState
     ReturnDraft draft,
     LoanReturnController controller,
     bool isMotorized,
+    bool requiresMileage,
     int? mileageStart,
   ) {
     return Column(
@@ -368,7 +377,7 @@ class _LoanReturnInspectionScreenState
         ),
         const SizedBox(height: 12),
 
-        if (isMotorized) ...[
+        if (requiresMileage) ...[
           TextField(
             key: const Key('odometer_input'),
             controller: _odometerController,
@@ -384,7 +393,7 @@ class _LoanReturnInspectionScreenState
             ),
             onChanged: (val) {
               final km = int.tryParse(val.trim());
-              controller.updateOdometer(km, isMotorized, mileageStart);
+              controller.updateOdometer(km, requiresMileage, mileageStart);
             },
           ),
           const SizedBox(height: 16),
@@ -418,7 +427,7 @@ class _LoanReturnInspectionScreenState
           label: '${draft.fuelBatteryLevelPercent} %',
           onChanged: (val) => controller.updateFuelBattery(
             val.toInt(),
-            isMotorized,
+            requiresMileage,
             mileageStart,
           ),
         ),
@@ -445,7 +454,7 @@ class _LoanReturnInspectionScreenState
                   ),
                   onPressed: () => controller.updateCleanliness(
                     rating,
-                    isMotorized,
+                    requiresMileage,
                     mileageStart,
                   ),
                 );
@@ -461,11 +470,13 @@ class _LoanReturnInspectionScreenState
     ReturnDraft draft,
     LoanReturnController controller,
     bool isMotorized,
+    bool requiresMileage,
     int? mileageStart,
   ) {
     final photoSlots = isMotorized
         ? [
-            ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
+            if (requiresMileage)
+              ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
             ('front', 'Face avant *'),
             ('back', 'Face arrière *'),
             ('left_side', 'Côté gauche *'),
@@ -474,6 +485,8 @@ class _LoanReturnInspectionScreenState
         : [
             ('front', 'Vue générale du véhicule *'),
             ('back', 'Détail antivol / accessoires'),
+            if (requiresMileage)
+              ('dashboard_odometer', 'Tableau de bord (Compteur) *'),
           ];
 
     return Column(
@@ -500,6 +513,7 @@ class _LoanReturnInspectionScreenState
               entry: entry,
               controller: controller,
               isMotorized: isMotorized,
+              requiresMileage: requiresMileage,
               mileageStart: mileageStart,
             );
           }).toList(),
@@ -514,6 +528,7 @@ class _LoanReturnInspectionScreenState
     required DraftPhotoEntry? entry,
     required LoanReturnController controller,
     required bool isMotorized,
+    required bool requiresMileage,
     required int? mileageStart,
   }) {
     final status = entry?.status ?? DraftPhotoStatus.notTaken;
@@ -602,7 +617,7 @@ class _LoanReturnInspectionScreenState
             TextButton(
               onPressed: () => controller.retryUpload(
                 field: field,
-                requiresMileage: isMotorized,
+                requiresMileage: requiresMileage,
                 mileageStart: mileageStart,
               ),
               child: const Text('Réessayer', style: TextStyle(fontSize: 11)),
@@ -614,6 +629,7 @@ class _LoanReturnInspectionScreenState
               onPressed: () => _pickPhoto(
                 field: field,
                 isMotorized: isMotorized,
+                requiresMileage: requiresMileage,
                 mileageStart: mileageStart,
                 controller: controller,
               ),
@@ -633,6 +649,7 @@ class _LoanReturnInspectionScreenState
     ReturnDraft draft,
     LoanReturnController controller,
     bool isMotorized,
+    bool requiresMileage,
     int? mileageStart,
     Loan loan,
   ) {
@@ -654,7 +671,7 @@ class _LoanReturnInspectionScreenState
           ),
           value: draft.newDamagesDeclared,
           onChanged: (val) {
-            controller.toggleNewDamages(val, isMotorized, mileageStart);
+            controller.toggleNewDamages(val, requiresMileage, mileageStart);
           },
         ),
         if (draft.newDamagesDeclared && loan.loanableId != null) ...[
@@ -693,7 +710,7 @@ class _LoanReturnInspectionScreenState
             border: OutlineInputBorder(),
           ),
           onChanged: (val) {
-            controller.updateComments(val, isMotorized, mileageStart);
+            controller.updateComments(val, requiresMileage, mileageStart);
           },
         ),
       ],
@@ -704,6 +721,7 @@ class _LoanReturnInspectionScreenState
     ReturnDraft draft,
     LoanReturnController controller,
     bool isMotorized,
+    bool requiresMileage,
     int? mileageStart,
     String? currentUserName,
   ) {
@@ -750,7 +768,7 @@ class _LoanReturnInspectionScreenState
                 border: OutlineInputBorder(),
               ),
               onChanged: (val) {
-                controller.updateSignerFullName(val, isMotorized, mileageStart);
+                controller.updateSignerFullName(val, requiresMileage, mileageStart);
               },
             ),
             const SizedBox(height: 16),
@@ -780,7 +798,7 @@ class _LoanReturnInspectionScreenState
                   TextButton(
                     onPressed: () => controller.removePhoto(
                       'return_signature',
-                      isMotorized,
+                      requiresMileage,
                       mileageStart,
                     ),
                     child: const Text('Remplacer'),
@@ -793,7 +811,7 @@ class _LoanReturnInspectionScreenState
                   TextButton(
                     onPressed: () => controller.retryUpload(
                       field: 'return_signature',
-                      requiresMileage: isMotorized,
+                      requiresMileage: requiresMileage,
                       mileageStart: mileageStart,
                     ),
                     child: const Text('Réessayer'),
@@ -804,6 +822,7 @@ class _LoanReturnInspectionScreenState
                     onPressed: () => _pickPhoto(
                       field: 'return_signature',
                       isMotorized: isMotorized,
+                      requiresMileage: requiresMileage,
                       mileageStart: mileageStart,
                       controller: controller,
                     ),
@@ -827,6 +846,7 @@ class _LoanReturnInspectionScreenState
   Future<void> _pickPhoto({
     required String field,
     required bool isMotorized,
+    required bool requiresMileage,
     required int? mileageStart,
     required LoanReturnController controller,
   }) async {
@@ -862,14 +882,14 @@ class _LoanReturnInspectionScreenState
         if (field == 'return_signature') {
           await controller.attachAndUploadSignature(
             file: file,
-            requiresMileage: isMotorized,
+            requiresMileage: requiresMileage,
             mileageStart: mileageStart,
           );
         } else {
           await controller.attachAndUploadPhoto(
             field: field,
             file: file,
-            requiresMileage: isMotorized,
+            requiresMileage: requiresMileage,
             mileageStart: mileageStart,
           );
         }

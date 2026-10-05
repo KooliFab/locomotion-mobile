@@ -16,6 +16,8 @@ class DepartureInspectionState {
   final LoanInspection? submissionSuccess;
   final String? errorMessage;
   final bool canSubmit;
+  final bool requiresMileage;
+  final bool isMotorized;
 
   const DepartureInspectionState({
     required this.draft,
@@ -24,6 +26,8 @@ class DepartureInspectionState {
     this.submissionSuccess,
     this.errorMessage,
     this.canSubmit = false,
+    this.requiresMileage = true,
+    this.isMotorized = true,
   });
 
   bool get isUploading =>
@@ -37,6 +41,8 @@ class DepartureInspectionState {
     String? errorMessage,
     bool clearError = false,
     bool? canSubmit,
+    bool? requiresMileage,
+    bool? isMotorized,
   }) {
     return DepartureInspectionState(
       draft: draft ?? this.draft,
@@ -45,6 +51,8 @@ class DepartureInspectionState {
       submissionSuccess: submissionSuccess ?? this.submissionSuccess,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       canSubmit: canSubmit ?? this.canSubmit,
+      requiresMileage: requiresMileage ?? this.requiresMileage,
+      isMotorized: isMotorized ?? this.isMotorized,
     );
   }
 }
@@ -75,13 +83,19 @@ class LoanDepartureController
     required int userId,
     required int loanId,
     required bool requiresMileage,
+    bool isMotorized = true,
     int? initialOdometer,
   }) async {
     if (loanId != targetLoanId) {
       return;
     }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      requiresMileage: requiresMileage,
+      isMotorized: isMotorized,
+    );
 
     try {
       final existingDraft = await _draftRepository.getDraft(
@@ -118,29 +132,36 @@ class LoanDepartureController
         state = DepartureInspectionState(
           draft: recoveredDraft,
           isLoading: false,
+          requiresMileage: requiresMileage,
+          isMotorized: isMotorized,
           errorMessage: hasInterruptedUploads
               ? 'Téléversement interrompu. Veuillez réessayer.'
               : null,
           canSubmit: recoveredDraft.isReadyForSubmission(
             requiresMileage: requiresMileage,
+            isMotorized: isMotorized,
           ),
         );
         return;
       }
 
       // Initialize initial default draft
-      final defaultPhotos = <String, DraftPhotoEntry>{
-        'front': const DraftPhotoEntry(field: 'front'),
-        'back': const DraftPhotoEntry(field: 'back'),
-        'left_side': const DraftPhotoEntry(field: 'left_side'),
-        'right_side': const DraftPhotoEntry(field: 'right_side'),
-      };
+      final defaultPhotos = isMotorized
+          ? <String, DraftPhotoEntry>{
+              'front': const DraftPhotoEntry(field: 'front'),
+              'back': const DraftPhotoEntry(field: 'back'),
+              'left_side': const DraftPhotoEntry(field: 'left_side'),
+              'right_side': const DraftPhotoEntry(field: 'right_side'),
+            }
+          : <String, DraftPhotoEntry>{
+              'front': const DraftPhotoEntry(field: 'front'),
+            };
       if (requiresMileage) {
         defaultPhotos['dashboard_odometer'] =
             const DraftPhotoEntry(field: 'dashboard_odometer');
       }
 
-      final defaultChecklist = requiresMileage
+      final defaultChecklist = isMotorized
           ? {
               'key_present': true,
               'insurance_paper_present': true,
@@ -168,7 +189,12 @@ class LoanDepartureController
       state = DepartureInspectionState(
         draft: newDraft,
         isLoading: false,
-        canSubmit: newDraft.isReadyForSubmission(requiresMileage: requiresMileage),
+        requiresMileage: requiresMileage,
+        isMotorized: isMotorized,
+        canSubmit: newDraft.isReadyForSubmission(
+          requiresMileage: requiresMileage,
+          isMotorized: isMotorized,
+        ),
       );
     } catch (e) {
       state = state.copyWith(
@@ -275,8 +301,10 @@ class LoanDepartureController
 
       state = state.copyWith(
         draft: finalDraft,
-        canSubmit:
-            finalDraft.isReadyForSubmission(requiresMileage: requiresMileage),
+        canSubmit: finalDraft.isReadyForSubmission(
+          requiresMileage: requiresMileage,
+          isMotorized: state.isMotorized,
+        ),
       );
     } catch (e) {
       // Discard obsolete error callback if loan context changed
@@ -337,9 +365,13 @@ class LoanDepartureController
 
   Future<void> submitDeparture({
     required int loanId,
-    required bool requiresMileage,
+    bool? requiresMileage,
   }) async {
-    if (!state.draft.isReadyForSubmission(requiresMileage: requiresMileage)) {
+    final reqM = requiresMileage ?? state.requiresMileage;
+    if (!state.draft.isReadyForSubmission(
+      requiresMileage: reqM,
+      isMotorized: state.isMotorized,
+    )) {
       state = state.copyWith(
         errorMessage:
             'Veuillez renseigner toutes les informations et photos obligatoires.',
@@ -352,7 +384,7 @@ class LoanDepartureController
     try {
       final idempotencyKey = _generateUuidV4();
       final payload = <String, dynamic>{
-        if (requiresMileage && state.draft.odometerKm != null)
+        if (reqM && state.draft.odometerKm != null)
           'odometer_km': state.draft.odometerKm,
         'fuel_battery_level_percent': state.draft.fuelBatteryLevelPercent,
         'cleanliness_rating': state.draft.cleanlinessRating,
@@ -443,10 +475,14 @@ class LoanDepartureController
     state = state.copyWith(clearError: true);
   }
 
-  void _persistDraft(DepartureDraft draft, bool requiresMileage) {
+  void _persistDraft(DepartureDraft draft, [bool? requiresMileage]) {
+    final reqM = requiresMileage ?? state.requiresMileage;
     state = state.copyWith(
       draft: draft,
-      canSubmit: draft.isReadyForSubmission(requiresMileage: requiresMileage),
+      canSubmit: draft.isReadyForSubmission(
+        requiresMileage: reqM,
+        isMotorized: state.isMotorized,
+      ),
     );
     _draftRepository.saveDraft(draft);
   }

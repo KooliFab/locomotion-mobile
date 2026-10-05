@@ -59,6 +59,9 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'actual_distance') int? actualDistance,
     @JsonKey(name: 'mileage_start') int? mileageStart,
     @JsonKey(name: 'mileage_end') int? mileageEnd,
+    @JsonKey(name: 'requires_mileage') bool? requiresMileage,
+    @JsonKey(name: 'requires_detailed_mileage')
+    bool? requiresDetailedMileage,
     @JsonKey(name: 'alternative_to') String? alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     String? comment,
@@ -136,8 +139,10 @@ abstract class Loan with _$Loan {
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
 
-  bool get isMotorized =>
-      loanable?.type == 'car' || loanable?.type == 'car_trailer';
+  bool get isMotorized => loanable?.type == 'car';
+
+  bool get requiresMileageTracking =>
+      requiresMileage ?? (requiresDetailedMileage ?? isMotorized);
 
   bool get hasAuthorizedDeposit => depositStatus == 'authorized';
   bool get isDepositReleased =>
