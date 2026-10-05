@@ -217,6 +217,13 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
       _invalidateRelatedProviders();
       state = state.copyWith(isSubmitting: false);
       return true;
+    } on AvailabilityConflictException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        activeConflicts: e.conflicts,
+        errorMessage: e.message,
+      );
+      return false;
     } on AvailabilityOptimisticLockException catch (e) {
       _invalidateRelatedProviders();
       state = state.copyWith(

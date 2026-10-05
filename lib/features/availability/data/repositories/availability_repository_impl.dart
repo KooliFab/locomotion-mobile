@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/availability_config.dart';
 import '../../domain/entities/availability_rule.dart';
 import '../../domain/entities/conflicting_loan.dart';
@@ -99,28 +100,55 @@ class AvailabilityRepositoryImpl implements AvailabilityRepository {
         },
         lockVersion: lockVersion,
       );
+    } on ConflictException catch (e) {
+      throw AvailabilityOptimisticLockException(
+        e.message.isNotEmpty
+            ? e.message
+            : 'Ce véhicule a été modifié par un autre utilisateur. Veuillez recharger la page.',
+      );
+    } on ValidationException catch (e) {
+      throw _parseConflictFromData(e.data, e.message);
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        throw AvailabilityOptimisticLockException();
+        final data = e.response?.data;
+        String message =
+            'Ce véhicule a été modifié par un autre utilisateur. Veuillez recharger la page.';
+        if (data is Map<String, dynamic> && data['message'] != null) {
+          message = data['message'].toString();
+        }
+        throw AvailabilityOptimisticLockException(message);
       }
       if (e.response?.statusCode == 422) {
-        final data = e.response?.data;
-        List<ConflictingLoan> conflicts = [];
-        String message = 'Cette modification de disponibilité entre en conflit avec des réservations existantes.';
-        if (data is Map<String, dynamic>) {
-          if (data['message'] != null) {
-            message = data['message'].toString();
-          }
-          if (data['conflicts'] is List) {
-            conflicts = (data['conflicts'] as List)
-                .map((c) => ConflictingLoan.fromJson(c as Map<String, dynamic>))
-                .toList();
-          }
-        }
-        throw AvailabilityConflictException(message: message, conflicts: conflicts);
+        throw _parseConflictFromData(e.response?.data, e.message);
       }
       rethrow;
     }
+  }
+
+  AvailabilityConflictException _parseConflictFromData(
+    dynamic data,
+    String? fallbackMessage,
+  ) {
+    List<ConflictingLoan> conflicts = [];
+    String message = fallbackMessage ??
+        'Cette modification de disponibilité entre en conflit avec des réservations existantes.';
+    if (data is Map<String, dynamic>) {
+      if (data['message'] != null &&
+          data['message'].toString().trim().isNotEmpty) {
+        message = data['message'].toString();
+      }
+      final rawConflicts = data['conflicts'] ?? data['data']?['conflicts'];
+      if (rawConflicts is List) {
+        conflicts = rawConflicts
+            .whereType<Map<String, dynamic>>()
+            .map((c) => ConflictingLoan.fromJson(c))
+            .toList();
+      }
+    }
+    return AvailabilityConflictException(
+      message: message,
+      conflicts: conflicts,
+    );
   }
 
   @override
