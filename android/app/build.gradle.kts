@@ -94,3 +94,12 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+val hasGoogleServicesJson = file("google-services.json").exists() ||
+    file("src/dev/google-services.json").exists() ||
+    file("src/staging/google-services.json").exists() ||
+    file("src/prod/google-services.json").exists()
+
+if (hasGoogleServicesJson) {
+    apply(plugin = "com.google.gms.google-services")
+}

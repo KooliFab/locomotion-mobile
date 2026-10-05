@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -93,6 +94,47 @@ class AppConfig {
   static set stripePublishableKey(String value) => _manualStripeKey = value;
 
   static const String stripeMerchantDisplayName = 'LocoMotion';
+
+  /// Firebase configuration via compile-time --dart-define
+  static const String firebaseApiKey = String.fromEnvironment(
+    'FIREBASE_API_KEY',
+    defaultValue: '',
+  );
+  static const String firebaseAppId = String.fromEnvironment(
+    'FIREBASE_APP_ID',
+    defaultValue: '',
+  );
+  static const String firebaseMessagingSenderId = String.fromEnvironment(
+    'FIREBASE_MESSAGING_SENDER_ID',
+    defaultValue: '',
+  );
+  static const String firebaseProjectId = String.fromEnvironment(
+    'FIREBASE_PROJECT_ID',
+    defaultValue: '',
+  );
+  static const String firebaseStorageBucket = String.fromEnvironment(
+    'FIREBASE_STORAGE_BUCKET',
+    defaultValue: '',
+  );
+
+  /// Explicit FirebaseOptions configured for this environment, or null if relying on native files
+  static FirebaseOptions? get firebaseOptions {
+    if (firebaseApiKey.isNotEmpty &&
+        firebaseAppId.isNotEmpty &&
+        firebaseMessagingSenderId.isNotEmpty &&
+        firebaseProjectId.isNotEmpty) {
+      return FirebaseOptions(
+        apiKey: firebaseApiKey,
+        appId: firebaseAppId,
+        messagingSenderId: firebaseMessagingSenderId,
+        projectId: firebaseProjectId,
+        storageBucket: firebaseStorageBucket.isNotEmpty
+            ? firebaseStorageBucket
+            : null,
+      );
+    }
+    return null;
+  }
 
   /// Timeouts
   static const Duration connectTimeout = Duration(seconds: 15);

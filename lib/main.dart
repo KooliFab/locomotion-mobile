@@ -27,9 +27,14 @@ void main() async {
     debugPrint('[intl] initializeDateFormatting failed: $e');
   }
 
-  // Initialise Firebase if available (non-fatal if missing config or in test)
+  // Initialise Firebase with explicit environment options if provided, or native files
   try {
-    await Firebase.initializeApp();
+    final options = AppConfig.firebaseOptions;
+    if (options != null) {
+      await Firebase.initializeApp(options: options);
+    } else {
+      await Firebase.initializeApp();
+    }
   } catch (e) {
     debugPrint('[Firebase] initializeApp skipped or failed: $e');
   }

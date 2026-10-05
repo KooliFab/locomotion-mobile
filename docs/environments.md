@@ -120,3 +120,19 @@ flutter build ipa -t lib/main_prod.dart \
 Le pipeline GitHub Actions (`.github/workflows/mobile-ci.yml`) compile systématiquement :
 - L'APK Staging : `flutter build apk --flavor staging -t lib/main_staging.dart --dart-define=APP_ENV=staging`
 - L'APK Production : `flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=APP_ENV=prod --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_locomotion_ci_mock`
+
+---
+
+## 6. Firebase / notifications push par environnement
+
+Le service push n'utilise **jamais** de faux token hors tests. Si Firebase n'est pas initialisé, `DisabledPushNotificationService` est injecté : permission refusée, aucun token, aucun appareil enregistré au backend. `FakePushNotificationService` n'est utilisable que par injection explicite dans les tests.
+
+### Configuration native (fichiers hors dépôt, ignorés par git)
+- **Android** : `android/app/google-services.json` ou, par flavor, `android/app/src/{dev,staging,prod}/google-services.json`. Le plugin `com.google.gms.google-services` est appliqué automatiquement par `android/app/build.gradle.kts` dès qu'un de ces fichiers existe.
+- **iOS** : `GoogleService-Info.plist` à ajouter dans la cible Runner via Xcode (référence projet non versionnée, à finaliser par l'équipe).
+
+### Configuration explicite (alternative, sans fichier natif)
+Fournir toutes les valeurs via `--dart-define` : `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID` (et `FIREBASE_STORAGE_BUCKET` en option). `Firebase.initializeApp(options: ...)` est alors utilisé.
+
+### Recette restante (non exécutée)
+Réception et ouverture des notifications Android/iOS en premier plan, arrière-plan et démarrage à froid : à valider sur appareil réel avec un projet Firebase staging. Les tests automatisés ne couvrent que le service injecté.
