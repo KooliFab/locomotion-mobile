@@ -34,7 +34,7 @@ final class UserBalanceControllerProvider
 }
 
 String _$userBalanceControllerHash() =>
-    r'9a654c1085e644e4b6f470ec8e84e2040eb49f98';
+    r'2c18f21a50707aec5936628af7ebb6d94115f9b4';
 
 abstract class _$UserBalanceController extends $AsyncNotifier<double> {
   FutureOr<double> build();

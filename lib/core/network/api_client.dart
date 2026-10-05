@@ -10,6 +10,8 @@ class ApiClient {
 
   ApiClient._(this.dio);
 
+  ApiClient.withDio(this.dio);
+
   factory ApiClient.create({
     required SecureStorageService storageService,
     String? baseUrl,
