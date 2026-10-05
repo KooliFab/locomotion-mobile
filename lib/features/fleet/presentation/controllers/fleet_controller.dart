@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_providers.dart';
-import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../loanables/presentation/controllers/loanables_controller.dart';
 import '../../data/datasources/fleet_remote_data_source.dart';
 import '../../data/repositories/fleet_repository_impl.dart';

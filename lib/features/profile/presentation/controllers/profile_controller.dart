@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/network_providers.dart';
-import '../../../auth/presentation/controllers/auth_controller.dart';
 
 part 'profile_controller.g.dart';
 

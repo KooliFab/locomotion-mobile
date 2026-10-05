@@ -26,7 +26,21 @@ class ApiClient {
       ),
     );
 
-    baseDio.interceptors.add(AuthInterceptor(storageService, baseDio));
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl ?? AppConfig.baseUrl,
+        connectTimeout: AppConfig.connectTimeout,
+        receiveTimeout: AppConfig.receiveTimeout,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    baseDio.interceptors.add(
+      AuthInterceptor(storageService, baseDio, refreshDio: refreshDio),
+    );
     if (kDebugMode) {
       baseDio.interceptors.add(
         LogInterceptor(

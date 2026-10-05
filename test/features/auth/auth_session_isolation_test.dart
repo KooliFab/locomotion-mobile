@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/core/network/network_providers.dart';
 import 'package:mobile/core/session/session_manager.dart';
 import 'package:mobile/core/storage/storage_providers.dart';
 import 'package:mobile/features/auth/domain/entities/auth_tokens.dart';
@@ -31,7 +30,7 @@ import '../../helpers/mock_api_client.dart';
 class _FakeAuthRepository implements AuthRepository {
   User? currentUser;
 
-  _FakeAuthRepository([this.currentUser]);
+  _FakeAuthRepository();
 
   @override
   Future<bool> isAuthenticated() async => currentUser != null;
@@ -332,15 +331,6 @@ class _FakePushTokensRepo implements PushTokensRepository {
 
   @override
   Future<void> revokeCurrentInstallationToken() async {}
-
-  @override
-  Future<void> saveTokenLocally(String token) async {}
-
-  @override
-  Future<String?> getSavedToken() async => 'fake_token';
-
-  @override
-  Future<void> deleteSavedToken() async {}
 }
 
 void main() {
