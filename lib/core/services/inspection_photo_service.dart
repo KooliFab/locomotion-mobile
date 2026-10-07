@@ -20,7 +20,8 @@ class PhotoCaptureCancelled extends PhotoCaptureResult {
 class PhotoCapturePermissionDenied extends PhotoCaptureResult {
   final String message;
   const PhotoCapturePermissionDenied([
-    this.message = 'Permission refusée pour accéder à la caméra ou à la galerie.',
+    this.message =
+        'Permission refusée pour accéder à la caméra ou à la galerie.',
   ]);
 }
 
@@ -46,7 +47,7 @@ class InspectionPhotoServiceImpl implements InspectionPhotoService {
   final ImagePicker _picker;
 
   InspectionPhotoServiceImpl([ImagePicker? picker])
-      : _picker = picker ?? ImagePicker();
+    : _picker = picker ?? ImagePicker();
 
   @override
   Future<PhotoCaptureResult> capturePhoto({

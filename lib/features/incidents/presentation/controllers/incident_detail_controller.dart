@@ -100,10 +100,7 @@ class IncidentDetailController extends Notifier<IncidentDetailState> {
 
     try {
       final resolved = await _repository.resolveIncident(incidentId);
-      state = state.copyWith(
-        isResolving: false,
-        incident: resolved,
-      );
+      state = state.copyWith(isResolving: false, incident: resolved);
 
       // Invalidate relevant views
       if (resolved.loanId != null) {
@@ -132,10 +129,7 @@ class IncidentDetailController extends Notifier<IncidentDetailState> {
 
     try {
       final reopened = await _repository.reopenIncident(incidentId);
-      state = state.copyWith(
-        isReopening: false,
-        incident: reopened,
-      );
+      state = state.copyWith(isReopening: false, incident: reopened);
 
       if (reopened.loanId != null) {
         ref.invalidate(loanDetailProvider(reopened.loanId!));
@@ -160,5 +154,5 @@ class IncidentDetailController extends Notifier<IncidentDetailState> {
 
 final incidentDetailControllerProvider =
     NotifierProvider.family<IncidentDetailController, IncidentDetailState, int>(
-  (incidentId) => IncidentDetailController(incidentId),
-);
+      (incidentId) => IncidentDetailController(incidentId),
+    );

@@ -144,7 +144,8 @@ class _AvailabilityRuleFormSheetState
 
     if (_isMultiDay) {
       return AvailabilityRule.createContinuousBlock(
-        baseId: widget.initialRule?.groupId ??
+        baseId:
+            widget.initialRule?.groupId ??
             widget.initialRule?.id ??
             AvailabilityRule.newId(),
         startDate: _startDate,
@@ -204,7 +205,9 @@ class _AvailabilityRuleFormSheetState
     try {
       final draftRules = _buildDraftRules();
       final conflicts = await ref
-          .read(vehicleAvailabilityControllerProvider(widget.vehicleId).notifier)
+          .read(
+            vehicleAvailabilityControllerProvider(widget.vehicleId).notifier,
+          )
           .checkConflictsForDraftRules(
             draftRules,
             ruleToReplaceId: widget.initialRule?.id,
@@ -212,8 +215,9 @@ class _AvailabilityRuleFormSheetState
           );
 
       // Invoke engine preview via /loanables/availability
-      final currentConfig =
-          await ref.read(vehicleAvailabilityConfigProvider(widget.vehicleId).future);
+      final currentConfig = await ref.read(
+        vehicleAvailabilityConfigProvider(widget.vehicleId).future,
+      );
       final previewStart = DateFormat('yyyy-MM-dd').format(_startDate);
       final previewEnd = DateFormat('yyyy-MM-dd').format(
         _isMultiDay
@@ -223,19 +227,28 @@ class _AvailabilityRuleFormSheetState
 
       final candidateRules = <AvailabilityRule>[];
       for (final r in currentConfig.rules) {
-        if (widget.initialRule?.id != null && r.id == widget.initialRule!.id) continue;
-        if (widget.initialRule?.groupId != null && r.groupId == widget.initialRule!.groupId) continue;
+        if (widget.initialRule?.id != null && r.id == widget.initialRule!.id) {
+          continue;
+        }
+        if (widget.initialRule?.groupId != null &&
+            r.groupId == widget.initialRule!.groupId) {
+          continue;
+        }
         candidateRules.add(r);
       }
       candidateRules.addAll(draftRules);
 
-      final intervals = await ref.read(availabilityRepositoryProvider).previewAvailability(
-        widget.vehicleId,
-        start: previewStart,
-        end: previewEnd,
-        availabilityMode: currentConfig.availabilityMode,
-        availabilityJson: jsonEncode(candidateRules.map((r) => r.toJson()).toList()),
-      );
+      final intervals = await ref
+          .read(availabilityRepositoryProvider)
+          .previewAvailability(
+            widget.vehicleId,
+            start: previewStart,
+            end: previewEnd,
+            availabilityMode: currentConfig.availabilityMode,
+            availabilityJson: jsonEncode(
+              candidateRules.map((r) => r.toJson()).toList(),
+            ),
+          );
 
       if (mounted && requestId == _conflictCheckRequestId) {
         setState(() {
@@ -255,8 +268,9 @@ class _AvailabilityRuleFormSheetState
 
   @override
   Widget build(BuildContext context) {
-    final controllerState =
-        ref.watch(vehicleAvailabilityControllerProvider(widget.vehicleId));
+    final controllerState = ref.watch(
+      vehicleAvailabilityControllerProvider(widget.vehicleId),
+    );
     final isBusy = controllerState.isSubmitting || _isCheckingConflicts;
     final hasConflicts = _conflicts.isNotEmpty;
     final isEditing = widget.initialRule != null;
@@ -384,13 +398,18 @@ class _AvailabilityRuleFormSheetState
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: _startDate,
-                            firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 1),
+                            ),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
                           );
                           if (picked != null) {
                             setState(() {
                               _startDate = picked;
-                              if (!_isMultiDay || _endDate.isBefore(_startDate)) {
+                              if (!_isMultiDay ||
+                                  _endDate.isBefore(_startDate)) {
                                 _endDate = picked;
                               }
                             });
@@ -408,9 +427,13 @@ class _AvailabilityRuleFormSheetState
                           onTap: () async {
                             final picked = await showDatePicker(
                               context: context,
-                              initialDate: _endDate.isBefore(_startDate) ? _startDate : _endDate,
+                              initialDate: _endDate.isBefore(_startDate)
+                                  ? _startDate
+                                  : _endDate,
                               firstDate: _startDate,
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
                             );
                             if (picked != null) {
                               setState(() => _endDate = picked);
@@ -514,7 +537,10 @@ class _AvailabilityRuleFormSheetState
                       SizedBox(width: 10),
                       Text(
                         'Vérification des conflits avec les prêts...',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -532,7 +558,11 @@ class _AvailabilityRuleFormSheetState
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.warning, color: AppColors.danger, size: 20),
+                          const Icon(
+                            Icons.warning,
+                            color: AppColors.danger,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -560,21 +590,31 @@ class _AvailabilityRuleFormSheetState
                       ),
                       const Text(
                         'Vous ne pouvez pas bloquer ce créneau tant qu\'il chevauche des réservations existantes.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.check_circle, color: AppColors.success, size: 16),
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.success,
+                        size: 16,
+                      ),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -605,7 +645,11 @@ class _AvailabilityRuleFormSheetState
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.check_circle_outline, size: 16, color: AppColors.primary),
+                          const Icon(
+                            Icons.check_circle_outline,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -621,8 +665,12 @@ class _AvailabilityRuleFormSheetState
                       ),
                       const SizedBox(height: 6),
                       ..._previewIntervals.take(3).map((interval) {
-                        final startStr = DateFormat('dd/MM HH:mm').format(interval.start);
-                        final endStr = DateFormat('dd/MM HH:mm').format(interval.end);
+                        final startStr = DateFormat(
+                          'dd/MM HH:mm',
+                        ).format(interval.start);
+                        final endStr = DateFormat(
+                          'dd/MM HH:mm',
+                        ).format(interval.end);
                         return Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
@@ -663,7 +711,9 @@ class _AvailabilityRuleFormSheetState
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: isBusy ? null : () => Navigator.of(context).pop(),
+                      onPressed: isBusy
+                          ? null
+                          : () => Navigator.of(context).pop(),
                       child: const Text('Annuler'),
                     ),
                   ),
@@ -718,7 +768,9 @@ class _AvailabilityRuleFormSheetState
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.12) : AppColors.card,
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.12)
+              : AppColors.card,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: selected ? AppColors.primary : AppColors.border,
@@ -801,18 +853,16 @@ class _AvailabilityRuleFormSheetState
           border: const OutlineInputBorder(),
           suffixIcon: const Icon(Icons.access_time, size: 18),
         ),
-        child: Text(
-          _formatTime(time),
-          style: const TextStyle(fontSize: 14),
-        ),
+        child: Text(_formatTime(time), style: const TextStyle(fontSize: 14)),
       ),
     );
   }
 
   Future<void> _submitForm() async {
     final draftRules = _buildDraftRules();
-    final notifier =
-        ref.read(vehicleAvailabilityControllerProvider(widget.vehicleId).notifier);
+    final notifier = ref.read(
+      vehicleAvailabilityControllerProvider(widget.vehicleId).notifier,
+    );
 
     final success = await notifier.saveRules(
       draftRules,
@@ -823,8 +873,9 @@ class _AvailabilityRuleFormSheetState
     if (success && mounted) {
       Navigator.of(context).pop(true);
     } else if (mounted) {
-      final state =
-          ref.read(vehicleAvailabilityControllerProvider(widget.vehicleId));
+      final state = ref.read(
+        vehicleAvailabilityControllerProvider(widget.vehicleId),
+      );
       if (state.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

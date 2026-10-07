@@ -35,7 +35,8 @@ class UserBalanceController extends _$UserBalanceController {
       }
     }
     if (data is Map<String, dynamic>) {
-      final balanceVal = data['balance'] ?? data['user_balance'] ?? data['amount'];
+      final balanceVal =
+          data['balance'] ?? data['user_balance'] ?? data['amount'];
       if (balanceVal is num) {
         return balanceVal.toDouble();
       }

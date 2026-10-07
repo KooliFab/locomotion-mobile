@@ -130,70 +130,76 @@ void main() {
       );
     });
 
-    test('parses incident_created with incident_id and optional/null loan_id', () {
-      final withLoan = PushPayload.tryParse(
-        data: {
-          'schema_version': '1',
-          'event_type': 'incident_created',
-          'incident_id': '42',
-          'loan_id': '99',
-          'loanable_id': '7',
-        },
-        messageId: 'msg_inc_1',
-      );
-      expect(withLoan, isNotNull);
-      expect(withLoan!.eventType, PushEventType.incidentCreated);
-      expect(withLoan.incidentId, 42);
-      expect(withLoan.loanId, 99);
-      expect(withLoan.loanableId, 7);
-
-      final withoutLoan = PushPayload.tryParse(
-        data: {
-          'schema_version': '1',
-          'event_type': 'incident_created',
-          'incident_id': 50,
-          'loanable_id': 8,
-        },
-      );
-      expect(withoutLoan, isNotNull);
-      expect(withoutLoan!.eventType, PushEventType.incidentCreated);
-      expect(withoutLoan.incidentId, 50);
-      expect(withoutLoan.loanId, isNull);
-      expect(withoutLoan.loanableId, 8);
-    });
-
-    test('rejects incident_created when incident_id is missing or non-positive', () {
-      expect(
-        PushPayload.tryParse(
+    test(
+      'parses incident_created with incident_id and optional/null loan_id',
+      () {
+        final withLoan = PushPayload.tryParse(
           data: {
             'schema_version': '1',
             'event_type': 'incident_created',
+            'incident_id': '42',
             'loan_id': '99',
+            'loanable_id': '7',
           },
-        ),
-        isNull,
-      );
-      expect(
-        PushPayload.tryParse(
+          messageId: 'msg_inc_1',
+        );
+        expect(withLoan, isNotNull);
+        expect(withLoan!.eventType, PushEventType.incidentCreated);
+        expect(withLoan.incidentId, 42);
+        expect(withLoan.loanId, 99);
+        expect(withLoan.loanableId, 7);
+
+        final withoutLoan = PushPayload.tryParse(
           data: {
             'schema_version': '1',
             'event_type': 'incident_created',
-            'incident_id': '0',
+            'incident_id': 50,
+            'loanable_id': 8,
           },
-        ),
-        isNull,
-      );
-      expect(
-        PushPayload.tryParse(
-          data: {
-            'schema_version': '1',
-            'event_type': 'incident_created',
-            'incident_id': '-1',
-          },
-        ),
-        isNull,
-      );
-    });
+        );
+        expect(withoutLoan, isNotNull);
+        expect(withoutLoan!.eventType, PushEventType.incidentCreated);
+        expect(withoutLoan.incidentId, 50);
+        expect(withoutLoan.loanId, isNull);
+        expect(withoutLoan.loanableId, 8);
+      },
+    );
+
+    test(
+      'rejects incident_created when incident_id is missing or non-positive',
+      () {
+        expect(
+          PushPayload.tryParse(
+            data: {
+              'schema_version': '1',
+              'event_type': 'incident_created',
+              'loan_id': '99',
+            },
+          ),
+          isNull,
+        );
+        expect(
+          PushPayload.tryParse(
+            data: {
+              'schema_version': '1',
+              'event_type': 'incident_created',
+              'incident_id': '0',
+            },
+          ),
+          isNull,
+        );
+        expect(
+          PushPayload.tryParse(
+            data: {
+              'schema_version': '1',
+              'event_type': 'incident_created',
+              'incident_id': '-1',
+            },
+          ),
+          isNull,
+        );
+      },
+    );
 
     test('toSafeLogString never exposes sensitive info', () {
       final payload = PushPayload.tryParse(

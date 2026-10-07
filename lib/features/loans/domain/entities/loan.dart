@@ -60,8 +60,7 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'mileage_start') int? mileageStart,
     @JsonKey(name: 'mileage_end') int? mileageEnd,
     @JsonKey(name: 'requires_mileage') bool? requiresMileage,
-    @JsonKey(name: 'requires_detailed_mileage')
-    bool? requiresDetailedMileage,
+    @JsonKey(name: 'requires_detailed_mileage') bool? requiresDetailedMileage,
     @JsonKey(name: 'alternative_to') String? alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     String? comment,
@@ -104,7 +103,8 @@ abstract class Loan with _$Loan {
         !(s == LoanStatus.ended && !returnInspectionCompleted)) {
       return false;
     }
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
@@ -126,7 +126,8 @@ abstract class Loan with _$Loan {
   /// Whether a pending extension can be cancelled by the borrower
   bool canCancelExtension(int? currentUserId) {
     if (!hasPendingExtension) return false;
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     return isBorrower;
@@ -153,10 +154,16 @@ abstract class Loan with _$Loan {
 
   /// Whether deposit release can be retried without re-billing
   bool canRetryReleaseDeposit(int? currentUserId) {
-    if (paidAt == null && parsedStatus != LoanStatus.completed) return false;
-    if (depositStatus != 'release_failed' && depositStatus != 'release_pending') return false;
+    if (paidAt == null && parsedStatus != LoanStatus.completed) {
+      return false;
+    }
+    if (depositStatus != 'release_failed' &&
+        depositStatus != 'release_pending') {
+      return false;
+    }
 
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
@@ -177,20 +184,23 @@ abstract class Loan with _$Loan {
   bool canReturnVehicle(int? currentUserId) {
     if (returnInspectionCompleted) return false;
 
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
     if (!isBorrower && !isOwner) return false;
 
-    return parsedStatus == LoanStatus.ongoing || parsedStatus == LoanStatus.ended;
+    return parsedStatus == LoanStatus.ongoing ||
+        parsedStatus == LoanStatus.ended;
   }
 
   /// Whether the loan can be settled and closed by borrower or owner.
   bool canSettleAndClose(int? currentUserId) {
     if (paidAt != null || parsedStatus == LoanStatus.completed) return false;
 
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
@@ -207,7 +217,8 @@ abstract class Loan with _$Loan {
     final isOwner = isUserOwner(currentUserId);
     if (isOwner && ownerValidatedAt == null) return true;
 
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     if (isBorrower && borrowerValidatedAt == null) return true;
@@ -221,7 +232,8 @@ abstract class Loan with _$Loan {
   bool canTakeOver(int? currentUserId, {DateTime? now}) {
     if (departureInspectionCompleted) return false;
 
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
@@ -231,8 +243,9 @@ abstract class Loan with _$Loan {
 
     if (parsedStatus == LoanStatus.confirmed) {
       final currentTime = now ?? DateTime.now();
-      final earliestTakeOverTime =
-          departureAt.subtract(const Duration(hours: 1));
+      final earliestTakeOverTime = departureAt.subtract(
+        const Duration(hours: 1),
+      );
       return currentTime.isAfter(earliestTakeOverTime) ||
           currentTime.isAtSameMomentAs(earliestTakeOverTime);
     }

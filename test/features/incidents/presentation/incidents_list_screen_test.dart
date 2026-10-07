@@ -14,7 +14,11 @@ class MockIncidentRepository implements IncidentRepository {
   MockIncidentRepository({this.incidents = const []});
 
   @override
-  Future<List<Incident>> getIncidents({int? loanId, int? loanableId, String? status}) async {
+  Future<List<Incident>> getIncidents({
+    int? loanId,
+    int? loanableId,
+    String? status,
+  }) async {
     return incidents;
   }
 
@@ -30,8 +34,7 @@ class MockIncidentRepository implements IncidentRepository {
     required String description,
     List<int> imageIds = const [],
     String? idempotencyKey,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<IncidentNote> addNote(int incidentId, String text) async =>
@@ -77,19 +80,16 @@ void main() {
     int? loanableId,
   }) {
     return ProviderScope(
-      overrides: [
-        incidentRepositoryProvider.overrideWithValue(repo),
-      ],
+      overrides: [incidentRepositoryProvider.overrideWithValue(repo)],
       child: MaterialApp(
-        home: IncidentsListScreen(
-          loanId: loanId,
-          loanableId: loanableId,
-        ),
+        home: IncidentsListScreen(loanId: loanId, loanableId: loanableId),
       ),
     );
   }
 
-  testWidgets('displays empty state when no incidents are found', (tester) async {
+  testWidgets('displays empty state when no incidents are found', (
+    tester,
+  ) async {
     final repo = MockIncidentRepository(incidents: const []);
 
     await tester.pumpWidget(buildTestWidget(repo: repo));
@@ -98,7 +98,9 @@ void main() {
     expect(find.text('Aucun incident signalé.'), findsOneWidget);
   });
 
-  testWidgets('displays list of incidents and filters by status chips', (tester) async {
+  testWidgets('displays list of incidents and filters by status chips', (
+    tester,
+  ) async {
     final repo = MockIncidentRepository(incidents: testIncidents);
 
     await tester.pumpWidget(buildTestWidget(repo: repo));
@@ -133,19 +135,22 @@ void main() {
     expect(find.text('Chaîne réparée et lubrifiée.'), findsOneWidget);
   });
 
-  testWidgets('shows FAB button when loanableId is provided, and hides it when null', (tester) async {
-    final repo = MockIncidentRepository(incidents: testIncidents);
+  testWidgets(
+    'shows FAB button when loanableId is provided, and hides it when null',
+    (tester) async {
+      final repo = MockIncidentRepository(incidents: testIncidents);
 
-    // With loanableId -> FAB visible
-    await tester.pumpWidget(buildTestWidget(repo: repo, loanableId: 10));
-    await tester.pumpAndSettle();
+      // With loanableId -> FAB visible
+      await tester.pumpWidget(buildTestWidget(repo: repo, loanableId: 10));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('report_incident_fab')), findsOneWidget);
+      expect(find.byKey(const Key('report_incident_fab')), findsOneWidget);
 
-    // Without loanableId -> FAB not rendered
-    await tester.pumpWidget(buildTestWidget(repo: repo));
-    await tester.pumpAndSettle();
+      // Without loanableId -> FAB not rendered
+      await tester.pumpWidget(buildTestWidget(repo: repo));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('report_incident_fab')), findsNothing);
-  });
+      expect(find.byKey(const Key('report_incident_fab')), findsNothing);
+    },
+  );
 }

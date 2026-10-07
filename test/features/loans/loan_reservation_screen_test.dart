@@ -116,8 +116,9 @@ class _FakeLoansRepo implements LoansRepository {
 
   @override
   Future<ExtensionEstimate> getExtensionEstimate(
-          int id, int durationInMinutes) async =>
-      throw UnimplementedError();
+    int id,
+    int durationInMinutes,
+  ) async => throw UnimplementedError();
 }
 
 class _FakeAuthController extends AuthController {

@@ -29,4 +29,3 @@ abstract class LoanInspectionRepository {
     int incidentClaimCents = 0,
   });
 }
-

@@ -115,8 +115,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
             hasInterruptedUploads = true;
             sanitizedPhotos[entry.key] = entry.value.copyWith(
               status: DraftPhotoStatus.error,
-              errorMessage:
-                  'Téléversement interrompu. Appuyez sur réessayer.',
+              errorMessage: 'Téléversement interrompu. Appuyez sur réessayer.',
             );
           } else {
             sanitizedPhotos[entry.key] = entry.value;
@@ -172,8 +171,9 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
               'front': const DraftPhotoEntry(field: 'front'),
             };
       if (requiresMileage) {
-        defaultPhotos['dashboard_odometer'] =
-            const DraftPhotoEntry(field: 'dashboard_odometer');
+        defaultPhotos['dashboard_odometer'] = const DraftPhotoEntry(
+          field: 'dashboard_odometer',
+        );
       }
 
       final defaultChecklist = isMotorized
@@ -183,10 +183,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
               'clean_outside': true,
               'fuel_battery_level_ok': true,
             }
-          : {
-              'lock_secured': true,
-              'key_returned': true,
-            };
+          : {'lock_secured': true, 'key_returned': true};
 
       final newDraft = ReturnDraft(
         userId: userId,
@@ -222,7 +219,10 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
 
   void updateOdometer(int? km, bool requiresMileage, int? mileageStart) {
     String? validationError;
-    if (requiresMileage && km != null && mileageStart != null && km < mileageStart) {
+    if (requiresMileage &&
+        km != null &&
+        mileageStart != null &&
+        km < mileageStart) {
       validationError =
           'Le kilométrage de retour ($km km) ne peut pas être inférieur au départ ($mileageStart km).';
     }
@@ -231,12 +231,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       odometerKm: km,
       updatedAt: DateTime.now(),
     );
-    _persistDraft(
-      updated,
-      requiresMileage,
-      mileageStart,
-      validationError,
-    );
+    _persistDraft(updated, requiresMileage, mileageStart, validationError);
   }
 
   void updateFuelBattery(int percent, bool requiresMileage, int? mileageStart) {
@@ -346,7 +341,9 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
         return;
       }
 
-      final photosUploaded = Map<String, DraftPhotoEntry>.from(state.draft.photos);
+      final photosUploaded = Map<String, DraftPhotoEntry>.from(
+        state.draft.photos,
+      );
       photosUploaded[field] = DraftPhotoEntry(
         field: field,
         localPath: file.path,
@@ -597,8 +594,7 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
           'comments': state.draft.comments!.trim(),
       };
 
-      final inspection =
-          await _inspectionRepository.submitReturnInspection(
+      final inspection = await _inspectionRepository.submitReturnInspection(
         loanId: targetLoanId,
         payload: payload,
         idempotencyKey: idempotencyKey,
@@ -653,18 +649,12 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
       final message = originalError != null
           ? 'L\'état des lieux de retour n\'a pas été enregistré par le serveur. Vos saisies ont été conservées. ($originalError)'
           : 'L\'état des lieux de retour n\'a pas été enregistré par le serveur. Vos saisies ont été conservées.';
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: message);
     } catch (_) {
       final message = originalError != null
           ? 'L\'état des lieux de retour n\'a pas été enregistré par le serveur. ($originalError)'
           : 'Erreur réseau lors de la vérification du statut du serveur.';
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: message);
     }
   }
 
@@ -704,5 +694,5 @@ class LoanReturnController extends Notifier<ReturnInspectionState> {
 
 final loanReturnControllerProvider =
     NotifierProvider.family<LoanReturnController, ReturnInspectionState, int>(
-  (loanId) => LoanReturnController(loanId),
-);
+      (loanId) => LoanReturnController(loanId),
+    );

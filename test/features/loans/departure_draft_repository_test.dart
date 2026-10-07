@@ -36,7 +36,10 @@ class FakeSecureStorageService implements SecureStorageService {
   Future<String?> getRefreshToken() async => _store[StorageKeys.refreshToken];
 
   @override
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     _store[StorageKeys.accessToken] = accessToken;
     _store[StorageKeys.refreshToken] = refreshToken;
   }
@@ -115,32 +118,36 @@ void main() {
       expect(retrieved, isNull);
     });
 
-    test('clearDraft purges local photo files from disk and removes the stored draft', () async {
-      final tempDir = Directory.systemTemp.createTempSync();
-      final photoFile = File('${tempDir.path}/departure_front.jpg')..writeAsStringSync('dummy content');
-      expect(photoFile.existsSync(), isTrue);
+    test(
+      'clearDraft purges local photo files from disk and removes the stored draft',
+      () async {
+        final tempDir = Directory.systemTemp.createTempSync();
+        final photoFile = File('${tempDir.path}/departure_front.jpg')
+          ..writeAsStringSync('dummy content');
+        expect(photoFile.existsSync(), isTrue);
 
-      final draft = DepartureDraft(
-        userId: 1,
-        loanId: 100,
-        photos: {
-          'front': DraftPhotoEntry(
-            field: 'front',
-            localPath: photoFile.path,
-            status: DraftPhotoStatus.uploaded,
-            imageId: 999,
-          ),
-        },
-      );
-      await repository.saveDraft(draft);
+        final draft = DepartureDraft(
+          userId: 1,
+          loanId: 100,
+          photos: {
+            'front': DraftPhotoEntry(
+              field: 'front',
+              localPath: photoFile.path,
+              status: DraftPhotoStatus.uploaded,
+              imageId: 999,
+            ),
+          },
+        );
+        await repository.saveDraft(draft);
 
-      await repository.clearDraft(userId: 1, loanId: 100);
+        await repository.clearDraft(userId: 1, loanId: 100);
 
-      expect(photoFile.existsSync(), isFalse);
-      final retrieved = await repository.getDraft(userId: 1, loanId: 100);
-      expect(retrieved, isNull);
+        expect(photoFile.existsSync(), isFalse);
+        final retrieved = await repository.getDraft(userId: 1, loanId: 100);
+        expect(retrieved, isNull);
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
   });
 }

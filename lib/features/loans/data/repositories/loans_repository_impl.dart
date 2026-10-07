@@ -99,7 +99,10 @@ class LoansRepositoryImpl implements LoansRepository {
   }
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) {
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) {
     return _remoteDataSource.getExtensionEstimate(id, durationInMinutes);
   }
 }

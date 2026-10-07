@@ -17,7 +17,9 @@ class IncidentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(incidentDetailControllerProvider(incidentId));
-    final notifier = ref.read(incidentDetailControllerProvider(incidentId).notifier);
+    final notifier = ref.read(
+      incidentDetailControllerProvider(incidentId).notifier,
+    );
 
     final authState = ref.watch(authControllerProvider);
     final currentUser = authState.value;
@@ -46,7 +48,11 @@ class IncidentDetailScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.danger, size: 48),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.danger,
+                      size: 48,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       state.errorMessage!,
@@ -94,14 +100,17 @@ class IncidentDetailScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(category.icon, color: AppColors.primary, size: 28),
+                              Icon(
+                                category.icon,
+                                color: AppColors.primary,
+                                size: 28,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   category.label,
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                               IncidentStatusBadge(incident: incident),
@@ -116,17 +125,25 @@ class IncidentDetailScreen extends ConsumerWidget {
                                 color: AppColors.textSecondary,
                               ),
                             ),
-                          if (incident.isBlocking && incident.blockingUntil != null) ...[
+                          if (incident.isBlocking &&
+                              incident.blockingUntil != null) ...[
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.danger.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.block, size: 16, color: AppColors.danger),
+                                  const Icon(
+                                    Icons.block,
+                                    size: 16,
+                                    color: AppColors.danger,
+                                  ),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
@@ -162,9 +179,8 @@ class IncidentDetailScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'Informations associées',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           if (incident.loanableName != null)
@@ -211,9 +227,8 @@ class IncidentDetailScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'Description',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           if (incident.detailsHidden)
@@ -225,12 +240,19 @@ class IncidentDetailScreen extends ConsumerWidget {
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.lock_outline, size: 18, color: AppColors.textSecondary),
+                                  Icon(
+                                    Icons.lock_outline,
+                                    size: 18,
+                                    color: AppColors.textSecondary,
+                                  ),
                                   SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'Les commentaires détaillés sont réservés aux gestionnaires et parties prenantes directes.',
-                                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -247,7 +269,8 @@ class IncidentDetailScreen extends ConsumerWidget {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            if (incident.photos.isNotEmpty || incident.photoImageIds.isNotEmpty) ...[
+                            if (incident.photos.isNotEmpty ||
+                                incident.photoImageIds.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               const Divider(),
                               const SizedBox(height: 8),
@@ -267,13 +290,17 @@ class IncidentDetailScreen extends ConsumerWidget {
                                   itemCount: incident.photos.isNotEmpty
                                       ? incident.photos.length
                                       : incident.photoImageIds.length,
-                                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(width: 8),
                                   itemBuilder: (context, index) {
                                     final photo = incident.photos.isNotEmpty
                                         ? incident.photos[index]
-                                        : LoanableImage(id: incident.photoImageIds[index]);
+                                        : LoanableImage(
+                                            id: incident.photoImageIds[index],
+                                          );
                                     return GestureDetector(
-                                      onTap: () => _showPhotoPreview(context, photo),
+                                      onTap: () =>
+                                          _showPhotoPreview(context, photo),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: Stack(
@@ -287,10 +314,15 @@ class IncidentDetailScreen extends ConsumerWidget {
                                               bottom: 4,
                                               right: 4,
                                               child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
+                                                      vertical: 2,
+                                                    ),
                                                 decoration: BoxDecoration(
                                                   color: Colors.black54,
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
                                                   '#${photo.id}',
@@ -341,10 +373,15 @@ class IncidentDetailScreen extends ConsumerWidget {
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
-                              : const Icon(Icons.check_circle_outline, size: 20),
+                              : const Icon(
+                                  Icons.check_circle_outline,
+                                  size: 20,
+                                ),
                           label: const Text(
                             'Marquer comme résolu',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -380,7 +417,9 @@ class IncidentDetailScreen extends ConsumerWidget {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.replay_rounded, size: 20),
                           label: const Text(
@@ -399,8 +438,8 @@ class IncidentDetailScreen extends ConsumerWidget {
                       Text(
                         'Notes et suivi (${incident.notes.length})',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       if (!incident.detailsHidden)
                         TextButton.icon(
@@ -408,12 +447,14 @@ class IncidentDetailScreen extends ConsumerWidget {
                           onPressed: () {
                             showDialog<bool>(
                               context: context,
-                              builder: (ctx) => AddNoteDialog(
-                                onAddNote: notifier.addNote,
-                              ),
+                              builder: (ctx) =>
+                                  AddNoteDialog(onAddNote: notifier.addNote),
                             );
                           },
-                          icon: const Icon(Icons.add_comment_outlined, size: 18),
+                          icon: const Icon(
+                            Icons.add_comment_outlined,
+                            size: 18,
+                          ),
                           label: const Text('Ajouter une note'),
                         ),
                     ],
@@ -422,7 +463,10 @@ class IncidentDetailScreen extends ConsumerWidget {
                   if (incident.detailsHidden)
                     const Text(
                       'Les notes d\'échange sont masquées pour des raisons de confidentialité.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
                     )
                   else
                     IncidentNotesTimeline(notes: incident.notes),
@@ -445,7 +489,10 @@ class IncidentDetailScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Text(
             '$label : ',
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
           Expanded(
             child: Text(
@@ -458,7 +505,10 @@ class IncidentDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmAndResolve(BuildContext context, IncidentDetailController notifier) {
+  void _confirmAndResolve(
+    BuildContext context,
+    IncidentDetailController notifier,
+  ) {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(

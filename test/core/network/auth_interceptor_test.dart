@@ -27,11 +27,7 @@ void main() {
       ),
     );
 
-    interceptor = AuthInterceptor(
-      fakeStorage,
-      mainDio,
-      refreshDio: refreshDio,
-    );
+    interceptor = AuthInterceptor(fakeStorage, mainDio, refreshDio: refreshDio);
     mainDio.interceptors.add(interceptor);
   });
 

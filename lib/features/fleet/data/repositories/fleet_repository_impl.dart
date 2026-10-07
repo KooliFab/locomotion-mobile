@@ -29,11 +29,7 @@ class FleetRepositoryImpl implements FleetRepository {
     Map<String, dynamic> data, {
     String? lockVersion,
   }) {
-    return _remoteDataSource.updateVehicle(
-      id,
-      data,
-      lockVersion: lockVersion,
-    );
+    return _remoteDataSource.updateVehicle(id, data, lockVersion: lockVersion);
   }
 
   @override

@@ -88,9 +88,8 @@ String _generateIdempotencyKey() {
 
 class IncidentReportController extends Notifier<IncidentReportState> {
   @override
-  IncidentReportState build() => IncidentReportState(
-        idempotencyKey: _generateIdempotencyKey(),
-      );
+  IncidentReportState build() =>
+      IncidentReportState(idempotencyKey: _generateIdempotencyKey());
 
   IncidentRepository get _repository => ref.read(incidentRepositoryProvider);
 
@@ -98,7 +97,9 @@ class IncidentReportController extends Notifier<IncidentReportState> {
     state = state.copyWith(
       selectedCategory: category,
       clearError: true,
-      safetyAcknowledged: category.requiresSafetyDisclaimer ? state.safetyAcknowledged : false,
+      safetyAcknowledged: category.requiresSafetyDisclaimer
+          ? state.safetyAcknowledged
+          : false,
     );
   }
 
@@ -131,7 +132,8 @@ class IncidentReportController extends Notifier<IncidentReportState> {
 
   void removePhoto(int index) {
     if (index < 0 || index >= state.localPhotoPaths.length) return;
-    final updatedPaths = List<String>.from(state.localPhotoPaths)..removeAt(index);
+    final updatedPaths = List<String>.from(state.localPhotoPaths)
+      ..removeAt(index);
     final updatedIds = List<int>.from(state.uploadedImageIds);
     if (index < updatedIds.length) {
       updatedIds.removeAt(index);
@@ -142,28 +144,30 @@ class IncidentReportController extends Notifier<IncidentReportState> {
     );
   }
 
-  Future<Incident?> submit({
-    required int loanableId,
-    int? loanId,
-  }) async {
+  Future<Incident?> submit({required int loanableId, int? loanId}) async {
     // Non-reentrant guard
     if (state.isSubmitting || state.isReconciling) return null;
 
     if (state.selectedCategory == null) {
-      state = state.copyWith(errorMessage: 'Veuillez sélectionner un motif d\'incident.');
+      state = state.copyWith(
+        errorMessage: 'Veuillez sélectionner un motif d\'incident.',
+      );
       return null;
     }
 
     if (state.description.trim().length < 10) {
       state = state.copyWith(
-        errorMessage: 'Veuillez saisir une description détaillée (au moins 10 caractères).',
+        errorMessage:
+            'Veuillez saisir une description détaillée (au moins 10 caractères).',
       );
       return null;
     }
 
-    if (state.selectedCategory!.requiresSafetyDisclaimer && !state.safetyAcknowledged) {
+    if (state.selectedCategory!.requiresSafetyDisclaimer &&
+        !state.safetyAcknowledged) {
       state = state.copyWith(
-        errorMessage: 'Veuillez confirmer que vous êtes en sécurité et que les secours ont été prévenus si nécessaire.',
+        errorMessage:
+            'Veuillez confirmer que vous êtes en sécurité et que les secours ont été prévenus si nécessaire.',
       );
       return null;
     }
@@ -200,7 +204,8 @@ class IncidentReportController extends Notifier<IncidentReportState> {
       state = state.copyWith(
         isSubmitting: false,
         hasUnknownResult: true,
-        errorMessage: 'Délai d\'attente dépassé ou coupure réseau. Votre signalement a peut-être déjà été enregistré.',
+        errorMessage:
+            'Délai d\'attente dépassé ou coupure réseau. Votre signalement a peut-être déjà été enregistré.',
       );
       return null;
     } catch (e) {
@@ -216,21 +221,21 @@ class IncidentReportController extends Notifier<IncidentReportState> {
     }
   }
 
-  Future<Incident?> reconcile({
-    required int loanableId,
-    int? loanId,
-  }) async {
+  Future<Incident?> reconcile({required int loanableId, int? loanId}) async {
     state = state.copyWith(isReconciling: true, clearError: true);
     try {
       final list = await _repository.getIncidents(
         loanId: loanId,
         loanableId: loanableId,
       );
-      final recent = list.where((i) =>
-        i.loanableId == loanableId &&
-        (loanId == null || i.loanId == loanId) &&
-        i.cleanComments.contains(state.description.trim())
-      ).firstOrNull;
+      final recent = list
+          .where(
+            (i) =>
+                i.loanableId == loanableId &&
+                (loanId == null || i.loanId == loanId) &&
+                i.cleanComments.contains(state.description.trim()),
+          )
+          .firstOrNull;
 
       if (recent != null) {
         state = state.copyWith(
@@ -253,13 +258,11 @@ class IncidentReportController extends Notifier<IncidentReportState> {
   }
 
   void reset() {
-    state = IncidentReportState(
-      idempotencyKey: _generateIdempotencyKey(),
-    );
+    state = IncidentReportState(idempotencyKey: _generateIdempotencyKey());
   }
 }
 
 final incidentReportControllerProvider =
     NotifierProvider.autoDispose<IncidentReportController, IncidentReportState>(
-  IncidentReportController.new,
-);
+      IncidentReportController.new,
+    );

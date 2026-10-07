@@ -3,20 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../config/env.dart';
 
-enum StripeSheetStatus {
-  success,
-  canceled,
-  failed,
-}
+enum StripeSheetStatus { success, canceled, failed }
 
 class StripeSheetResponse {
   final StripeSheetStatus status;
   final String? errorMessage;
 
-  const StripeSheetResponse({
-    required this.status,
-    this.errorMessage,
-  });
+  const StripeSheetResponse({required this.status, this.errorMessage});
 
   bool get isSuccess => status == StripeSheetStatus.success;
   bool get isCanceled => status == StripeSheetStatus.canceled;

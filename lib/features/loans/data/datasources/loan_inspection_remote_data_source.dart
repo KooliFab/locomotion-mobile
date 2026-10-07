@@ -48,10 +48,7 @@ class LoanInspectionRemoteDataSourceImpl
     final filename = file.path.split('/').last;
     final formData = FormData.fromMap({
       'field': field,
-      field: await MultipartFile.fromFile(
-        file.path,
-        filename: filename,
-      ),
+      field: await MultipartFile.fromFile(file.path, filename: filename),
     });
 
     final response = await _apiClient.post(
@@ -113,9 +110,7 @@ class LoanInspectionRemoteDataSourceImpl
 
   @override
   Future<LoanInspection?> getDepartureInspection(int loanId) async {
-    final response = await _apiClient.get(
-      ApiEndpoints.loanInspections(loanId),
-    );
+    final response = await _apiClient.get(ApiEndpoints.loanInspections(loanId));
 
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -165,9 +160,7 @@ class LoanInspectionRemoteDataSourceImpl
 
   @override
   Future<LoanInspection?> getReturnInspection(int loanId) async {
-    final response = await _apiClient.get(
-      ApiEndpoints.loanInspections(loanId),
-    );
+    final response = await _apiClient.get(ApiEndpoints.loanInspections(loanId));
 
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -194,9 +187,7 @@ class LoanInspectionRemoteDataSourceImpl
         'release_deposit': releaseDeposit,
         'incident_claim_cents': incidentClaimCents,
       },
-      options: Options(
-        headers: {'Accept': 'application/json'},
-      ),
+      options: Options(headers: {'Accept': 'application/json'}),
     );
 
     final data = response.data;

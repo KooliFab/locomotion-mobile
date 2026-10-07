@@ -52,9 +52,9 @@ class LoanPaymentRepositoryImpl implements LoanPaymentRepository {
 
 final loanPaymentRemoteDataSourceProvider =
     Provider<LoanPaymentRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return LoanPaymentRemoteDataSourceImpl(apiClient);
-});
+      final apiClient = ref.watch(apiClientProvider);
+      return LoanPaymentRemoteDataSourceImpl(apiClient);
+    });
 
 final loanPaymentRepositoryProvider = Provider<LoanPaymentRepository>((ref) {
   final remoteDataSource = ref.watch(loanPaymentRemoteDataSourceProvider);

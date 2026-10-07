@@ -15,8 +15,7 @@ abstract class StripePaymentParams with _$StripePaymentParams {
     String? depositPaymentIntentClientSecret,
     @JsonKey(name: 'contribution_payment_intent_id')
     String? contributionPaymentIntentId,
-    @JsonKey(name: 'deposit_payment_intent_id')
-    String? depositPaymentIntentId,
+    @JsonKey(name: 'deposit_payment_intent_id') String? depositPaymentIntentId,
     @JsonKey(name: 'contribution_already_paid')
     @Default(false)
     bool contributionAlreadyPaid,

@@ -37,8 +37,10 @@ void main() {
       expect(response.requiresStripeAction, isTrue);
       expect(response.financialBreakdown.securityDepositCents, 25000);
       expect(response.stripe?.customerId, 'cus_N123abc456');
-      expect(response.stripe?.depositPaymentIntentClientSecret,
-          'pi_3MtwLw2eZvKYlo2C0VvsmDep_secret_abc');
+      expect(
+        response.stripe?.depositPaymentIntentClientSecret,
+        'pi_3MtwLw2eZvKYlo2C0VvsmDep_secret_abc',
+      );
     });
 
     test('parses contract response when no Stripe action is required', () {

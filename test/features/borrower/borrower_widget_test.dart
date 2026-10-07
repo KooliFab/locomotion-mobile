@@ -553,9 +553,7 @@ void main() {
         FilePickerPlatform.instance = fakePicker;
 
         final completer = Completer<UploadedFileRef>();
-        final fakeRepo = _FakeBorrowerRepository(
-          uploadCompleter: completer,
-        );
+        final fakeRepo = _FakeBorrowerRepository(uploadCompleter: completer);
 
         await tester.pumpWidget(
           createWidgetUnderTest(
@@ -618,9 +616,7 @@ void main() {
         FilePickerPlatform.instance = fakePicker;
 
         final completer = Completer<UploadedFileRef>();
-        final fakeRepo = _FakeBorrowerRepository(
-          uploadCompleter: completer,
-        );
+        final fakeRepo = _FakeBorrowerRepository(uploadCompleter: completer);
 
         await tester.pumpWidget(
           createWidgetUnderTest(

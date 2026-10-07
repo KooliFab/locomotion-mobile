@@ -26,7 +26,8 @@ class ConflictingLoan {
       borrowerName: name ?? 'Emprunteur',
       departureAt: DateTime.parse(json['departure_at'] as String),
       actualReturnAt: DateTime.parse(
-        (json['actual_return_at'] ?? json['return_at'] ?? json['departure_at']) as String,
+        (json['actual_return_at'] ?? json['return_at'] ?? json['departure_at'])
+            as String,
       ),
       status: json['status']?.toString() ?? 'accepted',
     );

@@ -3,12 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'departure_draft.freezed.dart';
 part 'departure_draft.g.dart';
 
-enum DraftPhotoStatus {
-  notTaken,
-  uploading,
-  uploaded,
-  error,
-}
+enum DraftPhotoStatus { notTaken, uploading, uploaded, error }
 
 @freezed
 abstract class DraftPhotoEntry with _$DraftPhotoEntry {

@@ -30,8 +30,11 @@ class MockIncidentRepository implements IncidentRepository {
   MockIncidentRepository({required this.incident});
 
   @override
-  Future<List<Incident>> getIncidents({int? loanId, int? loanableId, String? status}) async =>
-      [incident];
+  Future<List<Incident>> getIncidents({
+    int? loanId,
+    int? loanableId,
+    String? status,
+  }) async => [incident];
 
   @override
   Future<Incident> getIncidentDetail(int incidentId) async => incident;
@@ -44,8 +47,7 @@ class MockIncidentRepository implements IncidentRepository {
     required String description,
     List<int> imageIds = const [],
     String? idempotencyKey,
-  }) async =>
-      incident;
+  }) async => incident;
 
   @override
   Future<IncidentNote> addNote(int incidentId, String text) async {
@@ -102,7 +104,8 @@ void main() {
     loanId: 8,
     incidentType: 'small_incident',
     status: 'in_process',
-    commentsOnIncident: '[Crevaison] Crevaison roue avant. [Preuves: image_id#55]',
+    commentsOnIncident:
+        '[Crevaison] Crevaison roue avant. [Preuves: image_id#55]',
     photoImageIds: const [55],
     reportedByUserId: 99,
     reportedByUserName: 'Bob Emprunteur',
@@ -127,37 +130,45 @@ void main() {
       overrides: [
         authControllerProvider.overrideWith(() => _FakeAuthController(user)),
         incidentRepositoryProvider.overrideWithValue(repo),
-        secureStorageServiceProvider.overrideWithValue(FakeSecureStorageService()),
+        secureStorageServiceProvider.overrideWithValue(
+          FakeSecureStorageService(),
+        ),
       ],
-      child: const MaterialApp(
-        home: IncidentDetailScreen(incidentId: 50),
-      ),
+      child: const MaterialApp(home: IncidentDetailScreen(incidentId: 50)),
     );
   }
 
-  testWidgets('renders incident details and hides resolution button for borrower', (tester) async {
-    final repo = MockIncidentRepository(incident: baseIncident);
+  testWidgets(
+    'renders incident details and hides resolution button for borrower',
+    (tester) async {
+      final repo = MockIncidentRepository(incident: baseIncident);
 
-    await tester.pumpWidget(buildTestWidget(repo: repo, user: borrowerUser));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildTestWidget(repo: repo, user: borrowerUser));
+      await tester.pumpAndSettle();
 
-    // Verify category, clean text and vehicle
-    expect(find.text('Crevaison / Pneu'), findsOneWidget);
-    expect(find.text('Crevaison roue avant.'), findsOneWidget);
-    expect(find.text('Vélo Cargo Alice'), findsOneWidget);
+      // Verify category, clean text and vehicle
+      expect(find.text('Crevaison / Pneu'), findsOneWidget);
+      expect(find.text('Crevaison roue avant.'), findsOneWidget);
+      expect(find.text('Vélo Cargo Alice'), findsOneWidget);
 
-    // Verify existing note
-    expect(find.text('Déposé au point relais pour assistance.'), findsOneWidget);
-    expect(find.text('Bob Emprunteur'), findsWidgets);
+      // Verify existing note
+      expect(
+        find.text('Déposé au point relais pour assistance.'),
+        findsOneWidget,
+      );
+      expect(find.text('Bob Emprunteur'), findsWidgets);
 
-    // Borrower cannot resolve -> button not shown
-    expect(find.byKey(const Key('resolve_incident_button')), findsNothing);
+      // Borrower cannot resolve -> button not shown
+      expect(find.byKey(const Key('resolve_incident_button')), findsNothing);
 
-    // Borrower can add note
-    expect(find.byKey(const Key('add_note_button')), findsOneWidget);
-  });
+      // Borrower can add note
+      expect(find.byKey(const Key('add_note_button')), findsOneWidget);
+    },
+  );
 
-  testWidgets('shows resolution button for owner and handles resolution flow', (tester) async {
+  testWidgets('shows resolution button for owner and handles resolution flow', (
+    tester,
+  ) async {
     final repo = MockIncidentRepository(incident: baseIncident);
 
     await tester.pumpWidget(buildTestWidget(repo: repo, user: ownerUser));
@@ -184,7 +195,9 @@ void main() {
     expect(repo.incident.isResolved, isTrue);
   });
 
-  testWidgets('adding a note opens dialog and updates timeline', (tester) async {
+  testWidgets('adding a note opens dialog and updates timeline', (
+    tester,
+  ) async {
     final repo = MockIncidentRepository(incident: baseIncident);
 
     await tester.pumpWidget(buildTestWidget(repo: repo, user: borrowerUser));
@@ -201,7 +214,10 @@ void main() {
     final noteInput = find.byKey(const Key('incident_note_input'));
     expect(noteInput, findsOneWidget);
 
-    await tester.enterText(noteInput, 'Réparation effectuée par le réparateur.');
+    await tester.enterText(
+      noteInput,
+      'Réparation effectuée par le réparateur.',
+    );
     await tester.pumpAndSettle();
 
     final submitNoteBtn = find.byKey(const Key('submit_note_button'));
@@ -209,6 +225,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.addNoteCallCount, equals(1));
-    expect(repo.lastAddedNote, equals('Réparation effectuée par le réparateur.'));
+    expect(
+      repo.lastAddedNote,
+      equals('Réparation effectuée par le réparateur.'),
+    );
   });
 }

@@ -79,11 +79,17 @@ void main() {
       };
 
       final rule = AvailabilityRule.fromJson(json);
-      expect(rule.rawJson['custom_metadata'], {'priority': 'high', 'source': 'sync_cal'});
+      expect(rule.rawJson['custom_metadata'], {
+        'priority': 'high',
+        'source': 'sync_cal',
+      });
 
       final serialized = rule.toJson();
       expect(serialized['id'], 'custom-42');
-      expect(serialized['custom_metadata'], {'priority': 'high', 'source': 'sync_cal'});
+      expect(serialized['custom_metadata'], {
+        'priority': 'high',
+        'source': 'sync_cal',
+      });
       expect(serialized['scope'], ['2026-11-01']);
     });
 
@@ -98,84 +104,96 @@ void main() {
       expect(rule.isCustomServerRule, isTrue);
       expect(rule.isPunctual, isFalse);
       expect(rule.isRecurringWeekly, isFalse);
-      expect(rule.formattedSummary, contains('Règle serveur (complex_rule_engine)'));
-    });
-
-    test('flags multi-dates batch as non-editable in-app to protect existing dates', () {
-      final multiJson = {
-        'id': 'multi-date-batch',
-        'type': 'dates',
-        'scope': ['2026-10-15', '2026-10-16', '2026-10-17'],
-        'period': '00:00-24:00',
-        'available': false,
-      };
-
-      final multiRule = AvailabilityRule.fromJson(multiJson);
-      expect(multiRule.isMultiDatesBatch, isTrue);
-      expect(multiRule.isEditableInApp, isFalse);
-
-      final singleJson = {
-        'id': 'single-date',
-        'type': 'dates',
-        'scope': ['2026-10-15'],
-        'period': '00:00-24:00',
-        'available': false,
-      };
-
-      final singleRule = AvailabilityRule.fromJson(singleJson);
-      expect(singleRule.isMultiDatesBatch, isFalse);
-      expect(singleRule.isEditableInApp, isTrue);
-    });
-
-    test('createContinuousBlock decomposes multi-day partial hours into contiguously simplify-able daily slices', () {
-      final slices = AvailabilityRule.createContinuousBlock(
-        baseId: 'test-block',
-        startDate: DateTime(2026, 10, 15),
-        endDate: DateTime(2026, 10, 17),
-        startTime: const TimeOfDay(hour: 14, minute: 0),
-        endTime: const TimeOfDay(hour: 11, minute: 0),
-        isAllDay: false,
-        title: 'Voyage professionnel',
+      expect(
+        rule.formattedSummary,
+        contains('Règle serveur (complex_rule_engine)'),
       );
-
-      expect(slices.length, 3);
-      final day1 = slices[0];
-      final day2 = slices[1];
-      final day3 = slices[2];
-
-      expect(day1.groupId, 'test-block');
-      expect(day1.groupRole, 'start');
-      expect(day1.scope, ['2026-10-15']);
-      expect(day1.period, '14:00-24:00');
-      expect(day1.title, 'Voyage professionnel');
-
-      expect(day2.groupId, 'test-block');
-      expect(day2.groupRole, 'middle');
-      expect(day2.scope, ['2026-10-16']);
-      expect(day2.period, '00:00-24:00');
-
-      expect(day3.groupId, 'test-block');
-      expect(day3.groupRole, 'end');
-      expect(day3.scope, ['2026-10-17']);
-      expect(day3.period, '00:00-11:00');
     });
 
-    test('createContinuousBlock handles 2-day partial hours block without middle days', () {
-      final slices = AvailabilityRule.createContinuousBlock(
-        baseId: 'two-day-block',
-        startDate: DateTime(2026, 10, 15),
-        endDate: DateTime(2026, 10, 16),
-        startTime: const TimeOfDay(hour: 18, minute: 30),
-        endTime: const TimeOfDay(hour: 8, minute: 15),
-        isAllDay: false,
-      );
+    test(
+      'flags multi-dates batch as non-editable in-app to protect existing dates',
+      () {
+        final multiJson = {
+          'id': 'multi-date-batch',
+          'type': 'dates',
+          'scope': ['2026-10-15', '2026-10-16', '2026-10-17'],
+          'period': '00:00-24:00',
+          'available': false,
+        };
 
-      expect(slices.length, 2);
-      expect(slices[0].period, '18:30-24:00');
-      expect(slices[0].groupRole, 'start');
-      expect(slices[1].period, '00:00-08:15');
-      expect(slices[1].groupRole, 'end');
-    });
+        final multiRule = AvailabilityRule.fromJson(multiJson);
+        expect(multiRule.isMultiDatesBatch, isTrue);
+        expect(multiRule.isEditableInApp, isFalse);
+
+        final singleJson = {
+          'id': 'single-date',
+          'type': 'dates',
+          'scope': ['2026-10-15'],
+          'period': '00:00-24:00',
+          'available': false,
+        };
+
+        final singleRule = AvailabilityRule.fromJson(singleJson);
+        expect(singleRule.isMultiDatesBatch, isFalse);
+        expect(singleRule.isEditableInApp, isTrue);
+      },
+    );
+
+    test(
+      'createContinuousBlock decomposes multi-day partial hours into contiguously simplify-able daily slices',
+      () {
+        final slices = AvailabilityRule.createContinuousBlock(
+          baseId: 'test-block',
+          startDate: DateTime(2026, 10, 15),
+          endDate: DateTime(2026, 10, 17),
+          startTime: const TimeOfDay(hour: 14, minute: 0),
+          endTime: const TimeOfDay(hour: 11, minute: 0),
+          isAllDay: false,
+          title: 'Voyage professionnel',
+        );
+
+        expect(slices.length, 3);
+        final day1 = slices[0];
+        final day2 = slices[1];
+        final day3 = slices[2];
+
+        expect(day1.groupId, 'test-block');
+        expect(day1.groupRole, 'start');
+        expect(day1.scope, ['2026-10-15']);
+        expect(day1.period, '14:00-24:00');
+        expect(day1.title, 'Voyage professionnel');
+
+        expect(day2.groupId, 'test-block');
+        expect(day2.groupRole, 'middle');
+        expect(day2.scope, ['2026-10-16']);
+        expect(day2.period, '00:00-24:00');
+
+        expect(day3.groupId, 'test-block');
+        expect(day3.groupRole, 'end');
+        expect(day3.scope, ['2026-10-17']);
+        expect(day3.period, '00:00-11:00');
+      },
+    );
+
+    test(
+      'createContinuousBlock handles 2-day partial hours block without middle days',
+      () {
+        final slices = AvailabilityRule.createContinuousBlock(
+          baseId: 'two-day-block',
+          startDate: DateTime(2026, 10, 15),
+          endDate: DateTime(2026, 10, 16),
+          startTime: const TimeOfDay(hour: 18, minute: 30),
+          endTime: const TimeOfDay(hour: 8, minute: 15),
+          isAllDay: false,
+        );
+
+        expect(slices.length, 2);
+        expect(slices[0].period, '18:30-24:00');
+        expect(slices[0].groupRole, 'start');
+        expect(slices[1].period, '00:00-08:15');
+        expect(slices[1].groupRole, 'end');
+      },
+    );
 
     test('newId generates distinct identifier strings', () {
       final id1 = AvailabilityRule.newId();
@@ -208,23 +226,26 @@ void main() {
       isCustomServerRule: true,
     );
 
-    test('categorizes rules accurately into punctual, recurring, and custom', () {
-      const config = AvailabilityConfig(
-        vehicleId: 10,
-        availabilityMode: 'always',
-        rules: [puncRule, recRule, customRule],
-        lockVersion: '2026-10-04T12:00:00Z',
-      );
+    test(
+      'categorizes rules accurately into punctual, recurring, and custom',
+      () {
+        const config = AvailabilityConfig(
+          vehicleId: 10,
+          availabilityMode: 'always',
+          rules: [puncRule, recRule, customRule],
+          lockVersion: '2026-10-04T12:00:00Z',
+        );
 
-      expect(config.isAlwaysMode, isTrue);
-      expect(config.isNeverMode, isFalse);
-      expect(config.punctualRules.length, 1);
-      expect(config.punctualRules.first.id, 'punc-1');
-      expect(config.recurringRules.length, 1);
-      expect(config.recurringRules.first.id, 'rec-1');
-      expect(config.customServerRules.length, 1);
-      expect(config.customServerRules.first.id, 'custom-1');
-    });
+        expect(config.isAlwaysMode, isTrue);
+        expect(config.isNeverMode, isFalse);
+        expect(config.punctualRules.length, 1);
+        expect(config.punctualRules.first.id, 'punc-1');
+        expect(config.recurringRules.length, 1);
+        expect(config.recurringRules.first.id, 'rec-1');
+        expect(config.customServerRules.length, 1);
+        expect(config.customServerRules.first.id, 'custom-1');
+      },
+    );
 
     test('identifies isNeverMode correctly', () {
       const config = AvailabilityConfig(

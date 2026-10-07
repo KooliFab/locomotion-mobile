@@ -15,13 +15,9 @@ class DepartureDraftRepositoryImpl implements DepartureDraftRepository {
   Future<DepartureDraft?> getDraft({
     required int userId,
     required int loanId,
-  }) =>
-      _localDataSource.getDraft(userId: userId, loanId: loanId);
+  }) => _localDataSource.getDraft(userId: userId, loanId: loanId);
 
   @override
-  Future<void> clearDraft({
-    required int userId,
-    required int loanId,
-  }) =>
+  Future<void> clearDraft({required int userId, required int loanId}) =>
       _localDataSource.clearDraft(userId: userId, loanId: loanId);
 }

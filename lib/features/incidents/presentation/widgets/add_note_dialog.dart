@@ -67,7 +67,9 @@ class _AddNoteDialogState extends State<AddNoteDialog> {
               enabled: !_isSubmitting,
               decoration: InputDecoration(
                 hintText: 'Ex: Remplacement effectué, véhicule opérationnel...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 errorText: _errorMessage,
               ),
             ),
@@ -76,7 +78,9 @@ class _AddNoteDialogState extends State<AddNoteDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(false),
+          onPressed: _isSubmitting
+              ? null
+              : () => Navigator.of(context).pop(false),
           child: const Text('Annuler'),
         ),
         ElevatedButton(

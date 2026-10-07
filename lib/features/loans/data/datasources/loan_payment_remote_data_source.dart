@@ -34,9 +34,7 @@ class LoanPaymentRemoteDataSourceImpl implements LoanPaymentRemoteDataSource {
     int? platformTipCents,
     bool useBalance = true,
   }) async {
-    final payload = <String, dynamic>{
-      'use_balance_if_available': useBalance,
-    };
+    final payload = <String, dynamic>{'use_balance_if_available': useBalance};
     if (platformTipCents != null) {
       payload['platform_tip_cents'] = platformTipCents;
     }
@@ -87,8 +85,8 @@ class LoanPaymentRemoteDataSourceImpl implements LoanPaymentRemoteDataSource {
       final item = data['data'] is Map<String, dynamic>
           ? data['data'] as Map<String, dynamic>
           : (data['loan'] is Map<String, dynamic>
-              ? data['loan'] as Map<String, dynamic>
-              : data);
+                ? data['loan'] as Map<String, dynamic>
+                : data);
       return Loan.fromJson(item);
     }
     throw const FormatException(

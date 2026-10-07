@@ -41,10 +41,7 @@ class ReturnDraftLocalDataSourceImpl implements ReturnDraftLocalDataSource {
   }
 
   @override
-  Future<void> clearDraft({
-    required int userId,
-    required int loanId,
-  }) async {
+  Future<void> clearDraft({required int userId, required int loanId}) async {
     final key = StorageKeys.returnDraft(userId, loanId);
 
     // Purge cached local photo files before deleting references

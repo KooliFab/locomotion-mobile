@@ -16,14 +16,12 @@ class VehicleSuspensionDialog extends StatefulWidget {
     BuildContext context, {
     required FleetVehicle vehicle,
     required Future<void> Function(String? reason, bool preserveFuture)
-        onConfirm,
+    onConfirm,
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => VehicleSuspensionDialog(
-        vehicle: vehicle,
-        onConfirm: onConfirm,
-      ),
+      builder: (context) =>
+          VehicleSuspensionDialog(vehicle: vehicle, onConfirm: onConfirm),
     );
   }
 

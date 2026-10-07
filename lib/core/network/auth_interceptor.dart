@@ -12,22 +12,20 @@ class AuthInterceptor extends QueuedInterceptor {
   /// Shared in-flight refresh future to coalesce concurrent 401 errors
   Future<String?>? _ongoingRefresh;
 
-  AuthInterceptor(
-    this._storageService,
-    this._dio, {
-    Dio? refreshDio,
-  }) : _refreshDio = refreshDio ??
-            Dio(
-              BaseOptions(
-                baseUrl: _dio.options.baseUrl,
-                connectTimeout: _dio.options.connectTimeout,
-                receiveTimeout: _dio.options.receiveTimeout,
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                },
-              ),
-            );
+  AuthInterceptor(this._storageService, this._dio, {Dio? refreshDio})
+    : _refreshDio =
+          refreshDio ??
+          Dio(
+            BaseOptions(
+              baseUrl: _dio.options.baseUrl,
+              connectTimeout: _dio.options.connectTimeout,
+              receiveTimeout: _dio.options.receiveTimeout,
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            ),
+          );
 
   @override
   void onRequest(
@@ -64,7 +62,8 @@ class AuthInterceptor extends QueuedInterceptor {
     // - Must not be a retried request (bounded retry to avoid infinite recursion)
     // - Must not be login or register
     // - Must not be the refresh token endpoint itself
-    final isRefreshEligible = statusCode == 401 &&
+    final isRefreshEligible =
+        statusCode == 401 &&
         !isAlreadyRetry &&
         path != ApiEndpoints.login &&
         path != ApiEndpoints.register &&
@@ -157,9 +156,7 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     try {
-      final headers = <String, dynamic>{
-        'Accept': 'application/json',
-      };
+      final headers = <String, dynamic>{'Accept': 'application/json'};
       if (currentAccessToken != null && currentAccessToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $currentAccessToken';
       }

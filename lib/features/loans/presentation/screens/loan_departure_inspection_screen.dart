@@ -69,7 +69,9 @@ class _LoanDepartureInspectionScreenState
     final requiresMileage = loan.requiresMileageTracking;
 
     final state = ref.watch(loanDepartureControllerProvider(widget.loanId));
-    final controller = ref.read(loanDepartureControllerProvider(widget.loanId).notifier);
+    final controller = ref.read(
+      loanDepartureControllerProvider(widget.loanId).notifier,
+    );
 
     // One-time initialization of the draft
     if (!_initialized) {
@@ -107,9 +109,7 @@ class _LoanDepartureInspectionScreenState
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('État des lieux de départ'),
-      ),
+      appBar: AppBar(title: const Text('État des lieux de départ')),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -128,11 +128,7 @@ class _LoanDepartureInspectionScreenState
                   ],
 
                   // Checklist Section
-                  _buildChecklistSection(
-                    state.draft,
-                    controller,
-                    isMotorized,
-                  ),
+                  _buildChecklistSection(state.draft, controller, isMotorized),
                   const SizedBox(height: 20),
 
                   // Odometer & Fuel / Battery Section
@@ -162,9 +158,9 @@ class _LoanDepartureInspectionScreenState
                     key: const Key('submit_departure_button'),
                     onPressed: (state.canSubmit && !state.isSubmitting)
                         ? () => controller.submitDeparture(
-                              loanId: widget.loanId,
-                              requiresMileage: requiresMileage,
-                            )
+                            loanId: widget.loanId,
+                            requiresMileage: requiresMileage,
+                          )
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -180,8 +176,9 @@ class _LoanDepartureInspectionScreenState
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : const Text(
@@ -384,7 +381,8 @@ class _LoanDepartureInspectionScreenState
           max: 100,
           divisions: 20,
           label: '${draft.fuelBatteryLevelPercent} %',
-          onChanged: (val) => controller.updateFuelBattery(val.toInt(), isMotorized),
+          onChanged: (val) =>
+              controller.updateFuelBattery(val.toInt(), isMotorized),
         ),
         const SizedBox(height: 8),
 
@@ -494,8 +492,8 @@ class _LoanDepartureInspectionScreenState
           color: isUploaded
               ? Colors.green.shade400
               : isError
-                  ? Colors.red.shade300
-                  : Colors.grey.shade300,
+              ? Colors.red.shade300
+              : Colors.grey.shade300,
           width: isUploaded ? 1.5 : 1,
         ),
       ),
@@ -516,9 +514,7 @@ class _LoanDepartureInspectionScreenState
           if (isUploading) ...[
             const SizedBox(
               height: 48,
-              child: Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
             ),
             const SizedBox(height: 4),
             const Text(
@@ -574,12 +570,8 @@ class _LoanDepartureInspectionScreenState
             IconButton.filledTonal(
               key: Key('photo_button_$field'),
               icon: const Icon(Icons.camera_alt_outlined),
-              onPressed: () => _pickPhoto(
-                field,
-                isMotorized,
-                requiresMileage,
-                controller,
-              ),
+              onPressed: () =>
+                  _pickPhoto(field, isMotorized, requiresMileage, controller),
             ),
             const SizedBox(height: 4),
             const Text(
@@ -736,14 +728,12 @@ class _LoanDepartureInspectionScreenState
           controller: _damagesController,
           maxLines: 3,
           decoration: const InputDecoration(
-            hintText: 'Notez ici toute rayure, accroc ou dommage préexistant...',
+            hintText:
+                'Notez ici toute rayure, accroc ou dommage préexistant...',
             border: OutlineInputBorder(),
           ),
           onChanged: (val) {
-            controller.updateExistingDamages(
-              val.trim(),
-              isMotorized,
-            );
+            controller.updateExistingDamages(val.trim(), isMotorized);
           },
         ),
       ],

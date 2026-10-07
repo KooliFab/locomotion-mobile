@@ -44,10 +44,7 @@ class IncidentsListController extends Notifier<IncidentsListState> {
   final int? loanId;
   final int? loanableId;
 
-  IncidentsListController({
-    this.loanId,
-    this.loanableId,
-  });
+  IncidentsListController({this.loanId, this.loanableId});
 
   @override
   IncidentsListState build() {
@@ -64,10 +61,7 @@ class IncidentsListController extends Notifier<IncidentsListState> {
         loanId: loanId,
         loanableId: loanableId,
       );
-      state = state.copyWith(
-        isLoading: false,
-        incidents: incidents,
-      );
+      state = state.copyWith(isLoading: false, incidents: incidents);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -77,24 +71,21 @@ class IncidentsListController extends Notifier<IncidentsListState> {
   }
 
   void setFilter(String? status) {
-    state = state.copyWith(
-      filterStatus: status,
-      clearFilter: status == null,
-    );
+    state = state.copyWith(filterStatus: status, clearFilter: status == null);
   }
 }
 
 final incidentsListControllerProvider =
     NotifierProvider<IncidentsListController, IncidentsListState>(
-  IncidentsListController.new,
-);
+      IncidentsListController.new,
+    );
 
 final vehicleIncidentsListProvider =
     NotifierProvider.family<IncidentsListController, IncidentsListState, int>(
-  (loanableId) => IncidentsListController(loanableId: loanableId),
-);
+      (loanableId) => IncidentsListController(loanableId: loanableId),
+    );
 
 final loanIncidentsListProvider =
     NotifierProvider.family<IncidentsListController, IncidentsListState, int>(
-  (loanId) => IncidentsListController(loanId: loanId),
-);
+      (loanId) => IncidentsListController(loanId: loanId),
+    );

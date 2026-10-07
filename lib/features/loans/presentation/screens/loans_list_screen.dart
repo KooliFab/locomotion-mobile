@@ -63,7 +63,8 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
       );
 
       if (!mounted) return;
-      if (currentRequestId != _activeRequestId || requestedStatus != _selectedStatus) {
+      if (currentRequestId != _activeRequestId ||
+          requestedStatus != _selectedStatus) {
         return;
       }
 
@@ -84,7 +85,8 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      if (currentRequestId != _activeRequestId || requestedStatus != _selectedStatus) {
+      if (currentRequestId != _activeRequestId ||
+          requestedStatus != _selectedStatus) {
         return;
       }
 

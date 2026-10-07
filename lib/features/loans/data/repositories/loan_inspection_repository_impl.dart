@@ -12,20 +12,18 @@ class LoanInspectionRepositoryImpl implements LoanInspectionRepository {
   Future<int> uploadInspectionPhoto({
     required File file,
     required String field,
-  }) =>
-      _remoteDataSource.uploadInspectionPhoto(file: file, field: field);
+  }) => _remoteDataSource.uploadInspectionPhoto(file: file, field: field);
 
   @override
   Future<LoanInspection> submitDepartureInspection({
     required int loanId,
     required Map<String, dynamic> payload,
     String? idempotencyKey,
-  }) =>
-      _remoteDataSource.submitDepartureInspection(
-        loanId: loanId,
-        payload: payload,
-        idempotencyKey: idempotencyKey,
-      );
+  }) => _remoteDataSource.submitDepartureInspection(
+    loanId: loanId,
+    payload: payload,
+    idempotencyKey: idempotencyKey,
+  );
 
   @override
   Future<LoanInspection?> getDepartureInspection(int loanId) =>
@@ -36,12 +34,11 @@ class LoanInspectionRepositoryImpl implements LoanInspectionRepository {
     required int loanId,
     required Map<String, dynamic> payload,
     String? idempotencyKey,
-  }) =>
-      _remoteDataSource.submitReturnInspection(
-        loanId: loanId,
-        payload: payload,
-        idempotencyKey: idempotencyKey,
-      );
+  }) => _remoteDataSource.submitReturnInspection(
+    loanId: loanId,
+    payload: payload,
+    idempotencyKey: idempotencyKey,
+  );
 
   @override
   Future<LoanInspection?> getReturnInspection(int loanId) =>
@@ -52,11 +49,9 @@ class LoanInspectionRepositoryImpl implements LoanInspectionRepository {
     required int loanId,
     bool releaseDeposit = true,
     int incidentClaimCents = 0,
-  }) =>
-      _remoteDataSource.settleLoan(
-        loanId: loanId,
-        releaseDeposit: releaseDeposit,
-        incidentClaimCents: incidentClaimCents,
-      );
+  }) => _remoteDataSource.settleLoan(
+    loanId: loanId,
+    releaseDeposit: releaseDeposit,
+    incidentClaimCents: incidentClaimCents,
+  );
 }
-

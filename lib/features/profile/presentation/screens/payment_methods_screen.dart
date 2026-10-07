@@ -12,23 +12,24 @@ class PaymentMethodsScreen extends ConsumerWidget {
     final methodsAsync = ref.watch(paymentMethodsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Moyens de paiement'),
-      ),
+      appBar: AppBar(title: const Text('Moyens de paiement')),
       body: methodsAsync.when(
         data: (methods) {
           if (methods.isEmpty) {
             return _buildEmptyState(context);
           }
           return RefreshIndicator(
-            onRefresh: () =>
-                ref.read(paymentMethodsControllerProvider.notifier).refreshMethods(),
+            onRefresh: () => ref
+                .read(paymentMethodsControllerProvider.notifier)
+                .refreshMethods(),
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _buildSecurityBanner(),
                 const SizedBox(height: 16),
-                ...methods.map((method) => _buildCardTile(context, ref, method)),
+                ...methods.map(
+                  (method) => _buildCardTile(context, ref, method),
+                ),
               ],
             ),
           );
@@ -170,8 +171,11 @@ class PaymentMethodsScreen extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline,
-                        color: Colors.amber.shade900, size: 18),
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.amber.shade900,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
@@ -198,8 +202,9 @@ class PaymentMethodsScreen extends ConsumerWidget {
                 if (context.mounted && !success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content:
-                          Text('Impossible de supprimer ce moyen de paiement.'),
+                      content: Text(
+                        'Impossible de supprimer ce moyen de paiement.',
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -224,8 +229,11 @@ class PaymentMethodsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.credit_card_off_outlined,
-                size: 64, color: Colors.grey.shade400),
+            Icon(
+              Icons.credit_card_off_outlined,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Aucune carte enregistrée',

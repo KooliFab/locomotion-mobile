@@ -55,7 +55,9 @@ class IncidentNotesTimeline extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 12,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.15,
+                      ),
                       child: Text(
                         (note.authorName ?? 'U').substring(0, 1).toUpperCase(),
                         style: const TextStyle(

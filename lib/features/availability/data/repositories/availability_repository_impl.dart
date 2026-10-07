@@ -25,7 +25,8 @@ class AvailabilityOptimisticLockException implements Exception {
   final String message;
 
   AvailabilityOptimisticLockException([
-    this.message = 'Ce véhicule a été modifié par un autre utilisateur. Veuillez recharger la page.',
+    this.message =
+        'Ce véhicule a été modifié par un autre utilisateur. Veuillez recharger la page.',
   ]);
 
   @override
@@ -92,14 +93,10 @@ class AvailabilityRepositoryImpl implements AvailabilityRepository {
     String? lockVersion,
   }) async {
     try {
-      await _remoteDataSource.updateLoanable(
-        vehicleId,
-        {
-          'availability_mode': availabilityMode,
-          'availability_json': availabilityJson,
-        },
-        lockVersion: lockVersion,
-      );
+      await _remoteDataSource.updateLoanable(vehicleId, {
+        'availability_mode': availabilityMode,
+        'availability_json': availabilityJson,
+      }, lockVersion: lockVersion);
     } on ConflictException catch (e) {
       throw AvailabilityOptimisticLockException(
         e.message.isNotEmpty
@@ -130,7 +127,8 @@ class AvailabilityRepositoryImpl implements AvailabilityRepository {
     String? fallbackMessage,
   ) {
     List<ConflictingLoan> conflicts = [];
-    String message = fallbackMessage ??
+    String message =
+        fallbackMessage ??
         'Cette modification de disponibilité entre en conflit avec des réservations existantes.';
     if (data is Map<String, dynamic>) {
       if (data['message'] != null &&
@@ -169,7 +167,10 @@ class AvailabilityRepositoryImpl implements AvailabilityRepository {
     );
 
     return rawList
-        .map((e) => LoanableAvailabilityInterval.fromJson(e as Map<String, dynamic>))
+        .map(
+          (e) =>
+              LoanableAvailabilityInterval.fromJson(e as Map<String, dynamic>),
+        )
         .toList();
   }
 }

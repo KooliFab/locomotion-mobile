@@ -46,9 +46,7 @@ class AppRoutes {
     String? ownerPhone,
     String? ownerEmail,
   }) {
-    final query = <String, String>{
-      'loanable_id': loanableId.toString(),
-    };
+    final query = <String, String>{'loanable_id': loanableId.toString()};
     if (vehicleName != null) query['vehicle_name'] = vehicleName;
     if (loanId != null) query['loan_id'] = loanId.toString();
     if (ownerName != null) query['owner_name'] = ownerName;
@@ -69,13 +67,12 @@ class Routes {
     String? ownerName,
     String? ownerPhone,
     String? ownerEmail,
-  }) =>
-      AppRoutes.incidentReportPath(
-        loanableId: loanableId,
-        vehicleName: vehicleName,
-        loanId: loanId,
-        ownerName: ownerName,
-        ownerPhone: ownerPhone,
-        ownerEmail: ownerEmail,
-      );
+  }) => AppRoutes.incidentReportPath(
+    loanableId: loanableId,
+    vehicleName: vehicleName,
+    loanId: loanId,
+    ownerName: ownerName,
+    ownerPhone: ownerPhone,
+    ownerEmail: ownerEmail,
+  );
 }

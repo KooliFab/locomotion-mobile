@@ -14,11 +14,7 @@ class VehicleFormScreen extends ConsumerStatefulWidget {
   final int? vehicleId;
   final FleetVehicle? initialVehicle;
 
-  const VehicleFormScreen({
-    super.key,
-    this.vehicleId,
-    this.initialVehicle,
-  });
+  const VehicleFormScreen({super.key, this.vehicleId, this.initialVehicle});
 
   @override
   ConsumerState<VehicleFormScreen> createState() => _VehicleFormScreenState();
@@ -97,8 +93,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   }
 
   Future<void> _loadVehicle() async {
-    final vehicle =
-        await ref.read(fleetVehicleDetailProvider(widget.vehicleId!).future);
+    final vehicle = await ref.read(
+      fleetVehicleDetailProvider(widget.vehicleId!).future,
+    );
     if (vehicle != null && mounted) {
       _populateFromVehicle(vehicle);
     }
@@ -196,8 +193,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       'max_loan_duration_in_minutes': int.tryParse(_maxDurationController.text),
       'instructions': _instructionsController.text.trim(),
       'return_instructions': _returnInstructionsController.text.trim(),
-      'trusted_borrower_instructions':
-          _trustedInstructionsController.text.trim(),
+      'trusted_borrower_instructions': _trustedInstructionsController.text
+          .trim(),
       'comments': _commentsController.text.trim(),
       'position': [45.5017, -73.5673], // Coordonnées par défaut si non éditées
     };
@@ -238,9 +235,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         'size': _bikeSize,
       };
     } else if (isTrailer) {
-      payload['details'] = {
-        'model': _trailerModelController.text.trim(),
-      };
+      payload['details'] = {'model': _trailerModelController.text.trim()};
     }
 
     try {
@@ -297,9 +292,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: AppColors.warning),
             SizedBox(width: 8),
-            Expanded(
-              child: Text('Conflit de modification (409)'),
-            ),
+            Expanded(child: Text('Conflit de modification (409)')),
           ],
         ),
         content: Text(
@@ -338,280 +331,287 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            if (_serverError != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.danger),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: AppColors.danger),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _serverError!,
-                        style: const TextStyle(
-                          color: AppColors.danger,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            if (areCarTechnicalFieldsLocked) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppColors.warning.withValues(alpha: 0.5),
+              if (_serverError != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.danger),
                   ),
-                ),
-                child: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 20,
-                      color: AppColors.warning,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Champs techniques verrouillés : cette voiture est déjà publiée. Par mesure de conformité et d\'assurance, la marque, le modèle, la motorisation et l\'immatriculation ne peuvent plus être modifiés directement. Contactez un administrateur LocoMotion si nécessaire.',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: AppColors.textPrimary,
-                          height: 1.35,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: AppColors.danger),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _serverError!,
+                          style: const TextStyle(
+                            color: AppColors.danger,
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Section 1: Type & Informations de base
-            _buildSectionCard(
-              title: '1. Informations générales',
-              children: [
-                if (!isEditMode) ...[
-                  const Text(
-                    'Type de véhicule',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  const SizedBox(height: 8),
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 'bike',
-                        label: Text('Vélo'),
-                        icon: Icon(Icons.pedal_bike_rounded),
-                      ),
-                      ButtonSegment(
-                        value: 'car',
-                        label: Text('Voiture'),
-                        icon: Icon(Icons.directions_car_rounded),
-                      ),
-                      ButtonSegment(
-                        value: 'trailer',
-                        label: Text('Remorque'),
-                        icon: Icon(Icons.rv_hookup_rounded),
                       ),
                     ],
-                    selected: {_type},
-                    onSelectionChanged: (set) =>
-                        setState(() => _type = set.first),
                   ),
-                  const SizedBox(height: 16),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              if (areCarTechnicalFieldsLocked) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.warning.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.lock_rounded,
+                        size: 20,
+                        color: AppColors.warning,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Champs techniques verrouillés : cette voiture est déjà publiée. Par mesure de conformité et d\'assurance, la marque, le modèle, la motorisation et l\'immatriculation ne peuvent plus être modifiés directement. Contactez un administrateur LocoMotion si nécessaire.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.textPrimary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Section 1: Type & Informations de base
+              _buildSectionCard(
+                title: '1. Informations générales',
+                children: [
+                  if (!isEditMode) ...[
+                    const Text(
+                      'Type de véhicule',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 'bike',
+                          label: Text('Vélo'),
+                          icon: Icon(Icons.pedal_bike_rounded),
+                        ),
+                        ButtonSegment(
+                          value: 'car',
+                          label: Text('Voiture'),
+                          icon: Icon(Icons.directions_car_rounded),
+                        ),
+                        ButtonSegment(
+                          value: 'trailer',
+                          label: Text('Remorque'),
+                          icon: Icon(Icons.rv_hookup_rounded),
+                        ),
+                      ],
+                      selected: {_type},
+                      onSelectionChanged: (set) =>
+                          setState(() => _type = set.first),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  TextFormField(
+                    key: const Key('vehicle_name_field'),
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nom du véhicule *',
+                      hintText: 'Ex. Vélo cargo familial, Toyota Prius...',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) =>
+                        val == null || val.trim().isEmpty ? 'Nom requis' : null,
+                  ),
+                  const SizedBox(height: 14),
+
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _sharingMode,
+                    decoration: const InputDecoration(
+                      labelText: 'Mode de partage *',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'on_demand',
+                        child: Text('Sur demande (validation manuelle)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'self_service',
+                        child: Text('Libre-service (immédiat)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hybrid',
+                        child: Text('Hybride (selon profil emprunteur)'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _sharingMode = val);
+                    },
+                  ),
+                  const SizedBox(height: 14),
+
+                  TextFormField(
+                    key: const Key('location_description_field'),
+                    controller: _locationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description de l\'emplacement *',
+                      hintText:
+                          'Ex. Stationné dans l\'allée ouest, boîte à clés au mur',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) => val == null || val.trim().isEmpty
+                        ? 'Emplacement requis'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _minDurationController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Durée min (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _maxDurationController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Durée max (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-
-                TextFormField(
-                  key: const Key('vehicle_name_field'),
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom du véhicule *',
-                    hintText: 'Ex. Vélo cargo familial, Toyota Prius...',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Nom requis' : null,
-                ),
-                const SizedBox(height: 14),
-
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  value: _sharingMode,
-                  decoration: const InputDecoration(
-                    labelText: 'Mode de partage *',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'on_demand',
-                      child: Text('Sur demande (validation manuelle)'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'self_service',
-                      child: Text('Libre-service (immédiat)'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'hybrid',
-                      child: Text('Hybride (selon profil emprunteur)'),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _sharingMode = val);
-                  },
-                ),
-                const SizedBox(height: 14),
-
-                TextFormField(
-                  key: const Key('location_description_field'),
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description de l\'emplacement *',
-                    hintText: 'Ex. Stationné dans l\'allée ouest, boîte à clés au mur',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (val) => val == null || val.trim().isEmpty
-                      ? 'Emplacement requis'
-                      : null,
-                ),
-                const SizedBox(height: 14),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _minDurationController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Durée min (minutes)',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _maxDurationController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Durée max (minutes)',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Section 2: Détails techniques par type
-            if (isCar) _buildCarSection(),
-            if (isBike) _buildBikeSection(),
-            if (isTrailer) _buildTrailerSection(),
-            const SizedBox(height: 16),
-
-            // Section 3: Instructions & Accès
-            _buildSectionCard(
-              title: '3. Instructions & Recommandations',
-              children: [
-                TextFormField(
-                  controller: _instructionsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Instructions de départ',
-                    hintText: 'Comment récupérer la clé, code du cadenas...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 14),
-
-                TextFormField(
-                  controller: _returnInstructionsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Instructions de retour',
-                    hintText: 'Brancher la batterie, replacer la clé dans le boîtier...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 14),
-
-                TextFormField(
-                  controller: _trustedInstructionsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Instructions emprunteur de confiance',
-                    hintText: 'Informations confidentielles additionnelles...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 14),
-
-                TextFormField(
-                  controller: _commentsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Remarques générales',
-                    hintText: 'Véhicule non fumeur, accessoires fournis...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Submit Button
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                key: const Key('submit_vehicle_button'),
-                onPressed: _isSubmitting ? null : _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : Text(
-                        isEditMode
-                            ? 'Enregistrer les modifications'
-                            : 'Créer le véhicule',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 16),
+
+              // Section 2: Détails techniques par type
+              if (isCar) _buildCarSection(),
+              if (isBike) _buildBikeSection(),
+              if (isTrailer) _buildTrailerSection(),
+              const SizedBox(height: 16),
+
+              // Section 3: Instructions & Accès
+              _buildSectionCard(
+                title: '3. Instructions & Recommandations',
+                children: [
+                  TextFormField(
+                    controller: _instructionsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Instructions de départ',
+                      hintText: 'Comment récupérer la clé, code du cadenas...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 14),
+
+                  TextFormField(
+                    controller: _returnInstructionsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Instructions de retour',
+                      hintText:
+                          'Brancher la batterie, replacer la clé dans le boîtier...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 14),
+
+                  TextFormField(
+                    controller: _trustedInstructionsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Instructions emprunteur de confiance',
+                      hintText:
+                          'Informations confidentielles additionnelles...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 14),
+
+                  TextFormField(
+                    controller: _commentsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Remarques générales',
+                      hintText: 'Véhicule non fumeur, accessoires fournis...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Submit Button
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  key: const Key('submit_vehicle_button'),
+                  onPressed: _isSubmitting ? null : _handleSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          isEditMode
+                              ? 'Enregistrer les modifications'
+                              : 'Créer le véhicule',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -634,8 +634,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: locked ? const Icon(Icons.lock, size: 18) : null,
                 ),
-                validator: (v) =>
-                    !locked && (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                validator: (v) => !locked && (v == null || v.trim().isEmpty)
+                    ? 'Requis'
+                    : null,
               ),
             ),
             const SizedBox(width: 12),
@@ -649,8 +650,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: locked ? const Icon(Icons.lock, size: 18) : null,
                 ),
-                validator: (v) =>
-                    !locked && (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                validator: (v) => !locked && (v == null || v.trim().isEmpty)
+                    ? 'Requis'
+                    : null,
               ),
             ),
           ],
@@ -670,8 +672,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: locked ? const Icon(Icons.lock, size: 18) : null,
                 ),
-                validator: (v) =>
-                    !locked && (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                validator: (v) => !locked && (v == null || v.trim().isEmpty)
+                    ? 'Requis'
+                    : null,
               ),
             ),
             const SizedBox(width: 12),
@@ -685,8 +688,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: locked ? const Icon(Icons.lock, size: 18) : null,
                 ),
-                validator: (v) =>
-                    !locked && (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                validator: (v) => !locked && (v == null || v.trim().isEmpty)
+                    ? 'Requis'
+                    : null,
               ),
             ),
           ],
@@ -706,7 +710,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 ),
                 items: const [
                   DropdownMenuItem(value: 'fuel', child: Text('Essence')),
-                  DropdownMenuItem(value: 'electric', child: Text('Électrique')),
+                  DropdownMenuItem(
+                    value: 'electric',
+                    child: Text('Électrique'),
+                  ),
                   DropdownMenuItem(value: 'hybrid', child: Text('Hybride')),
                   DropdownMenuItem(value: 'diesel', child: Text('Diesel')),
                 ],
@@ -732,10 +739,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                     value: 'automatic',
                     child: Text('Automatique'),
                   ),
-                  DropdownMenuItem(
-                    value: 'manual',
-                    child: Text('Manuelle'),
-                  ),
+                  DropdownMenuItem(value: 'manual', child: Text('Manuelle')),
                 ],
                 onChanged: locked
                     ? null
@@ -767,7 +771,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 onChanged: locked
                     ? null
                     : (val) {
-                        if (val != null) setState(() => _carPricingCategory = val);
+                        if (val != null) {
+                          setState(() => _carPricingCategory = val);
+                        }
                       },
               ),
             ),
@@ -788,7 +794,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 onChanged: locked
                     ? null
                     : (val) {
-                        if (val != null) setState(() => _carValueCategory = val);
+                        if (val != null) {
+                          setState(() => _carValueCategory = val);
+                        }
                       },
               ),
             ),
@@ -846,7 +854,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
           items: const [
             DropdownMenuItem(value: 'regular', child: Text('Vélo standard')),
             DropdownMenuItem(value: 'electric', child: Text('Vélo électrique')),
-            DropdownMenuItem(value: 'cargo', child: Text('Vélo cargo / biporteur')),
+            DropdownMenuItem(
+              value: 'cargo',
+              child: Text('Vélo cargo / biporteur'),
+            ),
             DropdownMenuItem(value: 'child', child: Text('Vélo enfant')),
           ],
           onChanged: (val) {

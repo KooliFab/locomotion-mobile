@@ -32,8 +32,7 @@ class ApiEndpoints {
       '/loans/$loanId/inspections/departure';
   static String loanReturnInspection(int loanId) =>
       '/loans/$loanId/inspections/return';
-  static String loanInspections(int loanId) =>
-      '/loans/$loanId/inspections';
+  static String loanInspections(int loanId) => '/loans/$loanId/inspections';
 
   // Communities
   static const String communities = '/communities';
@@ -47,7 +46,8 @@ class ApiEndpoints {
   // Payments & Invoices
   static const String paymentMethods = '/payment_methods';
   static String paymentMethodDetail(int id) => '/payment_methods/$id';
-  static String loanPaymentIntent(int loanId) => '/loans/$loanId/payment-intent';
+  static String loanPaymentIntent(int loanId) =>
+      '/loans/$loanId/payment-intent';
   static String loanPrepay(int loanId) => '/loans/$loanId/prepay';
   static String loanSettle(int loanId) => '/loans/$loanId/settle';
   static const String invoices = '/invoices';

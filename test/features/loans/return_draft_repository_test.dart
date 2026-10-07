@@ -37,7 +37,10 @@ class FakeSecureStorageService implements SecureStorageService {
   Future<String?> getRefreshToken() async => _store[StorageKeys.refreshToken];
 
   @override
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     _store[StorageKeys.accessToken] = accessToken;
     _store[StorageKeys.refreshToken] = refreshToken;
   }
@@ -86,11 +89,7 @@ void main() {
     });
 
     test('clearDraft removes the draft from storage', () async {
-      const draft = ReturnDraft(
-        userId: 2,
-        loanId: 88,
-        odometerKm: 50000,
-      );
+      const draft = ReturnDraft(userId: 2, loanId: 88, odometerKm: 50000);
 
       await repository.saveDraft(draft);
       expect(await repository.getDraft(userId: 2, loanId: 88), isNotNull);

@@ -136,9 +136,8 @@ class _MockLoansRepo implements LoansRepository {
     requestExtensionCalls++;
     lastExtensionDuration = extensionDurationInMinutes;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: extensionDurationInMinutes,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: extensionDurationInMinutes);
   }
 
   @override
@@ -157,24 +156,23 @@ class _MockLoansRepo implements LoansRepository {
   Future<Loan> rejectExtension(int id) async {
     rejectExtensionCalls++;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: null,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: null);
   }
 
   @override
   Future<Loan> cancelExtension(int id) async {
     cancelExtensionCalls++;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: null,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: null);
   }
 
   @override
   Future<ExtensionEstimate> getExtensionEstimate(
-          int id, int durationInMinutes) async =>
-      const ExtensionEstimate(available: true);
+    int id,
+    int durationInMinutes,
+  ) async => const ExtensionEstimate(available: true);
 }
 
 class _TestAuthController extends AuthController {
@@ -353,7 +351,9 @@ void main() {
           statusCode: 403,
         );
 
-        await tester.ensureVisible(find.byKey(const Key('action_cancel_button')));
+        await tester.ensureVisible(
+          find.byKey(const Key('action_cancel_button')),
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('action_cancel_button')));
         await tester.pumpAndSettle();

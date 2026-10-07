@@ -23,8 +23,7 @@ class VehiclePreviewScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Modifier',
-            onPressed: () =>
-                context.push(AppRoutes.fleetEditPath(vehicleId)),
+            onPressed: () => context.push(AppRoutes.fleetEditPath(vehicleId)),
           ),
         ],
       ),
@@ -172,25 +171,29 @@ class VehiclePreviewScreen extends ConsumerWidget {
                   title: 'Caractéristiques techniques',
                   icon: Icons.info_outline_rounded,
                   children: vehicle.details!.entries
-                      .where((e) => e.value != null && e.value.toString().isNotEmpty)
-                      .map((e) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 3),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${_formatKey(e.key)} : ',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
+                      .where(
+                        (e) => e.value != null && e.value.toString().isNotEmpty,
+                      )
+                      .map(
+                        (e) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${_formatKey(e.key)} : ',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
-                                Text(
-                                  '${e.value}',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ],
-                            ),
-                          ))
+                              ),
+                              Text(
+                                '${e.value}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               const SizedBox(height: 16),
@@ -339,7 +342,9 @@ class VehiclePreviewScreen extends ConsumerWidget {
     return key
         .replaceAll('_', ' ')
         .split(' ')
-        .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+        .map(
+          (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '',
+        )
         .join(' ');
   }
 }

@@ -224,8 +224,7 @@ class _FakeLoansRepository implements LoansRepository {
   Future<ExtensionEstimate> getExtensionEstimate(
     int id,
     int durationInMinutes,
-  ) =>
-      throw UnimplementedError();
+  ) => throw UnimplementedError();
 }
 
 class _FakeFleetRepository implements FleetRepository {
@@ -262,16 +261,14 @@ class _FakeFleetRepository implements FleetRepository {
   Future<FleetVehicle> createVehicle(
     Map<String, dynamic> data, {
     String? idempotencyKey,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<FleetVehicle> updateVehicle(
     int id,
     Map<String, dynamic> data, {
     String? lockVersion,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> publishVehicle(int id) async => throw UnimplementedError();
@@ -281,8 +278,7 @@ class _FakeFleetRepository implements FleetRepository {
     int id, {
     String? reason,
     bool preserveFuture = true,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<FleetVehicle> unsuspendVehicle(int id) async =>

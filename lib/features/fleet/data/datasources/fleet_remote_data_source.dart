@@ -37,8 +37,8 @@ class FleetRemoteDataSourceImpl implements FleetRemoteDataSource {
     final list = data is List
         ? data
         : (data is Map<String, dynamic> && data['data'] is List)
-            ? data['data'] as List
-            : <dynamic>[];
+        ? data['data'] as List
+        : <dynamic>[];
 
     return list
         .map((item) => FleetVehicle.fromJson(item as Map<String, dynamic>))
@@ -51,9 +51,7 @@ class FleetRemoteDataSourceImpl implements FleetRemoteDataSource {
     String? idempotencyKey,
   }) async {
     final options = Options(
-      headers: {
-        if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
-      },
+      headers: {if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey},
     );
 
     final response = await _apiClient.post<dynamic>(
@@ -66,7 +64,8 @@ class FleetRemoteDataSourceImpl implements FleetRemoteDataSource {
     );
 
     final raw = response.data;
-    final item = (raw is Map<String, dynamic> && raw['data'] is Map<String, dynamic>)
+    final item =
+        (raw is Map<String, dynamic> && raw['data'] is Map<String, dynamic>)
         ? raw['data'] as Map<String, dynamic>
         : raw as Map<String, dynamic>;
 
@@ -80,26 +79,23 @@ class FleetRemoteDataSourceImpl implements FleetRemoteDataSource {
     String? lockVersion,
   }) async {
     final options = Options(
-      headers: {
-        if (lockVersion != null) 'If-Match': '"$lockVersion"',
-      },
+      headers: {if (lockVersion != null) 'If-Match': '"$lockVersion"'},
     );
 
     final response = await _apiClient.put<dynamic>(
       '/loanables/$id',
-      data: {
-        ...data,
-        if (lockVersion != null) 'lock_version': lockVersion,
-      },
+      data: {...data, if (lockVersion != null) 'lock_version': lockVersion},
       options: options,
     );
 
     final raw = response.data;
-    final item = (raw is Map<String, dynamic> && raw['data'] is Map<String, dynamic>)
+    final item =
+        (raw is Map<String, dynamic> && raw['data'] is Map<String, dynamic>)
         ? raw['data'] as Map<String, dynamic>
-        : (raw is Map<String, dynamic> && raw['loanable'] is Map<String, dynamic>)
-            ? raw['loanable'] as Map<String, dynamic>
-            : raw as Map<String, dynamic>;
+        : (raw is Map<String, dynamic> &&
+              raw['loanable'] is Map<String, dynamic>)
+        ? raw['loanable'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
 
     return FleetVehicle.fromJson(item);
   }

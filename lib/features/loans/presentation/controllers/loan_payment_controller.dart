@@ -139,11 +139,11 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
       return false;
     }
 
-    final contributionSecret =
-        stripeData.contributionPaymentIntentClientSecret;
+    final contributionSecret = stripeData.contributionPaymentIntentClientSecret;
     final depositSecret = stripeData.depositPaymentIntentClientSecret;
 
-    final isContributionAlreadyPaid = stripeData.contributionAlreadyPaid ||
+    final isContributionAlreadyPaid =
+        stripeData.contributionAlreadyPaid ||
         _paidContributionIntentIds.containsKey(loanId);
 
     final hasContribution =
@@ -158,7 +158,8 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
     }
 
     // Étape 1 : Présentation de la feuille de paiement pour la contribution si pas déjà payée
-    final alreadyPaidContributionId = stripeData.contributionPaymentIntentId ??
+    final alreadyPaidContributionId =
+        stripeData.contributionPaymentIntentId ??
         _paidContributionIntentIds[loanId];
     final bool shouldChargeContribution =
         hasContribution && !isContributionAlreadyPaid;
@@ -238,7 +239,8 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
       message: 'Validation du prépaiement et de la caution...',
     );
 
-    final contributionId = alreadyPaidContributionId ??
+    final contributionId =
+        alreadyPaidContributionId ??
         (hasContribution ? _extractPaymentIntentId(contributionSecret) : null);
     final depositId = hasDeposit
         ? _extractPaymentIntentId(depositSecret)
@@ -286,5 +288,5 @@ class LoanPaymentController extends Notifier<LoanPaymentState> {
 
 final loanPaymentControllerProvider =
     NotifierProvider<LoanPaymentController, LoanPaymentState>(() {
-  return LoanPaymentController();
-});
+      return LoanPaymentController();
+    });

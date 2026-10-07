@@ -170,7 +170,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           icon: const Icon(Icons.refresh, size: 18),
                           tooltip: 'Réessayer',
                           color: AppColors.primary,
-                          onPressed: () => ref.invalidate(userBalanceControllerProvider),
+                          onPressed: () =>
+                              ref.invalidate(userBalanceControllerProvider),
                         ),
                       ],
                     ),

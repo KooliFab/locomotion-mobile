@@ -8,10 +8,7 @@ import '../controllers/loan_payment_controller.dart';
 class LoanPrepaymentModal extends ConsumerStatefulWidget {
   final Loan loan;
 
-  const LoanPrepaymentModal({
-    super.key,
-    required this.loan,
-  });
+  const LoanPrepaymentModal({super.key, required this.loan});
 
   static Future<void> show(BuildContext context, Loan loan) {
     return showModalBottomSheet<void>(
@@ -43,12 +40,13 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
 
   Future<void> _loadBreakdown() async {
     final int currentId = ++_requestId;
-    final response =
-        await ref.read(loanPaymentControllerProvider.notifier).fetchBreakdown(
-              widget.loan.id,
-              platformTipCents: _selectedTipCents,
-              useBalance: _useBalance,
-            );
+    final response = await ref
+        .read(loanPaymentControllerProvider.notifier)
+        .fetchBreakdown(
+          widget.loan.id,
+          platformTipCents: _selectedTipCents,
+          useBalance: _useBalance,
+        );
     if (mounted && currentId == _requestId) {
       setState(() {
         _intentResponse = response;
@@ -191,7 +189,10 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.error_outline, color: Colors.red),
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -208,7 +209,9 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
                             OutlinedButton.icon(
                               onPressed: () async {
                                 await ref
-                                    .read(loanPaymentControllerProvider.notifier)
+                                    .read(
+                                      loanPaymentControllerProvider.notifier,
+                                    )
                                     .checkServerStatus(widget.loan.id);
                               },
                               icon: const Icon(Icons.refresh, size: 16),
@@ -276,7 +279,10 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
                 children: [
                   const Text(
                     'Utiliser mon solde disponible',
-                    style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   Switch.adaptive(
                     value: _useBalance,
@@ -408,10 +414,11 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
   }
 
   Widget _buildActionButton(LoanPaymentState state, dynamic breakdown) {
-    final isLoading = state is LoanPaymentProcessing ||
-        state is LoanPaymentLoadingBreakdown;
+    final isLoading =
+        state is LoanPaymentProcessing || state is LoanPaymentLoadingBreakdown;
 
-    final isTipSyncing = _intentResponse == null ||
+    final isTipSyncing =
+        _intentResponse == null ||
         _intentResponse!.financialBreakdown.platformTipCents !=
             _selectedTipCents;
 
@@ -464,30 +471,28 @@ class _LoanPrepaymentModalState extends ConsumerState<LoanPrepaymentModal> {
               ],
             )
           : isTipSyncing
-              ? const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      'Mise à jour du montant...',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                )
-              : Text(
-                  label,
-                  style:
-                      const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ? const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                  ),
                 ),
+                SizedBox(width: 12),
+                Text(
+                  'Mise à jour du montant...',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            )
+          : Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
     );
   }
 

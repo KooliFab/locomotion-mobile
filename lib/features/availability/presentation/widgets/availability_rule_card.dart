@@ -40,8 +40,8 @@ class AvailabilityRuleCard extends StatelessWidget {
                   rule.isRecurringWeekly
                       ? Icons.repeat
                       : (rule.type == 'dateRange'
-                          ? Icons.date_range
-                          : Icons.calendar_today),
+                            ? Icons.date_range
+                            : Icons.calendar_today),
                   size: 18,
                   color: AppColors.primary,
                 ),
@@ -51,8 +51,8 @@ class AvailabilityRuleCard extends StatelessWidget {
                     rule.title != null && rule.title!.isNotEmpty
                         ? rule.title!
                         : (rule.isRecurringWeekly
-                            ? 'Indisponibilité récurrente'
-                            : 'Indisponibilité ponctuelle'),
+                              ? 'Indisponibilité récurrente'
+                              : 'Indisponibilité ponctuelle'),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -61,7 +61,10 @@ class AvailabilityRuleCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: rule.isAllDay
                         ? AppColors.primary.withValues(alpha: 0.1)
@@ -69,11 +72,15 @@ class AvailabilityRuleCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    rule.isAllDay ? 'Journée entière' : '${rule.startTime} - ${rule.endTime}',
+                    rule.isAllDay
+                        ? 'Journée entière'
+                        : '${rule.startTime} - ${rule.endTime}',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: rule.isAllDay ? AppColors.primary : AppColors.warning,
+                      color: rule.isAllDay
+                          ? AppColors.primary
+                          : AppColors.warning,
                     ),
                   ),
                 ),
@@ -93,7 +100,10 @@ class AvailabilityRuleCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(4),
@@ -120,7 +130,10 @@ class AvailabilityRuleCard extends StatelessWidget {
                   if (onEdit != null && rule.isEditableInApp)
                     TextButton.icon(
                       icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Modifier', style: TextStyle(fontSize: 12)),
+                      label: const Text(
+                        'Modifier',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         foregroundColor: AppColors.primary,
@@ -130,7 +143,10 @@ class AvailabilityRuleCard extends StatelessWidget {
                   if (onDelete != null)
                     TextButton.icon(
                       icon: const Icon(Icons.delete_outline, size: 16),
-                      label: const Text('Supprimer', style: TextStyle(fontSize: 12)),
+                      label: const Text(
+                        'Supprimer',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         foregroundColor: AppColors.danger,

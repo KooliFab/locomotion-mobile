@@ -97,10 +97,12 @@ class StubLoansRepository implements LoansRepository {
   }
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
@@ -124,15 +126,14 @@ class StubLoansRepository implements LoansRepository {
     int perPage = 10,
     String? status,
     int? borrowerUserId,
-  }) =>
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
       throw UnimplementedError();
 
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
-
-  @override
-  Future<Loan> updateLoanDates(
-          int id, LoanDatesUpdateRequest request) =>
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
       throw UnimplementedError();
 
   @override
@@ -150,8 +151,9 @@ class StubLoansRepository implements LoansRepository {
 
   @override
   Future<ExtensionEstimate> getExtensionEstimate(
-          int id, int durationInMinutes) =>
-      throw UnimplementedError();
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 class StubStripePaymentService implements StripePaymentService {
@@ -181,19 +183,22 @@ void main() {
     loanableName: 'Toyota Prius',
   );
 
-  testWidgets('LoanPrepaymentModal renders financial breakdown and caution',
-      (tester) async {
+  testWidgets('LoanPrepaymentModal renders financial breakdown and caution', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          loanPaymentRepositoryProvider.overrideWithValue(StubPaymentRepository()),
+          loanPaymentRepositoryProvider.overrideWithValue(
+            StubPaymentRepository(),
+          ),
           loansRepositoryProvider.overrideWithValue(StubLoansRepository()),
-          stripePaymentServiceProvider.overrideWithValue(StubStripePaymentService()),
+          stripePaymentServiceProvider.overrideWithValue(
+            StubStripePaymentService(),
+          ),
         ],
         child: MaterialApp(
-          home: Scaffold(
-            body: LoanPrepaymentModal(loan: testLoan),
-          ),
+          home: Scaffold(body: LoanPrepaymentModal(loan: testLoan)),
         ),
       ),
     );
@@ -210,7 +215,10 @@ void main() {
     expect(find.text('30.00 \$'), findsOneWidget);
 
     // Verify security deposit notice
-    expect(find.textContaining('Caution requise : 250.00 \$ CAD'), findsOneWidget);
+    expect(
+      find.textContaining('Caution requise : 250.00 \$ CAD'),
+      findsOneWidget,
+    );
 
     // Verify tip selector
     expect(find.text('0 \$'), findsOneWidget);
@@ -220,8 +228,9 @@ void main() {
     expect(find.text('Payer & bloquer la caution'), findsOneWidget);
   });
 
-  testWidgets('Changing tip refreshes breakdown and keeps tip aligned',
-      (tester) async {
+  testWidgets('Changing tip refreshes breakdown and keeps tip aligned', (
+    tester,
+  ) async {
     final stubPayment = StubPaymentRepository();
 
     await tester.pumpWidget(
@@ -229,12 +238,12 @@ void main() {
         overrides: [
           loanPaymentRepositoryProvider.overrideWithValue(stubPayment),
           loansRepositoryProvider.overrideWithValue(StubLoansRepository()),
-          stripePaymentServiceProvider.overrideWithValue(StubStripePaymentService()),
+          stripePaymentServiceProvider.overrideWithValue(
+            StubStripePaymentService(),
+          ),
         ],
         child: MaterialApp(
-          home: Scaffold(
-            body: LoanPrepaymentModal(loan: testLoan),
-          ),
+          home: Scaffold(body: LoanPrepaymentModal(loan: testLoan)),
         ),
       ),
     );
@@ -255,54 +264,56 @@ void main() {
     expect(stubPayment.lastRequestedTipCents, 500);
   });
 
-  testWidgets('Displays error message and "Vérifier le statut du prêt" button on failure',
-      (tester) async {
-    final stubPayment = StubPaymentRepository()..shouldThrowOnPrepay = true;
-    final stubLoans = StubLoansRepository();
+  testWidgets(
+    'Displays error message and "Vérifier le statut du prêt" button on failure',
+    (tester) async {
+      final stubPayment = StubPaymentRepository()..shouldThrowOnPrepay = true;
+      final stubLoans = StubLoansRepository();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          loanPaymentRepositoryProvider.overrideWithValue(stubPayment),
-          loansRepositoryProvider.overrideWithValue(stubLoans),
-          stripePaymentServiceProvider.overrideWithValue(StubStripePaymentService()),
-        ],
-        child: MaterialApp(
-          home: Scaffold(
-            body: LoanPrepaymentModal(loan: testLoan),
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            loanPaymentRepositoryProvider.overrideWithValue(stubPayment),
+            loansRepositoryProvider.overrideWithValue(stubLoans),
+            stripePaymentServiceProvider.overrideWithValue(
+              StubStripePaymentService(),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(body: LoanPrepaymentModal(loan: testLoan)),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
-    await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pumpAndSettle();
 
-    // Tap confirm button -> prepay will throw
-    await tester.tap(find.text('Payer & bloquer la caution'));
-    await tester.pump();
-    await tester.pumpAndSettle();
+      // Tap confirm button -> prepay will throw
+      await tester.tap(find.text('Payer & bloquer la caution'));
+      await tester.pump();
+      await tester.pumpAndSettle();
 
-    // Error box and check status button should appear
-    expect(find.textContaining('Erreur réseau simulée'), findsOneWidget);
-    expect(find.text('Vérifier le statut du prêt'), findsOneWidget);
+      // Error box and check status button should appear
+      expect(find.textContaining('Erreur réseau simulée'), findsOneWidget);
+      expect(find.text('Vérifier le statut du prêt'), findsOneWidget);
 
-    // Now set the loan to confirmed on server
-    stubLoans.loanDetailToReturn = Loan(
-      id: 10,
-      departureAt: DateTime.now(),
-      durationInMinutes: 120,
-      status: 'confirmed',
-      prepaidAt: DateTime.now(),
-    );
+      // Now set the loan to confirmed on server
+      stubLoans.loanDetailToReturn = Loan(
+        id: 10,
+        departureAt: DateTime.now(),
+        durationInMinutes: 120,
+        status: 'confirmed',
+        prepaidAt: DateTime.now(),
+      );
 
-    // Tap "Vérifier le statut du prêt"
-    await tester.ensureVisible(find.text('Vérifier le statut du prêt'));
-    await tester.tap(find.text('Vérifier le statut du prêt'));
-    await tester.pump();
-    await tester.pumpAndSettle();
+      // Tap "Vérifier le statut du prêt"
+      await tester.ensureVisible(find.text('Vérifier le statut du prêt'));
+      await tester.tap(find.text('Vérifier le statut du prêt'));
+      await tester.pump();
+      await tester.pumpAndSettle();
 
-    // Succeeded! Success view shown
-    expect(find.text('Prépaiement confirmé !'), findsOneWidget);
-  });
+      // Succeeded! Success view shown
+      expect(find.text('Prépaiement confirmé !'), findsOneWidget);
+    },
+  );
 }

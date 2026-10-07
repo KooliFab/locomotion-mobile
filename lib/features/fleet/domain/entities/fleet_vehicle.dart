@@ -24,10 +24,14 @@ abstract class FleetVehicle with _$FleetVehicle {
     @JsonKey(name: 'confirmed_future_loans_count')
     @Default(0)
     int confirmedFutureLoansCount,
-    @JsonKey(name: 'pending_requests_count') @Default(0) int pendingRequestsCount,
+    @JsonKey(name: 'pending_requests_count')
+    @Default(0)
+    int pendingRequestsCount,
     @JsonKey(name: 'future_loans_count') @Default(0) int futureLoansCount,
-    @JsonKey(name: 'min_loan_duration_in_minutes') int? minLoanDurationInMinutes,
-    @JsonKey(name: 'max_loan_duration_in_minutes') int? maxLoanDurationInMinutes,
+    @JsonKey(name: 'min_loan_duration_in_minutes')
+    int? minLoanDurationInMinutes,
+    @JsonKey(name: 'max_loan_duration_in_minutes')
+    int? maxLoanDurationInMinutes,
     @JsonKey(name: 'timezone') String? timezone,
     @JsonKey(name: 'user_role') String? userRole,
     @JsonKey(name: 'updated_at') String? updatedAt,
@@ -63,8 +67,12 @@ abstract class FleetVehicle with _$FleetVehicle {
       copy['latitude'] = (pos[0] as num).toDouble();
       copy['longitude'] = (pos[1] as num).toDouble();
     } else if (pos is Map) {
-      if (pos['lat'] != null) copy['latitude'] = (pos['lat'] as num).toDouble();
-      if (pos['lng'] != null) copy['longitude'] = (pos['lng'] as num).toDouble();
+      if (pos['lat'] != null) {
+        copy['latitude'] = (pos['lat'] as num).toDouble();
+      }
+      if (pos['lng'] != null) {
+        copy['longitude'] = (pos['lng'] as num).toDouble();
+      }
       if (pos['latitude'] != null) {
         copy['latitude'] = (pos['latitude'] as num).toDouble();
       }

@@ -37,10 +37,12 @@ class _VehicleAvailabilityScreenState
 
   @override
   Widget build(BuildContext context) {
-    final configAsync =
-        ref.watch(vehicleAvailabilityConfigProvider(widget.vehicleId));
-    final controllerState =
-        ref.watch(vehicleAvailabilityControllerProvider(widget.vehicleId));
+    final configAsync = ref.watch(
+      vehicleAvailabilityConfigProvider(widget.vehicleId),
+    );
+    final controllerState = ref.watch(
+      vehicleAvailabilityControllerProvider(widget.vehicleId),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +52,9 @@ class _VehicleAvailabilityScreenState
             icon: const Icon(Icons.refresh),
             tooltip: 'Actualiser',
             onPressed: () {
-              ref.invalidate(vehicleAvailabilityConfigProvider(widget.vehicleId));
+              ref.invalidate(
+                vehicleAvailabilityConfigProvider(widget.vehicleId),
+              );
             },
           ),
         ],
@@ -76,7 +80,11 @@ class _VehicleAvailabilityScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.danger,
+                ),
                 const SizedBox(height: 12),
                 Text('Erreur : $err', textAlign: TextAlign.center),
                 const SizedBox(height: 16),
@@ -264,7 +272,11 @@ class _VehicleAvailabilityScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 54, color: AppColors.textSecondary.withValues(alpha: 0.4)),
+            Icon(
+              icon,
+              size: 54,
+              color: AppColors.textSecondary.withValues(alpha: 0.4),
+            ),
             const SizedBox(height: 16),
             Text(
               title,
@@ -290,9 +302,7 @@ class _VehicleAvailabilityScreenState
     );
   }
 
-  Future<void> _confirmDeleteRule(
-    AvailabilityRule rule,
-  ) async {
+  Future<void> _confirmDeleteRule(AvailabilityRule rule) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(

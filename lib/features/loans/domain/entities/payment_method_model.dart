@@ -21,5 +21,6 @@ abstract class PaymentMethodModel with _$PaymentMethodModel {
       _$PaymentMethodModelFromJson(json);
 
   String get maskedNumber => '•••• •••• •••• $fourLastDigits';
-  String get brandDisplay => creditCardType.isNotEmpty ? creditCardType : 'Carte';
+  String get brandDisplay =>
+      creditCardType.isNotEmpty ? creditCardType : 'Carte';
 }

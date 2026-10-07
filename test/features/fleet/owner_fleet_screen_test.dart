@@ -54,8 +54,10 @@ class MockFleetRepository implements FleetRepository {
   Future<List<FleetVehicle>> getOwnerFleet() async => List.of(fleet);
 
   @override
-  Future<FleetVehicle> createVehicle(Map<String, dynamic> data,
-      {String? idempotencyKey}) async {
+  Future<FleetVehicle> createVehicle(
+    Map<String, dynamic> data, {
+    String? idempotencyKey,
+  }) async {
     final newVehicle = FleetVehicle(
       id: fleet.length + 1,
       name: data['name'] ?? 'Nouveau véhicule',
@@ -67,8 +69,11 @@ class MockFleetRepository implements FleetRepository {
   }
 
   @override
-  Future<FleetVehicle> updateVehicle(int id, Map<String, dynamic> data,
-      {String? lockVersion}) async {
+  Future<FleetVehicle> updateVehicle(
+    int id,
+    Map<String, dynamic> data, {
+    String? lockVersion,
+  }) async {
     final index = fleet.indexWhere((v) => v.id == id);
     if (index >= 0) {
       fleet[index] = fleet[index].copyWith(
@@ -89,8 +94,11 @@ class MockFleetRepository implements FleetRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> suspendVehicle(int id,
-      {String? reason, bool preserveFuture = true}) async {
+  Future<Map<String, dynamic>> suspendVehicle(
+    int id, {
+    String? reason,
+    bool preserveFuture = true,
+  }) async {
     suspendCallCount++;
     final index = fleet.indexWhere((v) => v.id == id);
     if (index >= 0) {
@@ -126,34 +134,32 @@ void main() {
 
   Widget buildTestWidget() {
     return ProviderScope(
-      overrides: [
-        fleetRepositoryProvider.overrideWithValue(mockRepo),
-      ],
-      child: const MaterialApp(
-        home: OwnerFleetScreen(),
-      ),
+      overrides: [fleetRepositoryProvider.overrideWithValue(mockRepo)],
+      child: const MaterialApp(home: OwnerFleetScreen()),
     );
   }
 
-  testWidgets('OwnerFleetScreen renders all vehicles with status badges and metrics',
-      (tester) async {
-    await tester.pumpWidget(buildTestWidget());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'OwnerFleetScreen renders all vehicles with status badges and metrics',
+    (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
 
-    // Verify all vehicle names are present
-    expect(find.text('Vélo de Ville Rosemont'), findsOneWidget);
-    expect(find.text('Toyota Prius Partagée'), findsOneWidget);
-    expect(find.text('Remorque Enfants'), findsOneWidget);
+      // Verify all vehicle names are present
+      expect(find.text('Vélo de Ville Rosemont'), findsOneWidget);
+      expect(find.text('Toyota Prius Partagée'), findsOneWidget);
+      expect(find.text('Remorque Enfants'), findsOneWidget);
 
-    // Verify status badges
-    expect(find.text('Publié'), findsOneWidget);
-    expect(find.text('Suspendu'), findsOneWidget);
-    expect(find.text('Brouillon'), findsOneWidget);
+      // Verify status badges
+      expect(find.text('Publié'), findsOneWidget);
+      expect(find.text('Suspendu'), findsOneWidget);
+      expect(find.text('Brouillon'), findsOneWidget);
 
-    // Verify loan activity metrics
-    expect(find.text('1 en cours'), findsOneWidget);
-    expect(find.text('2 réservés'), findsOneWidget);
-  });
+      // Verify loan activity metrics
+      expect(find.text('1 en cours'), findsOneWidget);
+      expect(find.text('2 réservés'), findsOneWidget);
+    },
+  );
 
   testWidgets('Filter chips toggle filtered lists properly', (tester) async {
     await tester.pumpWidget(buildTestWidget());
@@ -178,33 +184,38 @@ void main() {
     expect(find.text('Toyota Prius Partagée'), findsNothing);
   });
 
-  testWidgets('Suspension dialog displays active loan counts and triggers suspension',
-      (tester) async {
-    await tester.pumpWidget(buildTestWidget());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Suspension dialog displays active loan counts and triggers suspension',
+    (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
 
-    // Open popup menu for the first vehicle (Vélo de Ville Rosemont)
-    final moreButtons = find.byIcon(Icons.more_vert_rounded);
-    await tester.tap(moreButtons.first);
-    await tester.pumpAndSettle();
+      // Open popup menu for the first vehicle (Vélo de Ville Rosemont)
+      final moreButtons = find.byIcon(Icons.more_vert_rounded);
+      await tester.tap(moreButtons.first);
+      await tester.pumpAndSettle();
 
-    // Tap "Suspendre"
-    final suspendMenuOption = find.text('Suspendre');
-    expect(suspendMenuOption, findsOneWidget);
-    await tester.tap(suspendMenuOption);
-    await tester.pumpAndSettle();
+      // Tap "Suspendre"
+      final suspendMenuOption = find.text('Suspendre');
+      expect(suspendMenuOption, findsOneWidget);
+      await tester.tap(suspendMenuOption);
+      await tester.pumpAndSettle();
 
-    // Suspension dialog should be visible
-    expect(find.text('Suspendre le véhicule'), findsOneWidget);
-    expect(find.textContaining('Prêts en cours'), findsOneWidget);
-    expect(find.textContaining('Aucune annulation automatique'), findsOneWidget);
+      // Suspension dialog should be visible
+      expect(find.text('Suspendre le véhicule'), findsOneWidget);
+      expect(find.textContaining('Prêts en cours'), findsOneWidget);
+      expect(
+        find.textContaining('Aucune annulation automatique'),
+        findsOneWidget,
+      );
 
-    // Tap "Confirmer la suspension"
-    final confirmBtn = find.byKey(const Key('confirm_suspend_button'));
-    expect(confirmBtn, findsOneWidget);
-    await tester.tap(confirmBtn);
-    await tester.pumpAndSettle();
+      // Tap "Confirmer la suspension"
+      final confirmBtn = find.byKey(const Key('confirm_suspend_button'));
+      expect(confirmBtn, findsOneWidget);
+      await tester.tap(confirmBtn);
+      await tester.pumpAndSettle();
 
-    expect(mockRepo.suspendCallCount, 1);
-  });
+      expect(mockRepo.suspendCallCount, 1);
+    },
+  );
 }

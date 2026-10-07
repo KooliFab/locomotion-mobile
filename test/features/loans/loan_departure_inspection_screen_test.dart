@@ -38,7 +38,10 @@ class _FakeDraftRepo implements DepartureDraftRepository {
   }
 
   @override
-  Future<DepartureDraft?> getDraft({required int userId, required int loanId}) async {
+  Future<DepartureDraft?> getDraft({
+    required int userId,
+    required int loanId,
+  }) async {
     return stored;
   }
 
@@ -50,7 +53,10 @@ class _FakeDraftRepo implements DepartureDraftRepository {
 
 class _FakeInspectionRepo implements LoanInspectionRepository {
   @override
-  Future<int> uploadInspectionPhoto({required File file, required String field}) async => 123;
+  Future<int> uploadInspectionPhoto({
+    required File file,
+    required String field,
+  }) async => 123;
 
   @override
   Future<LoanInspection> submitDepartureInspection({
@@ -97,10 +103,12 @@ class _FakeLoansRepo implements LoansRepository {
   Future<Loan> getLoanDetail(int id) async => throw UnimplementedError();
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
@@ -109,7 +117,8 @@ class _FakeLoansRepo implements LoansRepository {
   Future<Loan> validateLoan(int id) => throw UnimplementedError();
 
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
 
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
@@ -126,13 +135,16 @@ class _FakeLoansRepo implements LoansRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) => throw UnimplementedError();
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
 
   @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
@@ -144,7 +156,10 @@ class _FakeLoansRepo implements LoansRepository {
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 void main() {
@@ -163,11 +178,7 @@ void main() {
     borrowerUserId: 10,
     loanableName: 'Toyota Prius',
     mileageStart: 85200,
-    loanable: const Loanable(
-      id: 50,
-      name: 'Toyota Prius',
-      type: 'car',
-    ),
+    loanable: const Loanable(id: 50, name: 'Toyota Prius', type: 'car'),
   );
 
   final bikeLoan = Loan(
@@ -177,208 +188,222 @@ void main() {
     status: 'confirmed',
     borrowerUserId: 10,
     loanableName: 'Vélo Cargo',
-    loanable: const Loanable(
-      id: 51,
-      name: 'Vélo Cargo',
-      type: 'bike',
-    ),
+    loanable: const Loanable(id: 51, name: 'Vélo Cargo', type: 'bike'),
   );
 
   group('LoanDepartureInspectionScreen Widget Tests', () {
-    testWidgets('renders motorized vehicle inspection form with odometer and 5 photos', (
-      tester,
-    ) async {
-      final draftRepo = _FakeDraftRepo();
-      final inspectionRepo = _FakeInspectionRepo();
-      final loansRepo = _FakeLoansRepo();
+    testWidgets(
+      'renders motorized vehicle inspection form with odometer and 5 photos',
+      (tester) async {
+        final draftRepo = _FakeDraftRepo();
+        final inspectionRepo = _FakeInspectionRepo();
+        final loansRepo = _FakeLoansRepo();
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            departureDraftRepositoryProvider.overrideWithValue(draftRepo),
-            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
-            loansRepositoryProvider.overrideWithValue(loansRepo),
-            loanDetailProvider(101).overrideWith((ref) => carLoan),
-          ],
-          child: MaterialApp(
-            home: LoanDepartureInspectionScreen(
-              loanId: 101,
-              initialLoan: carLoan,
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              departureDraftRepositoryProvider.overrideWithValue(draftRepo),
+              loanInspectionRepositoryProvider.overrideWithValue(
+                inspectionRepo,
+              ),
+              loansRepositoryProvider.overrideWithValue(loansRepo),
+              loanDetailProvider(101).overrideWith((ref) => carLoan),
+            ],
+            child: MaterialApp(
+              home: LoanDepartureInspectionScreen(
+                loanId: 101,
+                initialLoan: carLoan,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Verify Title and Instructions
-      expect(find.text('État des lieux de départ'), findsOneWidget);
-      expect(find.text('Toyota Prius'), findsOneWidget);
+        // Verify Title and Instructions
+        expect(find.text('État des lieux de départ'), findsOneWidget);
+        expect(find.text('Toyota Prius'), findsOneWidget);
 
-      // Verify Motorized Sections
-      expect(find.text('Compteur kilométrique (KM) *'), findsOneWidget);
-      expect(find.text('Niveau de carburant / batterie :'), findsOneWidget);
+        // Verify Motorized Sections
+        expect(find.text('Compteur kilométrique (KM) *'), findsOneWidget);
+        expect(find.text('Niveau de carburant / batterie :'), findsOneWidget);
 
-      // Verify Motorized Checklist
-      expect(find.text('Clé physique du véhicule présente'), findsOneWidget);
-      expect(find.text('Documents d\'assurance à bord'), findsOneWidget);
+        // Verify Motorized Checklist
+        expect(find.text('Clé physique du véhicule présente'), findsOneWidget);
+        expect(find.text('Documents d\'assurance à bord'), findsOneWidget);
 
-      // Verify Mandatory Photos (5 for car)
-      expect(find.text('Tableau de bord (Compteur) *'), findsOneWidget);
-      expect(find.text('Face avant *'), findsOneWidget);
-      expect(find.text('Face arrière *'), findsOneWidget);
-      expect(find.text('Côté gauche *'), findsOneWidget);
-      expect(find.text('Côté droit *'), findsOneWidget);
+        // Verify Mandatory Photos (5 for car)
+        expect(find.text('Tableau de bord (Compteur) *'), findsOneWidget);
+        expect(find.text('Face avant *'), findsOneWidget);
+        expect(find.text('Face arrière *'), findsOneWidget);
+        expect(find.text('Côté gauche *'), findsOneWidget);
+        expect(find.text('Côté droit *'), findsOneWidget);
 
-      // Verify Submission button is disabled when photos are missing
-      final submitButtonFinder = find.byKey(const Key('submit_departure_button'));
-      expect(submitButtonFinder, findsOneWidget);
-      final submitButton = tester.widget<ElevatedButton>(submitButtonFinder);
-      expect(submitButton.onPressed, isNull);
-    });
+        // Verify Submission button is disabled when photos are missing
+        final submitButtonFinder = find.byKey(
+          const Key('submit_departure_button'),
+        );
+        expect(submitButtonFinder, findsOneWidget);
+        final submitButton = tester.widget<ElevatedButton>(submitButtonFinder);
+        expect(submitButton.onPressed, isNull);
+      },
+    );
 
-    testWidgets('renders non-motorized vehicle form without odometer and 1 photo', (
-      tester,
-    ) async {
-      final draftRepo = _FakeDraftRepo();
-      final inspectionRepo = _FakeInspectionRepo();
-      final loansRepo = _FakeLoansRepo();
+    testWidgets(
+      'renders non-motorized vehicle form without odometer and 1 photo',
+      (tester) async {
+        final draftRepo = _FakeDraftRepo();
+        final inspectionRepo = _FakeInspectionRepo();
+        final loansRepo = _FakeLoansRepo();
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            departureDraftRepositoryProvider.overrideWithValue(draftRepo),
-            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
-            loansRepositoryProvider.overrideWithValue(loansRepo),
-            loanDetailProvider(102).overrideWith((ref) => bikeLoan),
-          ],
-          child: MaterialApp(
-            home: LoanDepartureInspectionScreen(
-              loanId: 102,
-              initialLoan: bikeLoan,
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              departureDraftRepositoryProvider.overrideWithValue(draftRepo),
+              loanInspectionRepositoryProvider.overrideWithValue(
+                inspectionRepo,
+              ),
+              loansRepositoryProvider.overrideWithValue(loansRepo),
+              loanDetailProvider(102).overrideWith((ref) => bikeLoan),
+            ],
+            child: MaterialApp(
+              home: LoanDepartureInspectionScreen(
+                loanId: 102,
+                initialLoan: bikeLoan,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Title & vehicle name
-      expect(find.text('État des lieux de départ'), findsOneWidget);
-      expect(find.text('Vélo Cargo'), findsOneWidget);
+        // Title & vehicle name
+        expect(find.text('État des lieux de départ'), findsOneWidget);
+        expect(find.text('Vélo Cargo'), findsOneWidget);
 
-      // Odometer field should NOT be shown for bike
-      expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
+        // Odometer field should NOT be shown for bike
+        expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
 
-      // Non-motorized checklist
-      expect(find.text('Antivol présent et fonctionnel'), findsOneWidget);
-      expect(find.text('Clé d\'antivol présente'), findsOneWidget);
+        // Non-motorized checklist
+        expect(find.text('Antivol présent et fonctionnel'), findsOneWidget);
+        expect(find.text('Clé d\'antivol présente'), findsOneWidget);
 
-      // Photo slots: 1 mandatory photo for bike (Vue générale du véhicule *)
-      expect(find.text('Vue générale du véhicule *'), findsOneWidget);
-      expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
-    });
+        // Photo slots: 1 mandatory photo for bike (Vue générale du véhicule *)
+        expect(find.text('Vue générale du véhicule *'), findsOneWidget);
+        expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
+      },
+    );
 
-    testWidgets('renders car_trailer departure inspection without odometer or dashboard photo', (
-      tester,
-    ) async {
-      final trailerLoan = Loan(
-        id: 103,
-        departureAt: DateTime.now(),
-        durationInMinutes: 120,
-        status: 'confirmed',
-        borrowerUserId: 10,
-        loanableName: 'Remorque porte-voiture',
-        loanable: const Loanable(
-          id: 52,
-          name: 'Remorque porte-voiture',
-          type: 'car_trailer',
-        ),
-      );
+    testWidgets(
+      'renders car_trailer departure inspection without odometer or dashboard photo',
+      (tester) async {
+        final trailerLoan = Loan(
+          id: 103,
+          departureAt: DateTime.now(),
+          durationInMinutes: 120,
+          status: 'confirmed',
+          borrowerUserId: 10,
+          loanableName: 'Remorque porte-voiture',
+          loanable: const Loanable(
+            id: 52,
+            name: 'Remorque porte-voiture',
+            type: 'car_trailer',
+          ),
+        );
 
-      final draftRepo = _FakeDraftRepo();
-      final inspectionRepo = _FakeInspectionRepo();
-      final loansRepo = _FakeLoansRepo();
+        final draftRepo = _FakeDraftRepo();
+        final inspectionRepo = _FakeInspectionRepo();
+        final loansRepo = _FakeLoansRepo();
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            departureDraftRepositoryProvider.overrideWithValue(draftRepo),
-            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
-            loansRepositoryProvider.overrideWithValue(loansRepo),
-            loanDetailProvider(103).overrideWith((ref) => trailerLoan),
-          ],
-          child: MaterialApp(
-            home: LoanDepartureInspectionScreen(
-              loanId: 103,
-              initialLoan: trailerLoan,
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              departureDraftRepositoryProvider.overrideWithValue(draftRepo),
+              loanInspectionRepositoryProvider.overrideWithValue(
+                inspectionRepo,
+              ),
+              loansRepositoryProvider.overrideWithValue(loansRepo),
+              loanDetailProvider(103).overrideWith((ref) => trailerLoan),
+            ],
+            child: MaterialApp(
+              home: LoanDepartureInspectionScreen(
+                loanId: 103,
+                initialLoan: trailerLoan,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('État des lieux de départ'), findsOneWidget);
-      expect(find.text('Remorque porte-voiture'), findsOneWidget);
-      expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
-      expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
-      expect(find.text('Vue générale du véhicule *'), findsOneWidget);
-    });
+        expect(find.text('État des lieux de départ'), findsOneWidget);
+        expect(find.text('Remorque porte-voiture'), findsOneWidget);
+        expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
+        expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
+        expect(find.text('Vue générale du véhicule *'), findsOneWidget);
+      },
+    );
 
-    testWidgets('renders car without mileage departure inspection without odometer or dashboard photo', (
-      tester,
-    ) async {
-      final flatCarLoan = Loan(
-        id: 104,
-        departureAt: DateTime.now(),
-        durationInMinutes: 120,
-        status: 'confirmed',
-        borrowerUserId: 10,
-        loanableName: 'Citroën Ami',
-        requiresMileage: false,
-        loanable: const Loanable(
-          id: 53,
-          name: 'Citroën Ami',
-          type: 'car',
-        ),
-      );
+    testWidgets(
+      'renders car without mileage departure inspection without odometer or dashboard photo',
+      (tester) async {
+        final flatCarLoan = Loan(
+          id: 104,
+          departureAt: DateTime.now(),
+          durationInMinutes: 120,
+          status: 'confirmed',
+          borrowerUserId: 10,
+          loanableName: 'Citroën Ami',
+          requiresMileage: false,
+          loanable: const Loanable(id: 53, name: 'Citroën Ami', type: 'car'),
+        );
 
-      final draftRepo = _FakeDraftRepo();
-      final inspectionRepo = _FakeInspectionRepo();
-      final loansRepo = _FakeLoansRepo();
+        final draftRepo = _FakeDraftRepo();
+        final inspectionRepo = _FakeInspectionRepo();
+        final loansRepo = _FakeLoansRepo();
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            departureDraftRepositoryProvider.overrideWithValue(draftRepo),
-            loanInspectionRepositoryProvider.overrideWithValue(inspectionRepo),
-            loansRepositoryProvider.overrideWithValue(loansRepo),
-            loanDetailProvider(104).overrideWith((ref) => flatCarLoan),
-          ],
-          child: MaterialApp(
-            home: LoanDepartureInspectionScreen(
-              loanId: 104,
-              initialLoan: flatCarLoan,
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              departureDraftRepositoryProvider.overrideWithValue(draftRepo),
+              loanInspectionRepositoryProvider.overrideWithValue(
+                inspectionRepo,
+              ),
+              loansRepositoryProvider.overrideWithValue(loansRepo),
+              loanDetailProvider(104).overrideWith((ref) => flatCarLoan),
+            ],
+            child: MaterialApp(
+              home: LoanDepartureInspectionScreen(
+                loanId: 104,
+                initialLoan: flatCarLoan,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('État des lieux de départ'), findsOneWidget);
-      expect(find.text('Citroën Ami'), findsOneWidget);
-      expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
-      expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
-      expect(find.text('Face avant *'), findsOneWidget);
-      expect(find.text('Face arrière *'), findsOneWidget);
-      expect(find.text('Côté gauche *'), findsOneWidget);
-      expect(find.text('Côté droit *'), findsOneWidget);
-    });
+        expect(find.text('État des lieux de départ'), findsOneWidget);
+        expect(find.text('Citroën Ami'), findsOneWidget);
+        expect(find.text('Compteur kilométrique (KM) *'), findsNothing);
+        expect(find.text('Tableau de bord (Compteur) *'), findsNothing);
+        expect(find.text('Face avant *'), findsOneWidget);
+        expect(find.text('Face arrière *'), findsOneWidget);
+        expect(find.text('Côté gauche *'), findsOneWidget);
+        expect(find.text('Côté droit *'), findsOneWidget);
+      },
+    );
   });
 }

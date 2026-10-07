@@ -79,8 +79,9 @@ class _LoanReturnInspectionScreenState
     final mileageStart = loan.mileageStart;
 
     final state = ref.watch(loanReturnControllerProvider(widget.loanId));
-    final controller =
-        ref.read(loanReturnControllerProvider(widget.loanId).notifier);
+    final controller = ref.read(
+      loanReturnControllerProvider(widget.loanId).notifier,
+    );
 
     // One-time initialization of the draft
     if (!_initialized) {
@@ -118,9 +119,7 @@ class _LoanReturnInspectionScreenState
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('État des lieux de retour'),
-      ),
+      appBar: AppBar(title: const Text('État des lieux de retour')),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -196,10 +195,10 @@ class _LoanReturnInspectionScreenState
                     key: const Key('submit_return_button'),
                     onPressed: (state.canSubmit && !state.isSubmitting)
                         ? () => controller.submitReturn(
-                              loanId: widget.loanId,
-                              requiresMileage: requiresMileage,
-                              mileageStart: mileageStart,
-                            )
+                            loanId: widget.loanId,
+                            requiresMileage: requiresMileage,
+                            mileageStart: mileageStart,
+                          )
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -215,8 +214,9 @@ class _LoanReturnInspectionScreenState
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : const Text(
@@ -249,8 +249,10 @@ class _LoanReturnInspectionScreenState
           children: [
             Row(
               children: [
-                const Icon(Icons.assignment_turned_in_outlined,
-                    color: AppColors.primary),
+                const Icon(
+                  Icons.assignment_turned_in_outlined,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -327,7 +329,10 @@ class _LoanReturnInspectionScreenState
   ) {
     final items = isMotorized
         ? [
-            ('key_returned', 'Clés du véhicule remises au propriétaire / coffre'),
+            (
+              'key_returned',
+              'Clés du véhicule remises au propriétaire / coffre',
+            ),
             ('clean_inside', 'Habitacle nettoyé et débarrassé de tout déchet'),
             ('clean_outside', 'Carrosserie propre et vérifiée'),
             ('fuel_battery_level_ok', 'Niveau d\'énergie conforme au contrat'),
@@ -390,7 +395,9 @@ class _LoanReturnInspectionScreenState
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: 'Compteur kilométrique de retour (KM) *',
-              hintText: mileageStart != null ? 'Ex: ${mileageStart + 50}' : 'Ex: 124500',
+              hintText: mileageStart != null
+                  ? 'Ex: ${mileageStart + 50}'
+                  : 'Ex: 124500',
               helperText: mileageStart != null
                   ? 'Kilométrage initial : $mileageStart km (doit être >= $mileageStart)'
                   : null,
@@ -551,8 +558,8 @@ class _LoanReturnInspectionScreenState
           color: isUploaded
               ? Colors.green.shade400
               : isError
-                  ? Colors.red.shade300
-                  : Colors.grey.shade300,
+              ? Colors.red.shade300
+              : Colors.grey.shade300,
           width: isUploaded ? 1.5 : 1,
         ),
       ),
@@ -573,9 +580,7 @@ class _LoanReturnInspectionScreenState
           if (isUploading) ...[
             const SizedBox(
               height: 48,
-              child: Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
             ),
             const SizedBox(height: 4),
             const Text(
@@ -774,7 +779,11 @@ class _LoanReturnInspectionScreenState
                 border: OutlineInputBorder(),
               ),
               onChanged: (val) {
-                controller.updateSignerFullName(val, requiresMileage, mileageStart);
+                controller.updateSignerFullName(
+                  val,
+                  requiresMileage,
+                  mileageStart,
+                );
               },
             ),
             const SizedBox(height: 16),
@@ -883,9 +892,9 @@ class _LoanReturnInspectionScreenState
         );
       }
     } else if (recovered.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(recovered.errorMessage!)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(recovered.errorMessage!)));
     }
   }
 
@@ -955,13 +964,13 @@ class _LoanReturnInspectionScreenState
           );
         }
       case PhotoCapturePermissionDenied(:final message):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       case PhotoCaptureFailure(:final message):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       case PhotoCaptureCancelled():
         break;
     }
@@ -973,11 +982,7 @@ class _LoanReturnInspectionScreenState
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         key: const Key('return_inspection_success_dialog'),
-        icon: const Icon(
-          Icons.verified_rounded,
-          color: Colors.green,
-          size: 48,
-        ),
+        icon: const Icon(Icons.verified_rounded, color: Colors.green, size: 48),
         title: const Text('Véhicule restitué !'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

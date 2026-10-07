@@ -88,7 +88,8 @@ class _MockLoansRepo implements LoansRepository {
       loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson);
 
   @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
   @override
@@ -96,7 +97,10 @@ class _MockLoansRepo implements LoansRepository {
   @override
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 class _TestAuthController extends AuthController {

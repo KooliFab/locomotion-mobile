@@ -289,17 +289,30 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: AppRoutes.incidents,
             builder: (context, state) {
-              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
-              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '');
-              return IncidentsListScreen(loanId: loanId, loanableId: loanableId);
+              final loanId = int.tryParse(
+                state.uri.queryParameters['loan_id'] ?? '',
+              );
+              final loanableId = int.tryParse(
+                state.uri.queryParameters['loanable_id'] ?? '',
+              );
+              return IncidentsListScreen(
+                loanId: loanId,
+                loanableId: loanableId,
+              );
             },
           ),
           GoRoute(
             path: AppRoutes.incidentReport,
             builder: (context, state) {
-              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '') ?? 0;
+              final loanableId =
+                  int.tryParse(
+                    state.uri.queryParameters['loanable_id'] ?? '',
+                  ) ??
+                  0;
               final vehicleName = state.uri.queryParameters['vehicle_name'];
-              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
+              final loanId = int.tryParse(
+                state.uri.queryParameters['loan_id'] ?? '',
+              );
               final ownerName = state.uri.queryParameters['owner_name'];
               final ownerPhone = state.uri.queryParameters['owner_phone'];
               final ownerEmail = state.uri.queryParameters['owner_email'];
@@ -319,7 +332,9 @@ GoRouter appRouter(Ref ref) {
               final id = int.tryParse(state.pathParameters['id'] ?? '');
               if (id == null || id <= 0) {
                 return const Scaffold(
-                  body: Center(child: Text('Identifiant d\'incident invalide.')),
+                  body: Center(
+                    child: Text('Identifiant d\'incident invalide.'),
+                  ),
                 );
               }
               return IncidentDetailScreen(incidentId: id);

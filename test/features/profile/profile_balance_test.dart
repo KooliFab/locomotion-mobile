@@ -33,9 +33,8 @@ class _FakeAuthRepository implements AuthRepository {
 
 class _TestNotificationsController extends NotificationsController {
   @override
-  NotificationsState build() => const NotificationsState(
-        isPermissionGranted: true,
-      );
+  NotificationsState build() =>
+      const NotificationsState(isPermissionGranted: true);
 }
 
 class _FakeApiClient extends ApiClient {
@@ -44,7 +43,7 @@ class _FakeApiClient extends ApiClient {
   int callCount = 0;
 
   _FakeApiClient({this.responseData = 0.0, this.errorToThrow})
-      : super.withDio(Dio());
+    : super.withDio(Dio());
 
   @override
   Future<Response<T>> get<T>(
@@ -126,34 +125,49 @@ void main() {
   });
 
   group('R15 - UserBalanceController Integration Tests', () {
-    test('returns 0.0 when user is not authenticated without making API calls', () async {
-      final fakeApi = _FakeApiClient(responseData: 100.0);
-      final container = ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: false)),
-          authControllerProvider.overrideWith(() => _FakeAuthController(null)),
-          apiClientProvider.overrideWithValue(fakeApi),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'returns 0.0 when user is not authenticated without making API calls',
+      () async {
+        final fakeApi = _FakeApiClient(responseData: 100.0);
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              _FakeAuthRepository(authenticated: false),
+            ),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(null),
+            ),
+            apiClientProvider.overrideWithValue(fakeApi),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final balance = await container.read(userBalanceControllerProvider.future);
-      expect(balance, equals(0.0));
-      expect(fakeApi.callCount, equals(0));
-    });
+        final balance = await container.read(
+          userBalanceControllerProvider.future,
+        );
+        expect(balance, equals(0.0));
+        expect(fakeApi.callCount, equals(0));
+      },
+    );
 
     test('fetches and parses scalar numeric balance from server', () async {
       final fakeApi = _FakeApiClient(responseData: 55.75);
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-          authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+          authRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(authenticated: true),
+          ),
+          authControllerProvider.overrideWith(
+            () => _FakeAuthController(testUser),
+          ),
           apiClientProvider.overrideWithValue(fakeApi),
         ],
       );
       addTearDown(container.dispose);
 
-      final balance = await container.read(userBalanceControllerProvider.future);
+      final balance = await container.read(
+        userBalanceControllerProvider.future,
+      );
       expect(balance, equals(55.75));
       expect(fakeApi.callCount, equals(1));
     });
@@ -162,42 +176,55 @@ void main() {
       final fakeApi = _FakeApiClient(responseData: '89.20');
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-          authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+          authRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(authenticated: true),
+          ),
+          authControllerProvider.overrideWith(
+            () => _FakeAuthController(testUser),
+          ),
           apiClientProvider.overrideWithValue(fakeApi),
         ],
       );
       addTearDown(container.dispose);
 
-      final balance = await container.read(userBalanceControllerProvider.future);
+      final balance = await container.read(
+        userBalanceControllerProvider.future,
+      );
       expect(balance, equals(89.20));
       expect(fakeApi.callCount, equals(1));
     });
 
-    test('propagates network failure as AsyncError instead of inventing 0.0', () async {
-      final fakeApi = _FakeApiClient(
-        errorToThrow: const NetworkException(
-          message: 'Impossible de joindre le serveur LocoMotion.',
-          statusCode: 503,
-        ),
-      );
-      final container = ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-          authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-          apiClientProvider.overrideWithValue(fakeApi),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'propagates network failure as AsyncError instead of inventing 0.0',
+      () async {
+        final fakeApi = _FakeApiClient(
+          errorToThrow: const NetworkException(
+            message: 'Impossible de joindre le serveur LocoMotion.',
+            statusCode: 503,
+          ),
+        );
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              _FakeAuthRepository(authenticated: true),
+            ),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(testUser),
+            ),
+            apiClientProvider.overrideWithValue(fakeApi),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      container.listen(userBalanceControllerProvider, (_, _) {});
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+        container.listen(userBalanceControllerProvider, (_, _) {});
+        await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      final state = container.read(userBalanceControllerProvider);
-      expect(state.hasError, isTrue);
-      expect(state.error, isA<NetworkException>());
-      expect(state.value, isNull);
-    });
+        final state = container.read(userBalanceControllerProvider);
+        expect(state.hasError, isTrue);
+        expect(state.error, isA<NetworkException>());
+        expect(state.value, isNull);
+      },
+    );
   });
 
   group('R15 - ProfileScreen Balance Display Widget Tests', () {
@@ -208,8 +235,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+            authRepositoryProvider.overrideWithValue(
+              _FakeAuthRepository(authenticated: true),
+            ),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(testUser),
+            ),
             apiClientProvider.overrideWithValue(fakeApi),
             notificationsControllerProvider.overrideWith(
               () => _TestNotificationsController(),
@@ -226,15 +257,17 @@ void main() {
       expect(find.byKey(const Key('profile_balance_error')), findsNothing);
     });
 
-    testWidgets('displays numeric string balance correctly', (
-      tester,
-    ) async {
+    testWidgets('displays numeric string balance correctly', (tester) async {
       final fakeApi = _FakeApiClient(responseData: '105.00');
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
+            authRepositoryProvider.overrideWithValue(
+              _FakeAuthRepository(authenticated: true),
+            ),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(testUser),
+            ),
             apiClientProvider.overrideWithValue(fakeApi),
             notificationsControllerProvider.overrideWith(
               () => _TestNotificationsController(),
@@ -250,49 +283,54 @@ void main() {
       expect(find.text('105.00 \$'), findsOneWidget);
     });
 
-    testWidgets('displays error and retry button on network failure without displaying 0.00 \$', (
-      tester,
-    ) async {
-      final fakeApi = _FakeApiClient(
-        errorToThrow: const NetworkException(
-          message: 'Délai d\'attente dépassé.',
-          statusCode: 408,
-        ),
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authRepositoryProvider.overrideWithValue(_FakeAuthRepository(authenticated: true)),
-            authControllerProvider.overrideWith(() => _FakeAuthController(testUser)),
-            apiClientProvider.overrideWithValue(fakeApi),
-            notificationsControllerProvider.overrideWith(
-              () => _TestNotificationsController(),
-            ),
-          ],
-          child: const MaterialApp(home: ProfileScreen()),
-        ),
-      );
+    testWidgets(
+      'displays error and retry button on network failure without displaying 0.00 \$',
+      (tester) async {
+        final fakeApi = _FakeApiClient(
+          errorToThrow: const NetworkException(
+            message: 'Délai d\'attente dépassé.',
+            statusCode: 408,
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authRepositoryProvider.overrideWithValue(
+                _FakeAuthRepository(authenticated: true),
+              ),
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(testUser),
+              ),
+              apiClientProvider.overrideWithValue(fakeApi),
+              notificationsControllerProvider.overrideWith(
+                () => _TestNotificationsController(),
+              ),
+            ],
+            child: const MaterialApp(home: ProfileScreen()),
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Error UI must be shown
-      expect(find.byKey(const Key('profile_balance_error')), findsOneWidget);
-      expect(find.text('Erreur'), findsOneWidget);
-      expect(find.byKey(const Key('retry_balance_button')), findsOneWidget);
+        // Error UI must be shown
+        expect(find.byKey(const Key('profile_balance_error')), findsOneWidget);
+        expect(find.text('Erreur'), findsOneWidget);
+        expect(find.byKey(const Key('retry_balance_button')), findsOneWidget);
 
-      // Must NOT invent 0.00 $
-      expect(find.text('0.00 \$'), findsNothing);
+        // Must NOT invent 0.00 $
+        expect(find.text('0.00 \$'), findsNothing);
 
-      // Now recover network: next call succeeds with 65.0
-      fakeApi.errorToThrow = null;
-      fakeApi.responseData = 65.0;
+        // Now recover network: next call succeeds with 65.0
+        fakeApi.errorToThrow = null;
+        fakeApi.responseData = 65.0;
 
-      await tester.tap(find.byKey(const Key('retry_balance_button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('retry_balance_button')));
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('profile_balance_error')), findsNothing);
-      expect(find.byKey(const Key('profile_balance_text')), findsOneWidget);
-      expect(find.text('65.00 \$'), findsOneWidget);
-    });
+        expect(find.byKey(const Key('profile_balance_error')), findsNothing);
+        expect(find.byKey(const Key('profile_balance_text')), findsOneWidget);
+        expect(find.text('65.00 \$'), findsOneWidget);
+      },
+    );
   });
 }

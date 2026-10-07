@@ -15,7 +15,9 @@ class ExtensionBlockingLoan {
     final borrowerUser = json['borrower_user'] as Map<String, dynamic>?;
     DateTime? dep;
     if (json['departure_at'] != null) {
-      dep = DateTime.tryParse(json['departure_at'].toString().replaceAll(' ', 'T'));
+      dep = DateTime.tryParse(
+        json['departure_at'].toString().replaceAll(' ', 'T'),
+      );
     }
     return ExtensionBlockingLoan(
       id: json['id'] as int? ?? 0,
@@ -77,7 +79,9 @@ class ExtensionEstimate {
 
     DateTime? depExp;
     if (json['deposit_expires_at'] != null) {
-      depExp = DateTime.tryParse(json['deposit_expires_at'].toString().replaceAll(' ', 'T'));
+      depExp = DateTime.tryParse(
+        json['deposit_expires_at'].toString().replaceAll(' ', 'T'),
+      );
     }
 
     return ExtensionEstimate(
@@ -86,7 +90,8 @@ class ExtensionEstimate {
       desiredContribution: (json['desired_contribution'] as num?)?.toDouble(),
       borrowerTotal: bTotal,
       ownerTotal: oTotal,
-      depositExpiresBeforeReturn: json['deposit_expires_before_return'] as bool? ?? false,
+      depositExpiresBeforeReturn:
+          json['deposit_expires_before_return'] as bool? ?? false,
       depositWarning: json['deposit_warning'] as String?,
       depositExpiresAt: depExp,
     );

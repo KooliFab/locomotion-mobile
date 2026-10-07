@@ -65,7 +65,10 @@ class LoanSettleController extends Notifier<LoanSettleState> {
         final refreshed = await _loansRepository.getLoanDetail(loanId);
         if (refreshed.paidAt != null) {
           invalidateLoanViews(ref, loanId: loanId);
-          state = LoanSettleSuccess({'status': 'completed', 'paid_at': refreshed.paidAt?.toIso8601String()});
+          state = LoanSettleSuccess({
+            'status': 'completed',
+            'paid_at': refreshed.paidAt?.toIso8601String(),
+          });
           return true;
         }
       } catch (_) {}
@@ -73,8 +76,8 @@ class LoanSettleController extends Notifier<LoanSettleState> {
       final String errorMessage = e is AppException
           ? e.message
           : (e is Exception
-              ? e.toString().replaceFirst('Exception: ', '')
-              : e.toString());
+                ? e.toString().replaceFirst('Exception: ', '')
+                : e.toString());
       state = LoanSettleError('Erreur lors du règlement final : $errorMessage');
       return false;
     }
@@ -87,5 +90,5 @@ class LoanSettleController extends Notifier<LoanSettleState> {
 
 final loanSettleControllerProvider =
     NotifierProvider<LoanSettleController, LoanSettleState>(
-  LoanSettleController.new,
-);
+      LoanSettleController.new,
+    );

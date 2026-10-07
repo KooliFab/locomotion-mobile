@@ -6,8 +6,9 @@ import '../../domain/entities/incident_note.dart';
 import '../../domain/repositories/incident_repository.dart';
 import '../datasources/incident_remote_data_source.dart';
 
-final incidentRemoteDataSourceProvider =
-    Provider<IncidentRemoteDataSource>((ref) {
+final incidentRemoteDataSourceProvider = Provider<IncidentRemoteDataSource>((
+  ref,
+) {
   final apiClient = ref.watch(apiClientProvider);
   return IncidentRemoteDataSourceImpl(apiClient);
 });

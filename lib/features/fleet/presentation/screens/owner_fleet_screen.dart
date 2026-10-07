@@ -124,7 +124,9 @@ class _OwnerFleetScreenState extends ConsumerState<OwnerFleetScreen> {
   }
 
   Widget _buildFilterBar(List<FleetVehicle> all) {
-    final publishedCount = all.where((v) => v.published && !v.isSuspended).length;
+    final publishedCount = all
+        .where((v) => v.published && !v.isSuspended)
+        .length;
     final suspendedCount = all.where((v) => v.isSuspended).length;
     final draftCount = all.where((v) => !v.published).length;
 
@@ -137,7 +139,10 @@ class _OwnerFleetScreenState extends ConsumerState<OwnerFleetScreen> {
           const SizedBox(width: 8),
           _buildChoiceChip('Publiés ($publishedCount)', FleetFilter.published),
           const SizedBox(width: 8),
-          _buildChoiceChip('Suspendus ($suspendedCount)', FleetFilter.suspended),
+          _buildChoiceChip(
+            'Suspendus ($suspendedCount)',
+            FleetFilter.suspended,
+          ),
           const SizedBox(width: 8),
           _buildChoiceChip('Brouillons ($draftCount)', FleetFilter.draft),
         ],
@@ -308,11 +313,7 @@ class _VehicleFleetCard extends ConsumerWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: LoanableImageWidget(
-          image: v.image,
-          width: 64,
-          height: 64,
-        ),
+        child: LoanableImageWidget(image: v.image, width: 64, height: 64),
       ),
     );
   }
@@ -396,7 +397,11 @@ class _VehicleFleetCard extends ConsumerWidget {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 14, color: AppColors.success),
+            Icon(
+              Icons.check_circle_rounded,
+              size: 14,
+              color: AppColors.success,
+            ),
             SizedBox(width: 4),
             Text(
               'Publié',
@@ -420,7 +425,11 @@ class _VehicleFleetCard extends ConsumerWidget {
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.edit_note_rounded, size: 14, color: AppColors.textSecondary),
+          Icon(
+            Icons.edit_note_rounded,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
           SizedBox(width: 4),
           Text(
             'Brouillon',
@@ -478,7 +487,11 @@ class _VehicleFleetCard extends ConsumerWidget {
             onConfirm: (reason, preserve) async {
               await ref
                   .read(ownerFleetControllerProvider.notifier)
-                  .suspendVehicle(v.id, reason: reason, preserveFuture: preserve);
+                  .suspendVehicle(
+                    v.id,
+                    reason: reason,
+                    preserveFuture: preserve,
+                  );
             },
           );
         } else if (action == 'unsuspend') {
@@ -521,7 +534,10 @@ class _VehicleFleetCard extends ConsumerWidget {
                 Icon(Icons.publish_rounded, size: 18, color: AppColors.primary),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Publier', style: TextStyle(color: AppColors.primary)),
+                  child: Text(
+                    'Publier',
+                    style: TextStyle(color: AppColors.primary),
+                  ),
                 ),
               ],
             ),
@@ -531,10 +547,17 @@ class _VehicleFleetCard extends ConsumerWidget {
             value: 'suspend',
             child: Row(
               children: [
-                Icon(Icons.pause_circle_outline, size: 18, color: AppColors.warning),
+                Icon(
+                  Icons.pause_circle_outline,
+                  size: 18,
+                  color: AppColors.warning,
+                ),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Suspendre', style: TextStyle(color: AppColors.warning)),
+                  child: Text(
+                    'Suspendre',
+                    style: TextStyle(color: AppColors.warning),
+                  ),
                 ),
               ],
             ),
@@ -544,10 +567,17 @@ class _VehicleFleetCard extends ConsumerWidget {
             value: 'unsuspend',
             child: Row(
               children: [
-                Icon(Icons.play_circle_outline, size: 18, color: AppColors.success),
+                Icon(
+                  Icons.play_circle_outline,
+                  size: 18,
+                  color: AppColors.success,
+                ),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Réactiver', style: TextStyle(color: AppColors.success)),
+                  child: Text(
+                    'Réactiver',
+                    style: TextStyle(color: AppColors.success),
+                  ),
                 ),
               ],
             ),
@@ -578,7 +608,9 @@ class _VehicleFleetCard extends ConsumerWidget {
                     .publishVehicle(v.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Véhicule publié avec succès.')),
+                    const SnackBar(
+                      content: Text('Véhicule publié avec succès.'),
+                    ),
                   );
                 }
               } catch (e) {

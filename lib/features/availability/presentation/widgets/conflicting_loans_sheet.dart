@@ -39,7 +39,11 @@ class ConflictingLoansSheet extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 28),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.danger,
+                size: 28,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -63,7 +67,9 @@ class ConflictingLoansSheet extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.danger.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.danger.withValues(alpha: 0.3),
+              ),
             ),
             child: const Text(
               'Le créneau d\'indisponibilité demandé chevauche des réservations déjà enregistrées. Pour protéger les emprunteurs, aucune annulation silencieuse n\'est permise.',

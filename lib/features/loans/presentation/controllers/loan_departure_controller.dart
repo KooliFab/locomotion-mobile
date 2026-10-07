@@ -57,8 +57,7 @@ class DepartureInspectionState {
   }
 }
 
-class LoanDepartureController
-    extends Notifier<DepartureInspectionState> {
+class LoanDepartureController extends Notifier<DepartureInspectionState> {
   final int targetLoanId;
 
   late final DepartureDraftRepository _draftRepository;
@@ -113,8 +112,7 @@ class LoanDepartureController
             hasInterruptedUploads = true;
             sanitizedPhotos[entry.key] = entry.value.copyWith(
               status: DraftPhotoStatus.error,
-              errorMessage:
-                  'Téléversement interrompu. Appuyez sur réessayer.',
+              errorMessage: 'Téléversement interrompu. Appuyez sur réessayer.',
             );
           } else {
             sanitizedPhotos[entry.key] = entry.value;
@@ -157,8 +155,9 @@ class LoanDepartureController
               'front': const DraftPhotoEntry(field: 'front'),
             };
       if (requiresMileage) {
-        defaultPhotos['dashboard_odometer'] =
-            const DraftPhotoEntry(field: 'dashboard_odometer');
+        defaultPhotos['dashboard_odometer'] = const DraftPhotoEntry(
+          field: 'dashboard_odometer',
+        );
       }
 
       final defaultChecklist = isMotorized
@@ -168,10 +167,7 @@ class LoanDepartureController
               'charging_cable_present': true,
               'spare_wheel_present': true,
             }
-          : {
-              'lock_present': true,
-              'lock_key_present': true,
-            };
+          : {'lock_present': true, 'lock_key_present': true};
 
       final newDraft = DepartureDraft(
         userId: userId,
@@ -285,7 +281,9 @@ class LoanDepartureController
         return;
       }
 
-      final photosUploaded = Map<String, DraftPhotoEntry>.from(state.draft.photos);
+      final photosUploaded = Map<String, DraftPhotoEntry>.from(
+        state.draft.photos,
+      );
       photosUploaded[field] = DraftPhotoEntry(
         field: field,
         localPath: file.path,
@@ -398,8 +396,7 @@ class LoanDepartureController
           'existing_damages_notes': state.draft.existingDamagesNotes!.trim(),
       };
 
-      final inspection =
-          await _inspectionRepository.submitDepartureInspection(
+      final inspection = await _inspectionRepository.submitDepartureInspection(
         loanId: targetLoanId,
         payload: payload,
         idempotencyKey: idempotencyKey,
@@ -456,18 +453,12 @@ class LoanDepartureController
       final message = originalError != null
           ? 'L\'état des lieux n\'a pas été enregistré par le serveur. Vos saisies ont été conservées. ($originalError)'
           : 'L\'état des lieux n\'a pas été enregistré par le serveur. Vos saisies ont été conservées.';
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: message);
     } catch (_) {
       final message = originalError != null
           ? 'L\'état des lieux n\'a pas été enregistré par le serveur. ($originalError)'
           : 'Erreur réseau lors de la vérification du statut du serveur.';
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: message);
     }
   }
 
@@ -498,6 +489,8 @@ class LoanDepartureController
 }
 
 final loanDepartureControllerProvider =
-    NotifierProvider.family<LoanDepartureController, DepartureInspectionState, int>(
-  (loanId) => LoanDepartureController(loanId),
-);
+    NotifierProvider.family<
+      LoanDepartureController,
+      DepartureInspectionState,
+      int
+    >((loanId) => LoanDepartureController(loanId));

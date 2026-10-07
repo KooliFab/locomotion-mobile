@@ -104,17 +104,12 @@ class AvailabilityRemoteDataSourceImpl implements AvailabilityRemoteDataSource {
     String? lockVersion,
   }) async {
     final options = Options(
-      headers: {
-        if (lockVersion != null) 'If-Match': '"$lockVersion"',
-      },
+      headers: {if (lockVersion != null) 'If-Match': '"$lockVersion"'},
     );
 
     final response = await _apiClient.put<dynamic>(
       '/loanables/$vehicleId',
-      data: {
-        ...data,
-        'lock_version': ?lockVersion,
-      },
+      data: {...data, 'lock_version': ?lockVersion},
       options: options,
     );
 

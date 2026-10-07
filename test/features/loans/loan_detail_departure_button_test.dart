@@ -30,10 +30,12 @@ class _StubLoansRepo implements LoansRepository {
   Future<Loan> getLoanDetail(int id) async => loanDetail!;
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
@@ -42,7 +44,8 @@ class _StubLoansRepo implements LoansRepository {
   Future<Loan> validateLoan(int id) => throw UnimplementedError();
 
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
 
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
@@ -59,13 +62,16 @@ class _StubLoansRepo implements LoansRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) => throw UnimplementedError();
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
 
   @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
@@ -77,7 +83,10 @@ class _StubLoansRepo implements LoansRepository {
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 void main() {
@@ -102,65 +111,72 @@ void main() {
     status: 'confirmed',
     borrowerUserId: 10,
     loanableName: 'Nissan Leaf',
-    loanable: const Loanable(
-      id: 7,
-      name: 'Nissan Leaf',
-      type: 'car',
-    ),
+    loanable: const Loanable(id: 7, name: 'Nissan Leaf', type: 'car'),
   );
 
   group('LoanDetailScreen Take-Over & Certified Inspection Badge Tests', () {
-    testWidgets('shows Take-Over button when loan is confirmed and user is borrower', (
-      tester,
-    ) async {
-      final repo = _StubLoansRepo()..loanDetail = baseLoan;
+    testWidgets(
+      'shows Take-Over button when loan is confirmed and user is borrower',
+      (tester) async {
+        final repo = _StubLoansRepo()..loanDetail = baseLoan;
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(borrower)),
-            loansRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 42),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(borrower),
+              ),
+              loansRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('action_take_over_button')), findsOneWidget);
-      expect(find.text('Prendre en charge le véhicule'), findsOneWidget);
-      expect(find.byKey(const Key('departure_inspection_completed_badge')), findsNothing);
-    });
+        expect(
+          find.byKey(const Key('action_take_over_button')),
+          findsOneWidget,
+        );
+        expect(find.text('Prendre en charge le véhicule'), findsOneWidget);
+        expect(
+          find.byKey(const Key('departure_inspection_completed_badge')),
+          findsNothing,
+        );
+      },
+    );
 
-    testWidgets('shows certified badge and hides button when departure is completed', (
-      tester,
-    ) async {
-      final completedInspectionLoan = baseLoan.copyWith(
-        status: 'ongoing',
-        departureInspectionCompleted: true,
-      );
-      final repo = _StubLoansRepo()..loanDetail = completedInspectionLoan;
+    testWidgets(
+      'shows certified badge and hides button when departure is completed',
+      (tester) async {
+        final completedInspectionLoan = baseLoan.copyWith(
+          status: 'ongoing',
+          departureInspectionCompleted: true,
+        );
+        final repo = _StubLoansRepo()..loanDetail = completedInspectionLoan;
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(borrower)),
-            loansRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 42),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(borrower),
+              ),
+              loansRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('action_take_over_button')), findsNothing);
-      expect(find.byKey(const Key('departure_inspection_completed_badge')), findsOneWidget);
-      expect(find.text('État des lieux de départ certifié'), findsOneWidget);
-    });
+        expect(find.byKey(const Key('action_take_over_button')), findsNothing);
+        expect(
+          find.byKey(const Key('departure_inspection_completed_badge')),
+          findsOneWidget,
+        );
+        expect(find.text('État des lieux de départ certifié'), findsOneWidget);
+      },
+    );
 
     testWidgets('hides Take-Over button for stranger', (tester) async {
       final repo = _StubLoansRepo()..loanDetail = baseLoan;
@@ -168,12 +184,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(stranger)),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(stranger),
+            ),
             loansRepositoryProvider.overrideWithValue(repo),
           ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 42),
-          ),
+          child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
         ),
       );
 
@@ -182,19 +198,21 @@ void main() {
       expect(find.byKey(const Key('action_take_over_button')), findsNothing);
     });
 
-    testWidgets('hides Take-Over button when status is pending or canceled', (tester) async {
+    testWidgets('hides Take-Over button when status is pending or canceled', (
+      tester,
+    ) async {
       final pendingLoan = baseLoan.copyWith(status: 'pending');
       final repo = _StubLoansRepo()..loanDetail = pendingLoan;
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(borrower)),
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(borrower),
+            ),
             loansRepositoryProvider.overrideWithValue(repo),
           ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 42),
-          ),
+          child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
         ),
       );
 
@@ -203,29 +221,38 @@ void main() {
       expect(find.byKey(const Key('action_take_over_button')), findsNothing);
     });
 
-    testWidgets('shows upcoming window card and hides Take-Over button when departure is more than 1 hour away', (tester) async {
-      final futureLoan = baseLoan.copyWith(
-        departureAt: DateTime.now().add(const Duration(hours: 3)),
-      );
-      final repo = _StubLoansRepo()..loanDetail = futureLoan;
+    testWidgets(
+      'shows upcoming window card and hides Take-Over button when departure is more than 1 hour away',
+      (tester) async {
+        final futureLoan = baseLoan.copyWith(
+          departureAt: DateTime.now().add(const Duration(hours: 3)),
+        );
+        final repo = _StubLoansRepo()..loanDetail = futureLoan;
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authControllerProvider.overrideWith(() => _FakeAuthController(borrower)),
-            loansRepositoryProvider.overrideWithValue(repo),
-          ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 42),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(borrower),
+              ),
+              loansRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('action_take_over_button')), findsNothing);
-      expect(find.byKey(const Key('take_over_window_upcoming_card')), findsOneWidget);
-      expect(find.textContaining('disponible 1 heure avant le départ'), findsOneWidget);
-    });
+        expect(find.byKey(const Key('action_take_over_button')), findsNothing);
+        expect(
+          find.byKey(const Key('take_over_window_upcoming_card')),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('disponible 1 heure avant le départ'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

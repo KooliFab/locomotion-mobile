@@ -111,7 +111,9 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       }
       rethrow;
     }
-    throw const ServerException(message: 'Format de réponse invalide pour l\'incident.');
+    throw const ServerException(
+      message: 'Format de réponse invalide pour l\'incident.',
+    );
   }
 
   @override
@@ -160,7 +162,9 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       }
       return raw;
     }
-    throw const ServerException(message: 'Erreur lors de la création de l\'incident.');
+    throw const ServerException(
+      message: 'Erreur lors de la création de l\'incident.',
+    );
   }
 
   @override
@@ -196,7 +200,9 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       }
       return raw;
     }
-    throw const ServerException(message: 'Erreur lors de la résolution de l\'incident.');
+    throw const ServerException(
+      message: 'Erreur lors de la résolution de l\'incident.',
+    );
   }
 
   @override
@@ -212,7 +218,9 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
       }
       return raw;
     }
-    throw const ServerException(message: 'Erreur lors de la réouverture de l\'incident.');
+    throw const ServerException(
+      message: 'Erreur lors de la réouverture de l\'incident.',
+    );
   }
 
   @override
@@ -221,10 +229,7 @@ class IncidentRemoteDataSourceImpl implements IncidentRemoteDataSource {
     final filename = filePath.split(Platform.pathSeparator).last;
     final formData = FormData.fromMap({
       'field': 'image',
-      'image': await MultipartFile.fromFile(
-        file.path,
-        filename: filename,
-      ),
+      'image': await MultipartFile.fromFile(file.path, filename: filename),
     });
 
     final response = await _apiClient.post<dynamic>(

@@ -103,28 +103,38 @@ class QaFakeLoansRepository implements LoansRepository {
   }
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
   @override
   Future<Loan> validateLoan(int id) => throw UnimplementedError();
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
   @override
   Future<List<Loan>> getMyLoans() => throw UnimplementedError();
   @override
-  Future<LoanPagination> getLoansPage({int page = 1, int perPage = 10, String? status, int? borrowerUserId}) =>
+  Future<LoanPagination> getLoansPage({
+    int page = 1,
+    int perPage = 10,
+    String? status,
+    int? borrowerUserId,
+  }) => throw UnimplementedError();
+  @override
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
       throw UnimplementedError();
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
   @override
-  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) => throw UnimplementedError();
-  @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
   @override
@@ -132,7 +142,10 @@ class QaFakeLoansRepository implements LoansRepository {
   @override
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 class QaFakeStripePaymentService implements StripePaymentService {
@@ -169,8 +182,17 @@ class QaFakePushTokensRepository implements PushTokensRepository {
   Future<String> getOrCreateInstallationId() async => 'fake_install_id_qa';
 
   @override
-  Future<PushToken> registerToken({required String token, required String platform, String? appVersion}) async {
-    return PushToken(id: 1, token: token, platform: platform, installationId: 'fake_install_id_qa');
+  Future<PushToken> registerToken({
+    required String token,
+    required String platform,
+    String? appVersion,
+  }) async {
+    return PushToken(
+      id: 1,
+      token: token,
+      platform: platform,
+      installationId: 'fake_install_id_qa',
+    );
   }
 
   @override
@@ -212,94 +234,136 @@ void main() {
 
     tearDown(() => container.dispose());
 
-    test('recovers to LoanPaymentSuccess when prepay times out but server confirmed', () async {
-      final controller = container.read(loanPaymentControllerProvider.notifier);
-      final intentResponse = await controller.fetchBreakdown(100);
-      expect(intentResponse, isNotNull);
+    test(
+      'recovers to LoanPaymentSuccess when prepay times out but server confirmed',
+      () async {
+        final controller = container.read(
+          loanPaymentControllerProvider.notifier,
+        );
+        final intentResponse = await controller.fetchBreakdown(100);
+        expect(intentResponse, isNotNull);
 
-      // Simulate network timeout on prepay
-      fakePaymentRepo.shouldTimeoutOnPrepay = true;
+        // Simulate network timeout on prepay
+        fakePaymentRepo.shouldTimeoutOnPrepay = true;
 
-      // Simulate that backend actually committed the prepay despite client timeout
-      fakeLoansRepo.serverLoanState = Loan(
-        id: 100,
-        departureAt: DateTime.now(),
-        durationInMinutes: 60,
-        status: 'confirmed',
-        prepaidAt: DateTime.now(),
-        depositStatus: 'authorized',
-      );
+        // Simulate that backend actually committed the prepay despite client timeout
+        fakeLoansRepo.serverLoanState = Loan(
+          id: 100,
+          departureAt: DateTime.now(),
+          durationInMinutes: 60,
+          status: 'confirmed',
+          prepaidAt: DateTime.now(),
+          depositStatus: 'authorized',
+        );
 
-      final success = await controller.confirmPayment(
-        loanId: 100,
-        intentResponse: intentResponse!,
-      );
+        final success = await controller.confirmPayment(
+          loanId: 100,
+          intentResponse: intentResponse!,
+        );
 
-      // Verifies recovery without throwing unhandled exception
-      expect(success, isTrue);
-      expect(container.read(loanPaymentControllerProvider), isA<LoanPaymentSuccess>());
-    });
+        // Verifies recovery without throwing unhandled exception
+        expect(success, isTrue);
+        expect(
+          container.read(loanPaymentControllerProvider),
+          isA<LoanPaymentSuccess>(),
+        );
+      },
+    );
 
-    test('cancellation on Stripe sheet stops execution and does not call prepay on server', () async {
-      final controller = container.read(loanPaymentControllerProvider.notifier);
-      final intentResponse = await controller.fetchBreakdown(100);
-      expect(intentResponse, isNotNull);
+    test(
+      'cancellation on Stripe sheet stops execution and does not call prepay on server',
+      () async {
+        final controller = container.read(
+          loanPaymentControllerProvider.notifier,
+        );
+        final intentResponse = await controller.fetchBreakdown(100);
+        expect(intentResponse, isNotNull);
 
-      fakeStripeService.statusToReturn = StripeSheetStatus.canceled;
+        fakeStripeService.statusToReturn = StripeSheetStatus.canceled;
 
-      final success = await controller.confirmPayment(
-        loanId: 100,
-        intentResponse: intentResponse!,
-      );
+        final success = await controller.confirmPayment(
+          loanId: 100,
+          intentResponse: intentResponse!,
+        );
 
-      expect(success, isFalse);
-      expect(container.read(loanPaymentControllerProvider), isA<LoanPaymentCanceled>());
-      expect(fakePaymentRepo.prepayCalled, isFalse);
-    });
+        expect(success, isFalse);
+        expect(
+          container.read(loanPaymentControllerProvider),
+          isA<LoanPaymentCanceled>(),
+        );
+        expect(fakePaymentRepo.prepayCalled, isFalse);
+      },
+    );
 
-    test('when deposit sheet is canceled after contribution is paid, retry only presents deposit sheet without recharging contribution', () async {
-      final controller = container.read(loanPaymentControllerProvider.notifier);
-      final intentResponse = await controller.fetchBreakdown(100);
-      expect(intentResponse, isNotNull);
+    test(
+      'when deposit sheet is canceled after contribution is paid, retry only presents deposit sheet without recharging contribution',
+      () async {
+        final controller = container.read(
+          loanPaymentControllerProvider.notifier,
+        );
+        final intentResponse = await controller.fetchBreakdown(100);
+        expect(intentResponse, isNotNull);
 
-      // Attempt 1: Contribution succeeds, but deposit is canceled by user
-      fakeStripeService.statusSequence = [
-        StripeSheetStatus.success, // Step 1: Contribution succeeded
-        StripeSheetStatus.canceled, // Step 2: Deposit canceled by user
-      ];
+        // Attempt 1: Contribution succeeds, but deposit is canceled by user
+        fakeStripeService.statusSequence = [
+          StripeSheetStatus.success, // Step 1: Contribution succeeded
+          StripeSheetStatus.canceled, // Step 2: Deposit canceled by user
+        ];
 
-      final firstAttempt = await controller.confirmPayment(
-        loanId: 100,
-        intentResponse: intentResponse!,
-      );
+        final firstAttempt = await controller.confirmPayment(
+          loanId: 100,
+          intentResponse: intentResponse!,
+        );
 
-      expect(firstAttempt, isFalse);
-      expect(container.read(loanPaymentControllerProvider), isA<LoanPaymentCanceled>());
-      expect(fakePaymentRepo.prepayCalled, isFalse);
-      expect(fakeStripeService.presentCallCount, equals(2));
-      expect(fakeStripeService.initializedSecrets, contains('pi_contrib_123_secret_abc'));
-      expect(fakeStripeService.initializedSecrets, contains('pi_deposit_456_secret_def'));
+        expect(firstAttempt, isFalse);
+        expect(
+          container.read(loanPaymentControllerProvider),
+          isA<LoanPaymentCanceled>(),
+        );
+        expect(fakePaymentRepo.prepayCalled, isFalse);
+        expect(fakeStripeService.presentCallCount, equals(2));
+        expect(
+          fakeStripeService.initializedSecrets,
+          contains('pi_contrib_123_secret_abc'),
+        );
+        expect(
+          fakeStripeService.initializedSecrets,
+          contains('pi_deposit_456_secret_def'),
+        );
 
-      // Attempt 2: User reopens modal and retries payment
-      fakeStripeService.initializedSecrets.clear();
-      fakeStripeService.statusSequence = [
-        StripeSheetStatus.success, // Step 2: Deposit now succeeds
-      ];
+        // Attempt 2: User reopens modal and retries payment
+        fakeStripeService.initializedSecrets.clear();
+        fakeStripeService.statusSequence = [
+          StripeSheetStatus.success, // Step 2: Deposit now succeeds
+        ];
 
-      final secondAttempt = await controller.confirmPayment(
-        loanId: 100,
-        intentResponse: intentResponse,
-      );
+        final secondAttempt = await controller.confirmPayment(
+          loanId: 100,
+          intentResponse: intentResponse,
+        );
 
-      expect(secondAttempt, isTrue);
-      expect(container.read(loanPaymentControllerProvider), isA<LoanPaymentSuccess>());
-      expect(fakePaymentRepo.prepayCalled, isTrue);
+        expect(secondAttempt, isTrue);
+        expect(
+          container.read(loanPaymentControllerProvider),
+          isA<LoanPaymentSuccess>(),
+        );
+        expect(fakePaymentRepo.prepayCalled, isTrue);
 
-      // CRITICAL GUARANTEE: Contribution sheet was NOT presented again, only deposit sheet was initialized and presented!
-      expect(fakeStripeService.initializedSecrets, isNot(contains('pi_contrib_123_secret_abc')));
-      expect(fakeStripeService.initializedSecrets, contains('pi_deposit_456_secret_def'));
-      expect(fakeStripeService.presentCallCount, equals(3)); // 2 in attempt 1 + 1 in attempt 2
-    });
+        // CRITICAL GUARANTEE: Contribution sheet was NOT presented again, only deposit sheet was initialized and presented!
+        expect(
+          fakeStripeService.initializedSecrets,
+          isNot(contains('pi_contrib_123_secret_abc')),
+        );
+        expect(
+          fakeStripeService.initializedSecrets,
+          contains('pi_deposit_456_secret_def'),
+        );
+        expect(
+          fakeStripeService.presentCallCount,
+          equals(3),
+        ); // 2 in attempt 1 + 1 in attempt 2
+      },
+    );
   });
 
   group('Lot 16 QA — Push Notifications Navigation & Deduplication', () {
@@ -312,184 +376,267 @@ void main() {
       fakeRepo = QaFakePushTokensRepository();
     });
 
-    test('opened notification routes to /incidents/:id for incidentCreated and /loans/:id for loan events', () async {
-      // 1. Unauthenticated container: controller internally resolves targetPath and sets pendingRedirectPath
-      final unauthContainer = ProviderContainer(
-        overrides: [
-          pushNotificationServiceProvider.overrideWithValue(fakeService),
-          pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
-          authControllerProvider.overrideWith(() => QaTestAuthController(null)),
-        ],
-      );
+    test(
+      'opened notification routes to /incidents/:id for incidentCreated and /loans/:id for loan events',
+      () async {
+        // 1. Unauthenticated container: controller internally resolves targetPath and sets pendingRedirectPath
+        final unauthContainer = ProviderContainer(
+          overrides: [
+            pushNotificationServiceProvider.overrideWithValue(fakeService),
+            pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
+            authControllerProvider.overrideWith(
+              () => QaTestAuthController(null),
+            ),
+          ],
+        );
 
-      final unauthController = unauthContainer.read(notificationsControllerProvider.notifier);
-      await unauthController.initialize();
+        final unauthController = unauthContainer.read(
+          notificationsControllerProvider.notifier,
+        );
+        await unauthController.initialize();
 
-      final incidentPayload = PushPayload.tryParse(
-        data: {'schema_version': '1', 'event_type': 'incident_created', 'incident_id': 99},
-        messageId: 'msg_inc_1',
-      )!;
+        final incidentPayload = PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'incident_created',
+            'incident_id': 99,
+          },
+          messageId: 'msg_inc_1',
+        )!;
 
-      unauthController.handleOpenedNotification(incidentPayload);
-      expect(unauthController.state.pendingRedirectPath, equals('/incidents/99'));
+        unauthController.handleOpenedNotification(incidentPayload);
+        expect(
+          unauthController.state.pendingRedirectPath,
+          equals('/incidents/99'),
+        );
 
-      final loanPayload = PushPayload.tryParse(
-        data: {'schema_version': '1', 'event_type': 'loan_accepted', 'loan_id': 123},
-        messageId: 'msg_loan_1',
-      )!;
+        final loanPayload = PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_accepted',
+            'loan_id': 123,
+          },
+          messageId: 'msg_loan_1',
+        )!;
 
-      unauthController.handleOpenedNotification(loanPayload);
-      expect(unauthController.state.pendingRedirectPath, equals('/loans/123'));
+        unauthController.handleOpenedNotification(loanPayload);
+        expect(
+          unauthController.state.pendingRedirectPath,
+          equals('/loans/123'),
+        );
 
-      unauthContainer.dispose();
-    });
+        unauthContainer.dispose();
+      },
+    );
 
-    test('deduplicates duplicate push notifications by messageId within TTL window', () async {
-      container = ProviderContainer(
-        overrides: [
-          pushNotificationServiceProvider.overrideWithValue(fakeService),
-          pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
-          authControllerProvider.overrideWith(() => QaTestAuthController(const User(id: 1, email: 'user@loco.app'))),
-        ],
-      );
+    test(
+      'deduplicates duplicate push notifications by messageId within TTL window',
+      () async {
+        container = ProviderContainer(
+          overrides: [
+            pushNotificationServiceProvider.overrideWithValue(fakeService),
+            pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
+            authControllerProvider.overrideWith(
+              () => QaTestAuthController(
+                const User(id: 1, email: 'user@loco.app'),
+              ),
+            ),
+          ],
+        );
 
-      final controller = container.read(notificationsControllerProvider.notifier);
-      await controller.initialize();
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+        await controller.initialize();
 
-      int openCount = 0;
-      final payload = PushPayload.tryParse(
-        data: {'schema_version': '1', 'event_type': 'loan_accepted', 'loan_id': 55},
-        messageId: 'duplicate_msg_id_123',
-      )!;
+        int openCount = 0;
+        final payload = PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_accepted',
+            'loan_id': 55,
+          },
+          messageId: 'duplicate_msg_id_123',
+        )!;
 
-      // First open
-      controller.handleOpenedNotification(payload, onOpenPayload: (_) => openCount++);
-      expect(openCount, equals(1));
+        // First open
+        controller.handleOpenedNotification(
+          payload,
+          onOpenPayload: (_) => openCount++,
+        );
+        expect(openCount, equals(1));
 
-      // Duplicate delivery of the exact same message
-      controller.handleOpenedNotification(payload, onOpenPayload: (_) => openCount++);
-      expect(openCount, equals(1), reason: 'Duplicate messageId must be ignored');
+        // Duplicate delivery of the exact same message
+        controller.handleOpenedNotification(
+          payload,
+          onOpenPayload: (_) => openCount++,
+        );
+        expect(
+          openCount,
+          equals(1),
+          reason: 'Duplicate messageId must be ignored',
+        );
 
-      container.dispose();
-    });
+        container.dispose();
+      },
+    );
 
-    test('unauthenticated cold start stores pending redirect path and consumes once', () async {
-      container = ProviderContainer(
-        overrides: [
-          pushNotificationServiceProvider.overrideWithValue(fakeService),
-          pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
-          authControllerProvider.overrideWith(() => QaTestAuthController(null)), // Not logged in!
-        ],
-      );
+    test(
+      'unauthenticated cold start stores pending redirect path and consumes once',
+      () async {
+        container = ProviderContainer(
+          overrides: [
+            pushNotificationServiceProvider.overrideWithValue(fakeService),
+            pushTokensRepositoryProvider.overrideWithValue(fakeRepo),
+            authControllerProvider.overrideWith(
+              () => QaTestAuthController(null),
+            ), // Not logged in!
+          ],
+        );
 
-      final controller = container.read(notificationsControllerProvider.notifier);
-      await controller.initialize();
+        final controller = container.read(
+          notificationsControllerProvider.notifier,
+        );
+        await controller.initialize();
 
-      final payload = PushPayload.tryParse(
-        data: {'schema_version': '1', 'event_type': 'loan_extension_requested', 'loan_id': 77},
-        messageId: 'cold_start_msg',
-      )!;
+        final payload = PushPayload.tryParse(
+          data: {
+            'schema_version': '1',
+            'event_type': 'loan_extension_requested',
+            'loan_id': 77,
+          },
+          messageId: 'cold_start_msg',
+        )!;
 
-      controller.handleOpenedNotification(payload);
+        controller.handleOpenedNotification(payload);
 
-      // Verifies pending redirect path stored in state
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, equals('/loans/77'));
+        // Verifies pending redirect path stored in state
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          equals('/loans/77'),
+        );
 
-      // Consumer consumes redirect after login
-      controller.consumePendingRedirect();
-      expect(container.read(notificationsControllerProvider).pendingRedirectPath, isNull);
+        // Consumer consumes redirect after login
+        controller.consumePendingRedirect();
+        expect(
+          container.read(notificationsControllerProvider).pendingRedirectPath,
+          isNull,
+        );
 
-      container.dispose();
-    });
+        container.dispose();
+      },
+    );
   });
 
   group('Lot 16 QA — Timezone & Daylight Saving Time (DST) Invariants', () {
-    test('ISO8601 parsing preserves start and end duration across DST transitions', () {
-      // Spring Forward DST transition in America/Montreal (2026-03-08: 02:00 -> 03:00)
-      final preDstUtc = DateTime.parse('2026-03-08T06:00:00Z'); // 01:00 EST (UTC-5)
-      final postDstUtc = DateTime.parse('2026-03-08T10:00:00Z'); // 06:00 EDT (UTC-4)
+    test(
+      'ISO8601 parsing preserves start and end duration across DST transitions',
+      () {
+        // Spring Forward DST transition in America/Montreal (2026-03-08: 02:00 -> 03:00)
+        final preDstUtc = DateTime.parse(
+          '2026-03-08T06:00:00Z',
+        ); // 01:00 EST (UTC-5)
+        final postDstUtc = DateTime.parse(
+          '2026-03-08T10:00:00Z',
+        ); // 06:00 EDT (UTC-4)
 
-      final diffMinutes = postDstUtc.difference(preDstUtc).inMinutes;
-      expect(diffMinutes, equals(240));
+        final diffMinutes = postDstUtc.difference(preDstUtc).inMinutes;
+        expect(diffMinutes, equals(240));
 
-      final loan = Loan(
-        id: 999,
-        departureAt: preDstUtc,
-        durationInMinutes: diffMinutes,
-        status: 'confirmed',
-      );
+        final loan = Loan(
+          id: 999,
+          departureAt: preDstUtc,
+          durationInMinutes: diffMinutes,
+          status: 'confirmed',
+        );
 
-      expect(loan.departureAt, equals(preDstUtc));
-      expect(loan.durationInMinutes, equals(240));
-    });
+        expect(loan.departureAt, equals(preDstUtc));
+        expect(loan.durationInMinutes, equals(240));
+      },
+    );
   });
 
   group('Lot 16 QA — Accessibility (A11y) & Text Scale Resilience', () {
-    testWidgets('AvailabilityRuleCard renders cleanly under 1.5x and 2.0x font scaling without overflow', (tester) async {
-      const rule = AvailabilityRule(
-        id: 'rule_1',
-        type: 'dates',
-        scope: ['2026-10-15'],
-        period: '09:00-17:00',
-        available: false,
-        title: 'Remplacement des pneus d\'hiver',
-      );
+    testWidgets(
+      'AvailabilityRuleCard renders cleanly under 1.5x and 2.0x font scaling without overflow',
+      (tester) async {
+        const rule = AvailabilityRule(
+          id: 'rule_1',
+          type: 'dates',
+          scope: ['2026-10-15'],
+          period: '09:00-17:00',
+          available: false,
+          title: 'Remplacement des pneus d\'hiver',
+        );
 
-      // Test with 2.0x accessibility font scale
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
-            child: Scaffold(
-              body: AvailabilityRuleCard(
-                rule: rule,
-                onDelete: () {},
+        // Test with 2.0x accessibility font scale
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+              child: Scaffold(
+                body: AvailabilityRuleCard(rule: rule, onDelete: () {}),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('Remplacement des pneus d\'hiver'), findsOneWidget);
-      expect(tester.takeException(), isNull, reason: 'No RenderFlex overflow under 2.0x font scale');
-    });
+        expect(find.text('Remplacement des pneus d\'hiver'), findsOneWidget);
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: 'No RenderFlex overflow under 2.0x font scale',
+        );
+      },
+    );
 
-    testWidgets('ForegroundNotificationBanner displays cleanly with 1.5x font scale', (tester) async {
-      const payload = PushPayload(
-        schemaVersion: '1',
-        eventType: PushEventType.incidentCreated,
-        incidentId: 5,
-        title: 'LocoMotion Signalement',
-        body: 'Un dommage a été signalé sur votre véhicule',
-      );
+    testWidgets(
+      'ForegroundNotificationBanner displays cleanly with 1.5x font scale',
+      (tester) async {
+        const payload = PushPayload(
+          schemaVersion: '1',
+          eventType: PushEventType.incidentCreated,
+          incidentId: 5,
+          title: 'LocoMotion Signalement',
+          body: 'Un dommage a été signalé sur votre véhicule',
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(
-              textScaler: TextScaler.linear(1.5),
-            ),
-            child: Scaffold(
-              body: Builder(
-                builder: (context) => ElevatedButton(
-                  onPressed: () => ForegroundNotificationBanner.show(context, payload: payload),
-                  child: const Text('Show Banner'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+              child: Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => ForegroundNotificationBanner.show(
+                      context,
+                      payload: payload,
+                    ),
+                    child: const Text('Show Banner'),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Show Banner'));
-      await tester.pump(); // Render SnackBar
+        await tester.tap(find.text('Show Banner'));
+        await tester.pump(); // Render SnackBar
 
-      expect(find.text('LocoMotion Signalement'), findsOneWidget);
-      expect(find.text('Un dommage a été signalé sur votre véhicule'), findsOneWidget);
-      expect(find.text('Voir'), findsOneWidget);
-      expect(tester.takeException(), isNull, reason: 'No RenderFlex overflow under 1.5x font scale');
-    });
+        expect(find.text('LocoMotion Signalement'), findsOneWidget);
+        expect(
+          find.text('Un dommage a été signalé sur votre véhicule'),
+          findsOneWidget,
+        );
+        expect(find.text('Voir'), findsOneWidget);
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: 'No RenderFlex overflow under 1.5x font scale',
+        );
+      },
+    );
   });
 }

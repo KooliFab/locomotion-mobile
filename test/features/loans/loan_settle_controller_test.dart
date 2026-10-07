@@ -58,7 +58,10 @@ class FakeSettleInspectionRepository implements LoanInspectionRepository {
     String? idempotencyKey,
   }) => throw UnimplementedError();
   @override
-  Future<int> uploadInspectionPhoto({required File file, required String field}) => throw UnimplementedError();
+  Future<int> uploadInspectionPhoto({
+    required File file,
+    required String field,
+  }) => throw UnimplementedError();
 }
 
 class FakeSettleLoansRepository implements LoansRepository {
@@ -76,13 +79,16 @@ class FakeSettleLoansRepository implements LoansRepository {
   }
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
   @override
@@ -95,13 +101,16 @@ class FakeSettleLoansRepository implements LoansRepository {
     int? borrowerUserId,
   }) => throw UnimplementedError();
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
   @override
-  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) => throw UnimplementedError();
+  Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
+      throw UnimplementedError();
   @override
   Future<Loan> validateLoan(int id) => throw UnimplementedError();
   @override
-  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) => throw UnimplementedError();
+  Future<Loan> requestExtension(int id, int extensionDurationInMinutes) =>
+      throw UnimplementedError();
   @override
   Future<Loan> acceptExtension(int id) => throw UnimplementedError();
   @override
@@ -109,7 +118,10 @@ class FakeSettleLoansRepository implements LoansRepository {
   @override
   Future<Loan> cancelExtension(int id) => throw UnimplementedError();
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) => throw UnimplementedError();
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) => throw UnimplementedError();
 }
 
 void main() {
@@ -134,65 +146,80 @@ void main() {
   });
 
   group('LoanSettleController', () {
-    test('settleLoan succeeds, releases deposit, and updates state to LoanSettleSuccess', () async {
-      final controller =
-          container.read(loanSettleControllerProvider.notifier);
+    test(
+      'settleLoan succeeds, releases deposit, and updates state to LoanSettleSuccess',
+      () async {
+        final controller = container.read(
+          loanSettleControllerProvider.notifier,
+        );
 
-      final success = await controller.settleLoan(
-        loanId: 101,
-        releaseDeposit: true,
-        incidentClaimCents: 0,
-      );
+        final success = await controller.settleLoan(
+          loanId: 101,
+          releaseDeposit: true,
+          incidentClaimCents: 0,
+        );
 
-      expect(success, isTrue);
-      expect(fakeInspectionRepo.settledLoanId, 101);
-      expect(fakeInspectionRepo.settledReleaseDeposit, isTrue);
+        expect(success, isTrue);
+        expect(fakeInspectionRepo.settledLoanId, 101);
+        expect(fakeInspectionRepo.settledReleaseDeposit, isTrue);
 
-      final state = container.read(loanSettleControllerProvider);
-      expect(state, isA<LoanSettleSuccess>());
-      final successState = state as LoanSettleSuccess;
-      expect(successState.responseData['status'], 'completed');
-    });
+        final state = container.read(loanSettleControllerProvider);
+        expect(state, isA<LoanSettleSuccess>());
+        final successState = state as LoanSettleSuccess;
+        expect(successState.responseData['status'], 'completed');
+      },
+    );
 
-    test('settleLoan recovers if network fails but server completed payment', () async {
-      fakeInspectionRepo.shouldThrow = true;
-      fakeLoansRepo.refreshedLoan = Loan(
-        id: 102,
-        departureAt: DateTime.now(),
-        durationInMinutes: 60,
-        status: 'completed',
-        paidAt: DateTime.now(),
-      );
+    test(
+      'settleLoan recovers if network fails but server completed payment',
+      () async {
+        fakeInspectionRepo.shouldThrow = true;
+        fakeLoansRepo.refreshedLoan = Loan(
+          id: 102,
+          departureAt: DateTime.now(),
+          durationInMinutes: 60,
+          status: 'completed',
+          paidAt: DateTime.now(),
+        );
 
-      final controller =
-          container.read(loanSettleControllerProvider.notifier);
+        final controller = container.read(
+          loanSettleControllerProvider.notifier,
+        );
 
-      final success = await controller.settleLoan(loanId: 102);
+        final success = await controller.settleLoan(loanId: 102);
 
-      expect(success, isTrue);
-      final state = container.read(loanSettleControllerProvider);
-      expect(state, isA<LoanSettleSuccess>());
-    });
+        expect(success, isTrue);
+        final state = container.read(loanSettleControllerProvider);
+        expect(state, isA<LoanSettleSuccess>());
+      },
+    );
 
-    test('settleLoan reports error when both settle and recovery fail', () async {
-      fakeInspectionRepo.shouldThrow = true;
-      fakeLoansRepo.refreshedLoan = Loan(
-        id: 103,
-        departureAt: DateTime.now(),
-        durationInMinutes: 60,
-        status: 'ended',
-        paidAt: null,
-      );
+    test(
+      'settleLoan reports error when both settle and recovery fail',
+      () async {
+        fakeInspectionRepo.shouldThrow = true;
+        fakeLoansRepo.refreshedLoan = Loan(
+          id: 103,
+          departureAt: DateTime.now(),
+          durationInMinutes: 60,
+          status: 'ended',
+          paidAt: null,
+        );
 
-      final controller =
-          container.read(loanSettleControllerProvider.notifier);
+        final controller = container.read(
+          loanSettleControllerProvider.notifier,
+        );
 
-      final success = await controller.settleLoan(loanId: 103);
+        final success = await controller.settleLoan(loanId: 103);
 
-      expect(success, isFalse);
-      final state = container.read(loanSettleControllerProvider);
-      expect(state, isA<LoanSettleError>());
-      expect((state as LoanSettleError).message, contains('Erreur lors du règlement final'));
-    });
+        expect(success, isFalse);
+        final state = container.read(loanSettleControllerProvider);
+        expect(state, isA<LoanSettleError>());
+        expect(
+          (state as LoanSettleError).message,
+          contains('Erreur lors du règlement final'),
+        );
+      },
+    );
   });
 }

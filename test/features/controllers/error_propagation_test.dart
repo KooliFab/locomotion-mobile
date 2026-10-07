@@ -99,7 +99,10 @@ class FailingLoansRepository implements LoansRepository {
 
   @override
   Future<Loan> validateLoan(int id) async {
-    throw const ServerException(message: 'Erreur validate loan', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur validate loan',
+      statusCode: 500,
+    );
   }
 
   @override
@@ -117,27 +120,45 @@ class FailingLoansRepository implements LoansRepository {
 
   @override
   Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async {
-    throw const ServerException(message: 'Erreur request extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur request extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> acceptExtension(int id) async {
-    throw const ServerException(message: 'Erreur accept extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur accept extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> rejectExtension(int id) async {
-    throw const ServerException(message: 'Erreur reject extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur reject extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> cancelExtension(int id) async {
-    throw const ServerException(message: 'Erreur cancel extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur cancel extension',
+      statusCode: 500,
+    );
   }
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) async {
-    throw const ServerException(message: 'Erreur extension estimate', statusCode: 500);
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) async {
+    throw const ServerException(
+      message: 'Erreur extension estimate',
+      statusCode: 500,
+    );
   }
 }
 
