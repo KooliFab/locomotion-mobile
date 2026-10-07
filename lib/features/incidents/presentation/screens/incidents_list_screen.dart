@@ -11,27 +11,21 @@ class IncidentsListScreen extends ConsumerWidget {
   final int? loanId;
   final int? loanableId;
 
-  const IncidentsListScreen({
-    super.key,
-    this.loanId,
-    this.loanableId,
-  });
+  const IncidentsListScreen({super.key, this.loanId, this.loanableId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = loanId != null
         ? loanIncidentsListProvider(loanId!)
         : (loanableId != null
-            ? vehicleIncidentsListProvider(loanableId!)
-            : incidentsListControllerProvider);
+              ? vehicleIncidentsListProvider(loanableId!)
+              : incidentsListControllerProvider);
 
     final state = ref.watch(provider);
     final notifier = ref.read(provider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Signalements & Incidents'),
-      ),
+      appBar: AppBar(title: const Text('Signalements & Incidents')),
       floatingActionButton: loanableId != null
           ? FloatingActionButton.extended(
               key: const Key('report_incident_fab'),
@@ -54,7 +48,8 @@ class IncidentsListScreen extends ConsumerWidget {
               children: [
                 FilterChip(
                   label: const Text('Tous'),
-                  selected: state.filterStatus == null || state.filterStatus!.isEmpty,
+                  selected:
+                      state.filterStatus == null || state.filterStatus!.isEmpty,
                   onSelected: (_) => notifier.setFilter(null),
                 ),
                 const SizedBox(width: 8),
@@ -89,7 +84,11 @@ class IncidentsListScreen extends ConsumerWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline, color: AppColors.danger, size: 40),
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.danger,
+                            size: 40,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             state.errorMessage!,
@@ -115,7 +114,11 @@ class IncidentsListScreen extends ConsumerWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.check_circle_outline, size: 48, color: Colors.grey.shade400),
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
                           const SizedBox(height: 12),
                           const Text(
                             'Aucun incident signalé.',
@@ -218,24 +221,42 @@ class _IncidentCard extends StatelessWidget {
             Row(
               children: [
                 if (incident.loanableName != null) ...[
-                  const Icon(Icons.directions_car_outlined, size: 14, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.directions_car_outlined,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     incident.loanableName!,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                 ],
                 if (dateStr.isNotEmpty) ...[
-                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     dateStr,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
                 const Spacer(),
-                const Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ],

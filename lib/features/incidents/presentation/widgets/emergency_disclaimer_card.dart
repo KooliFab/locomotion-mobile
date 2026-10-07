@@ -41,9 +41,9 @@ class EmergencyDisclaimerCard extends StatelessWidget {
                 child: Text(
                   'Consignes d\'urgence & assistance',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -52,9 +52,9 @@ class EmergencyDisclaimerCard extends StatelessWidget {
           Text(
             'Ce formulaire sert à consigner un incident pour les gestionnaires et le propriétaire. Il ne constitue pas un service de dépannage ou d\'urgence garanti.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -66,30 +66,36 @@ class EmergencyDisclaimerCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.phone_in_talk_rounded, color: AppColors.danger, size: 20),
+                const Icon(
+                  Icons.phone_in_talk_rounded,
+                  color: AppColors.danger,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Urgence vitale ou danger : 112 (Europe) / 911 (Am. Nord)',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.danger,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.danger,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          if (ownerName != null || ownerPhone != null || ownerEmail != null) ...[
+          if (ownerName != null ||
+              ownerPhone != null ||
+              ownerEmail != null) ...[
             const SizedBox(height: 12),
             const Divider(),
             const SizedBox(height: 6),
             Text(
               'Contact du propriétaire :',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 4),
             if (ownerName != null && ownerName!.isNotEmpty)
@@ -97,7 +103,11 @@ class EmergencyDisclaimerCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   children: [
-                    const Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       ownerName!,
@@ -111,14 +121,18 @@ class EmergencyDisclaimerCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   children: [
-                    const Icon(Icons.phone_outlined, size: 16, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.phone_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 6),
                     SelectableText(
                       ownerPhone!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -128,14 +142,18 @@ class EmergencyDisclaimerCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   children: [
-                    const Icon(Icons.mail_outline, size: 16, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.mail_outline,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 6),
                     SelectableText(
                       ownerEmail!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),

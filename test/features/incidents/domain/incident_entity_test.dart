@@ -9,10 +9,13 @@ void main() {
       expect(IncidentCategory.delay.requiresSafetyDisclaimer, isFalse);
     });
 
-    test('accident requires safety disclaimer and has accident backendType', () {
-      expect(IncidentCategory.accident.backendType, equals('accident'));
-      expect(IncidentCategory.accident.requiresSafetyDisclaimer, isTrue);
-    });
+    test(
+      'accident requires safety disclaimer and has accident backendType',
+      () {
+        expect(IncidentCategory.accident.backendType, equals('accident'));
+        expect(IncidentCategory.accident.requiresSafetyDisclaimer, isTrue);
+      },
+    );
 
     test('breakdown, puncture, damage map to small_incident', () {
       expect(IncidentCategory.breakdown.backendType, equals('small_incident'));
@@ -21,12 +24,30 @@ void main() {
     });
 
     test('fromBackend resolves known backend types', () {
-      expect(IncidentCategory.fromBackend('accident'), equals(IncidentCategory.accident));
-      expect(IncidentCategory.fromBackend('delay'), equals(IncidentCategory.delay));
-      expect(IncidentCategory.fromBackend('breakdown'), equals(IncidentCategory.breakdown));
-      expect(IncidentCategory.fromBackend('puncture'), equals(IncidentCategory.puncture));
-      expect(IncidentCategory.fromBackend('small_incident'), equals(IncidentCategory.damage));
-      expect(IncidentCategory.fromBackend('unknown_value'), equals(IncidentCategory.other));
+      expect(
+        IncidentCategory.fromBackend('accident'),
+        equals(IncidentCategory.accident),
+      );
+      expect(
+        IncidentCategory.fromBackend('delay'),
+        equals(IncidentCategory.delay),
+      );
+      expect(
+        IncidentCategory.fromBackend('breakdown'),
+        equals(IncidentCategory.breakdown),
+      );
+      expect(
+        IncidentCategory.fromBackend('puncture'),
+        equals(IncidentCategory.puncture),
+      );
+      expect(
+        IncidentCategory.fromBackend('small_incident'),
+        equals(IncidentCategory.damage),
+      );
+      expect(
+        IncidentCategory.fromBackend('unknown_value'),
+        equals(IncidentCategory.other),
+      );
     });
   });
 
@@ -36,7 +57,8 @@ void main() {
         'id': 42,
         'incident_type': 'small_incident',
         'status': 'in_process',
-        'comments_on_incident': '[CREVAISON] Pneu arrière crevé sur le trajet retour. [Preuves: image_id#101, image_id#102]',
+        'comments_on_incident':
+            '[CREVAISON] Pneu arrière crevé sur le trajet retour. [Preuves: image_id#101, image_id#102]',
         'loan_id': 7,
         'loanable_id': 15,
         'loanable_name': 'Vélo Cargo Pro',
@@ -73,10 +95,7 @@ void main() {
             'user_id': 99,
             'note': 'Rapatriement à pied jusqu\'au garage.',
             'created_at': '2026-10-04T12:00:00Z',
-            'author': {
-              'id': 99,
-              'name': 'Emprunteur Bob',
-            },
+            'author': {'id': 99, 'name': 'Emprunteur Bob'},
           },
         ],
       };
@@ -90,7 +109,10 @@ void main() {
       expect(incident.photos.first.id, equals(101));
       expect(incident.canResolveServer, isNull);
       expect(incident.canAddNoteServer, isNull);
-      expect(incident.cleanComments, equals('Pneu arrière crevé sur le trajet retour.'));
+      expect(
+        incident.cleanComments,
+        equals('Pneu arrière crevé sur le trajet retour.'),
+      );
       expect(incident.isInProcess, isTrue);
       expect(incident.isResolved, isFalse);
       expect(incident.notes.length, equals(1));
@@ -144,7 +166,10 @@ void main() {
       };
 
       final incident = Incident.fromJson(json);
-      expect(incident.cleanComments, equals('Simple retard de 15 minutes prévu.'));
+      expect(
+        incident.cleanComments,
+        equals('Simple retard de 15 minutes prévu.'),
+      );
       expect(incident.photoImageIds, isEmpty);
       expect(incident.isResolved, isTrue);
     });

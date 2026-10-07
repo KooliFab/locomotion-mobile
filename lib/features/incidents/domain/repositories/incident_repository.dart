@@ -16,7 +16,6 @@ abstract class IncidentRepository {
     int? loanId,
     required IncidentCategory category,
     required String description,
-    List<int> imageIds = const [],
     String? idempotencyKey,
   });
 
@@ -25,6 +24,4 @@ abstract class IncidentRepository {
   Future<Incident> resolveIncident(int incidentId);
 
   Future<Incident> reopenIncident(int incidentId);
-
-  Future<int> uploadImage(String filePath);
 }

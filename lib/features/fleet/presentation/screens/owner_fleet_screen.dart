@@ -6,9 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../loanables/presentation/widgets/loanable_image_widget.dart';
 import '../../domain/entities/fleet_vehicle.dart';
 import '../controllers/fleet_controller.dart';
-import '../widgets/vehicle_suspension_dialog.dart';
 
-enum FleetFilter { all, published, suspended, draft }
+enum FleetFilter { all, published, draft }
 
 class OwnerFleetScreen extends ConsumerStatefulWidget {
   const OwnerFleetScreen({super.key});
@@ -115,17 +114,14 @@ class _OwnerFleetScreenState extends ConsumerState<OwnerFleetScreen> {
       case FleetFilter.all:
         return list;
       case FleetFilter.published:
-        return list.where((v) => v.published && !v.isSuspended).toList();
-      case FleetFilter.suspended:
-        return list.where((v) => v.isSuspended).toList();
+        return list.where((v) => v.published).toList();
       case FleetFilter.draft:
         return list.where((v) => !v.published).toList();
     }
   }
 
   Widget _buildFilterBar(List<FleetVehicle> all) {
-    final publishedCount = all.where((v) => v.published && !v.isSuspended).length;
-    final suspendedCount = all.where((v) => v.isSuspended).length;
+    final publishedCount = all.where((v) => v.published).length;
     final draftCount = all.where((v) => !v.published).length;
 
     return SingleChildScrollView(
@@ -136,8 +132,6 @@ class _OwnerFleetScreenState extends ConsumerState<OwnerFleetScreen> {
           _buildChoiceChip('Tous (${all.length})', FleetFilter.all),
           const SizedBox(width: 8),
           _buildChoiceChip('Publiés ($publishedCount)', FleetFilter.published),
-          const SizedBox(width: 8),
-          _buildChoiceChip('Suspendus ($suspendedCount)', FleetFilter.suspended),
           const SizedBox(width: 8),
           _buildChoiceChip('Brouillons ($draftCount)', FleetFilter.draft),
         ],
@@ -256,24 +250,7 @@ class _VehicleFleetCard extends ConsumerWidget {
               // Activity indicators row
               Row(
                 children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 4,
-                      children: [
-                        _buildLoanCounter(
-                          icon: Icons.play_arrow_rounded,
-                          label: '${v.activeLoansCount} en cours',
-                          isActive: v.hasActiveLoans,
-                        ),
-                        _buildLoanCounter(
-                          icon: Icons.calendar_month_outlined,
-                          label: '${v.futureLoansCount} réservés',
-                          isActive: v.hasFutureLoans,
-                        ),
-                      ],
-                    ),
-                  ),
+                  const Spacer(),
                   // Quick Actions
                   IconButton(
                     icon: const Icon(Icons.visibility_outlined, size: 20),
@@ -308,11 +285,7 @@ class _VehicleFleetCard extends ConsumerWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: LoanableImageWidget(
-          image: v.image,
-          width: 64,
-          height: 64,
-        ),
+        child: LoanableImageWidget(image: v.image, width: 64, height: 64),
       ),
     );
   }
@@ -361,31 +334,6 @@ class _VehicleFleetCard extends ConsumerWidget {
   }
 
   Widget _buildStatusBadge(FleetVehicle v) {
-    if (v.isSuspended) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.warning.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.pause_circle_filled, size: 14, color: AppColors.warning),
-            SizedBox(width: 4),
-            Text(
-              'Suspendu',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: AppColors.warning,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (v.published) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -396,7 +344,11 @@ class _VehicleFleetCard extends ConsumerWidget {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 14, color: AppColors.success),
+            Icon(
+              Icons.check_circle_rounded,
+              size: 14,
+              color: AppColors.success,
+            ),
             SizedBox(width: 4),
             Text(
               'Publié',
@@ -420,7 +372,11 @@ class _VehicleFleetCard extends ConsumerWidget {
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.edit_note_rounded, size: 14, color: AppColors.textSecondary),
+          Icon(
+            Icons.edit_note_rounded,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
           SizedBox(width: 4),
           Text(
             'Brouillon',
@@ -435,61 +391,16 @@ class _VehicleFleetCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoanCounter({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: isActive ? AppColors.primary : AppColors.textSecondary,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionMenu(BuildContext context, WidgetRef ref, FleetVehicle v) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert_rounded),
-      onSelected: (action) async {
+      onSelected: (action) {
         if (action == 'preview') {
           context.push(AppRoutes.fleetPreviewPath(v.id));
         } else if (action == 'edit') {
           context.push(AppRoutes.fleetEditPath(v.id));
         } else if (action == 'publish') {
           _confirmPublish(context, ref, v);
-        } else if (action == 'suspend') {
-          await VehicleSuspensionDialog.show(
-            context,
-            vehicle: v,
-            onConfirm: (reason, preserve) async {
-              await ref
-                  .read(ownerFleetControllerProvider.notifier)
-                  .suspendVehicle(v.id, reason: reason, preserveFuture: preserve);
-            },
-          );
-        } else if (action == 'unsuspend') {
-          await ref
-              .read(ownerFleetControllerProvider.notifier)
-              .unsuspendVehicle(v.id);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Véhicule réactivé avec succès.')),
-            );
-          }
         }
       },
       itemBuilder: (context) => [
@@ -521,33 +432,10 @@ class _VehicleFleetCard extends ConsumerWidget {
                 Icon(Icons.publish_rounded, size: 18, color: AppColors.primary),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Publier', style: TextStyle(color: AppColors.primary)),
-                ),
-              ],
-            ),
-          ),
-        if (v.published && !v.isSuspended)
-          const PopupMenuItem(
-            value: 'suspend',
-            child: Row(
-              children: [
-                Icon(Icons.pause_circle_outline, size: 18, color: AppColors.warning),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('Suspendre', style: TextStyle(color: AppColors.warning)),
-                ),
-              ],
-            ),
-          ),
-        if (v.isSuspended)
-          const PopupMenuItem(
-            value: 'unsuspend',
-            child: Row(
-              children: [
-                Icon(Icons.play_circle_outline, size: 18, color: AppColors.success),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('Réactiver', style: TextStyle(color: AppColors.success)),
+                  child: Text(
+                    'Publier',
+                    style: TextStyle(color: AppColors.primary),
+                  ),
                 ),
               ],
             ),
@@ -578,7 +466,9 @@ class _VehicleFleetCard extends ConsumerWidget {
                     .publishVehicle(v.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Véhicule publié avec succès.')),
+                    const SnackBar(
+                      content: Text('Véhicule publié avec succès.'),
+                    ),
                   );
                 }
               } catch (e) {

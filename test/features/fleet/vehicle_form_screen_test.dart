@@ -8,6 +8,10 @@ import 'package:mobile/features/fleet/presentation/controllers/fleet_controller.
 import 'package:mobile/features/fleet/presentation/screens/vehicle_form_screen.dart';
 
 class MockFleetFormRepository implements FleetRepository {
+  @override
+  Future<FleetVehicle> getVehicle(int id) async =>
+      FleetVehicle(id: id, name: '', type: 'car');
+
   bool shouldThrowConflict = false;
   Map<String, dynamic>? lastCreatedData;
   Map<String, dynamic>? lastUpdatedData;
@@ -18,8 +22,10 @@ class MockFleetFormRepository implements FleetRepository {
   Future<List<FleetVehicle>> getOwnerFleet() async => [];
 
   @override
-  Future<FleetVehicle> createVehicle(Map<String, dynamic> data,
-      {String? idempotencyKey}) async {
+  Future<FleetVehicle> createVehicle(
+    Map<String, dynamic> data, {
+    String? idempotencyKey,
+  }) async {
     lastCreatedData = data;
     lastIdempotencyKey = idempotencyKey;
     return FleetVehicle(
@@ -31,8 +37,11 @@ class MockFleetFormRepository implements FleetRepository {
   }
 
   @override
-  Future<FleetVehicle> updateVehicle(int id, Map<String, dynamic> data,
-      {String? lockVersion}) async {
+  Future<FleetVehicle> updateVehicle(
+    int id,
+    Map<String, dynamic> data, {
+    String? lockVersion,
+  }) async {
     if (shouldThrowConflict) {
       throw const ConflictException(
         message: 'Ce véhicule a été modifié par un autre gestionnaire.',
@@ -51,15 +60,6 @@ class MockFleetFormRepository implements FleetRepository {
 
   @override
   Future<void> publishVehicle(int id) async {}
-
-  @override
-  Future<Map<String, dynamic>> suspendVehicle(int id,
-          {String? reason, bool preserveFuture = true}) async =>
-      {};
-
-  @override
-  Future<FleetVehicle> unsuspendVehicle(int id) async =>
-      const FleetVehicle(id: 1, name: '', type: 'car');
 }
 
 void main() {
@@ -69,14 +69,9 @@ void main() {
     mockRepo = MockFleetFormRepository();
   });
 
-  Widget buildFormWidget({
-    int? vehicleId,
-    FleetVehicle? initialVehicle,
-  }) {
+  Widget buildFormWidget({int? vehicleId, FleetVehicle? initialVehicle}) {
     return ProviderScope(
-      overrides: [
-        fleetRepositoryProvider.overrideWithValue(mockRepo),
-      ],
+      overrides: [fleetRepositoryProvider.overrideWithValue(mockRepo)],
       child: MaterialApp(
         home: VehicleFormScreen(
           vehicleId: vehicleId,
@@ -86,8 +81,9 @@ void main() {
     );
   }
 
-  testWidgets('Published car displays locked technical fields warning banner',
-      (tester) async {
+  testWidgets('Published car displays locked technical fields warning banner', (
+    tester,
+  ) async {
     const publishedCar = FleetVehicle(
       id: 42,
       name: 'Toyota Prius Rosemont',
@@ -103,15 +99,16 @@ void main() {
       },
     );
 
-    await tester.pumpWidget(buildFormWidget(
-      vehicleId: 42,
-      initialVehicle: publishedCar,
-    ));
+    await tester.pumpWidget(
+      buildFormWidget(vehicleId: 42, initialVehicle: publishedCar),
+    );
     await tester.pumpAndSettle();
 
     // Verify warning banner is displayed
     expect(
-      find.textContaining('Champs techniques verrouillés : cette voiture est déjà publiée'),
+      find.textContaining(
+        'Champs techniques verrouillés : cette voiture est déjà publiée',
+      ),
       findsOneWidget,
     );
 
@@ -119,8 +116,9 @@ void main() {
     expect(find.byIcon(Icons.lock), findsWidgets);
   });
 
-  testWidgets('Update conflict 409 displays conflict recovery dialog',
-      (tester) async {
+  testWidgets('Update conflict 409 displays conflict recovery dialog', (
+    tester,
+  ) async {
     mockRepo.shouldThrowConflict = true;
 
     tester.view.physicalSize = const Size(800, 2400);
@@ -139,10 +137,9 @@ void main() {
       updatedAt: '2026-10-03T18:00:00.000000Z',
     );
 
-    await tester.pumpWidget(buildFormWidget(
-      vehicleId: 42,
-      initialVehicle: publishedCar,
-    ));
+    await tester.pumpWidget(
+      buildFormWidget(vehicleId: 42, initialVehicle: publishedCar),
+    );
     await tester.pumpAndSettle();
 
     final submitBtn = find.byKey(const Key('submit_vehicle_button'));
@@ -156,8 +153,9 @@ void main() {
     expect(find.text('Fermer sans écraser'), findsOneWidget);
   });
 
-  testWidgets('Creation sends idempotency key to prevent duplicates',
-      (tester) async {
+  testWidgets('Creation sends idempotency key to prevent duplicates', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {

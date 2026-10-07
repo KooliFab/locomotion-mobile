@@ -34,7 +34,8 @@ enum IncidentCategory {
   delay(
     code: 'delay',
     label: 'Retard de restitution',
-    description: 'Impossibilité de rendre le véhicule à l\'heure prévue (non bloquant)',
+    description:
+        'Impossibilité de rendre le véhicule à l\'heure prévue (non bloquant)',
     backendType: 'general',
     prefix: '[Retard]',
     icon: Icons.access_time_rounded,
@@ -44,7 +45,8 @@ enum IncidentCategory {
   accident(
     code: 'accident',
     label: 'Accident / Collision',
-    description: 'Collision avec un tiers ou obstacle (bloque le véhicule pour inspection)',
+    description:
+        'Collision avec un tiers ou obstacle (bloque le véhicule pour inspection)',
     backendType: 'accident',
     prefix: '[Accident]',
     icon: Icons.warning_amber_rounded,
@@ -83,7 +85,10 @@ enum IncidentCategory {
   });
 
   /// Parse category from comments prefix or backend enum
-  static IncidentCategory fromCommentsOrType(String? comments, String? backendType) {
+  static IncidentCategory fromCommentsOrType(
+    String? comments,
+    String? backendType,
+  ) {
     if (comments != null) {
       final trimmed = comments.trim().toLowerCase();
       if (trimmed.startsWith('[retard]')) return IncidentCategory.delay;

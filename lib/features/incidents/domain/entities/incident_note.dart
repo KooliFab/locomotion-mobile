@@ -30,7 +30,8 @@ class IncidentNote {
       final full = '$first $last'.trim();
       authorName = full.isNotEmpty ? full : (authorMap['name'] as String?);
       if (authorMap['avatar'] is Map<String, dynamic>) {
-        avatarUrl = (authorMap['avatar'] as Map<String, dynamic>)['url'] as String?;
+        avatarUrl =
+            (authorMap['avatar'] as Map<String, dynamic>)['url'] as String?;
       }
     } else if (json['author_name'] != null) {
       authorName = json['author_name'] as String?;

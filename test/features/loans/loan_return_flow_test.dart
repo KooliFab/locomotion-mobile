@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/features/incidents/data/datasources/incident_remote_data_source.dart';
 import 'package:mobile/features/loans/data/datasources/loans_remote_data_source.dart';
 import 'package:mobile/features/loans/domain/entities/loan.dart';
 import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
@@ -150,4 +151,40 @@ void main() {
     });
   });
 
+  group('Incident detail without GET /incidents/{id}', () {
+    test('reads the incident through the filtered list', () async {
+      Map<String, dynamic>? query;
+      String? path;
+      final api = createMockApiClient((options) async {
+        path = options.path;
+        query = options.queryParameters;
+        return jsonResponse({
+          'data': [
+            {'id': 31, 'loanable_id': 4, 'comments_on_incident': 'x'},
+          ],
+        });
+      });
+
+      final incident = await IncidentRemoteDataSourceImpl(
+        api,
+      ).getIncidentDetail(31);
+
+      expect(path, '/incidents');
+      expect(query!['id'], 31);
+      expect(query!['relations'], isNot(contains('images')));
+      expect(incident['id'], 31);
+    });
+
+    test('reports a missing incident as not found', () async {
+      final api = createMockApiClient(
+        (options) async => jsonResponse({'data': []}),
+      );
+      expect(
+        () => IncidentRemoteDataSourceImpl(api).getIncidentDetail(31),
+        throwsA(
+          predicate((e) => e.toString().contains('Incident introuvable')),
+        ),
+      );
+    });
+  });
 }

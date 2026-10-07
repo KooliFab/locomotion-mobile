@@ -13,6 +13,11 @@ class FleetRepositoryImpl implements FleetRepository {
   }
 
   @override
+  Future<FleetVehicle> getVehicle(int id) {
+    return _remoteDataSource.getVehicle(id);
+  }
+
+  @override
   Future<FleetVehicle> createVehicle(
     Map<String, dynamic> data, {
     String? idempotencyKey,
@@ -29,33 +34,11 @@ class FleetRepositoryImpl implements FleetRepository {
     Map<String, dynamic> data, {
     String? lockVersion,
   }) {
-    return _remoteDataSource.updateVehicle(
-      id,
-      data,
-      lockVersion: lockVersion,
-    );
+    return _remoteDataSource.updateVehicle(id, data, lockVersion: lockVersion);
   }
 
   @override
   Future<void> publishVehicle(int id) {
     return _remoteDataSource.publishVehicle(id);
-  }
-
-  @override
-  Future<Map<String, dynamic>> suspendVehicle(
-    int id, {
-    String? reason,
-    bool preserveFuture = true,
-  }) {
-    return _remoteDataSource.suspendVehicle(
-      id,
-      reason: reason,
-      preserveFuture: preserveFuture,
-    );
-  }
-
-  @override
-  Future<FleetVehicle> unsuspendVehicle(int id) {
-    return _remoteDataSource.unsuspendVehicle(id);
   }
 }

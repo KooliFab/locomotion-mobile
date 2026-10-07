@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../loanables/presentation/widgets/loanable_image_widget.dart';
 import '../../domain/entities/fleet_vehicle.dart';
 import '../controllers/fleet_controller.dart';
-import '../widgets/vehicle_suspension_dialog.dart';
 
 class OwnerVehicleDetailScreen extends ConsumerWidget {
   final int vehicleId;
@@ -25,8 +23,7 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Modifier',
-            onPressed: () =>
-                context.push(AppRoutes.fleetEditPath(vehicleId)),
+            onPressed: () => context.push(AppRoutes.fleetEditPath(vehicleId)),
           ),
         ],
       ),
@@ -50,91 +47,16 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(
-    BuildContext context,
-    WidgetRef ref,
-    FleetVehicle v,
-  ) {
+  Widget _buildBody(BuildContext context, WidgetRef ref, FleetVehicle v) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Status & Suspension Banner
-        if (v.isSuspended) ...[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.warning),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.pause_circle_filled,
-                      color: AppColors.warning,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Véhicule actuellement suspendu',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: AppColors.warning,
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () async {
-                        await ref
-                            .read(ownerFleetControllerProvider.notifier)
-                            .unsuspendVehicle(v.id);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Véhicule réactivé avec succès.'),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text('Réactiver'),
-                    ),
-                  ],
-                ),
-                if (v.suspendedAt != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Suspendu le ${DateFormat('dd/MM/yyyy à HH:mm').format(v.suspendedAt!)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-                if (v.suspensionReason != null &&
-                    v.suspensionReason!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    'Motif : ${v.suspensionReason}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
         // Header Card
         Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -202,58 +124,12 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
 
-        // Activity Stats Card
-        Card(
-          elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Activité des réservations',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        title: 'En cours',
-                        value: '${v.activeLoansCount}',
-                        subtitle: 'Dont retards',
-                        highlight: v.hasActiveLoans,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMetricTile(
-                        title: 'Confirmées',
-                        value: '${v.confirmedFutureLoansCount}',
-                        subtitle: 'À venir',
-                        highlight: v.confirmedFutureLoansCount > 0,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMetricTile(
-                        title: 'En attente',
-                        value: '${v.pendingRequestsCount}',
-                        subtitle: 'Demandes',
-                        highlight: false,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
         // Availability Management Tile
         Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
             leading: const CircleAvatar(
               backgroundColor: AppColors.background,
@@ -267,21 +143,32 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
               v.availabilityMode == 'never'
                   ? 'Mode restreint (créneaux fermés par défaut)'
                   : 'Gérer les indisponibilités ponctuelles & récurrentes',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+            ),
             onTap: () => context.push(AppRoutes.fleetAvailabilityPath(v.id)),
           ),
         ),
         // Incidents Management Tile
         Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
             key: const Key('vehicle_incidents_tile'),
             leading: const CircleAvatar(
               backgroundColor: AppColors.background,
-              child: Icon(Icons.report_problem_outlined, color: AppColors.warning),
+              child: Icon(
+                Icons.report_problem_outlined,
+                color: AppColors.warning,
+              ),
             ),
             title: const Text(
               'Incidents & Dommages',
@@ -291,8 +178,12 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
               'Consulter l\'historique et les signalements en cours',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-            onTap: () => context.push('${AppRoutes.incidents}?loanable_id=${v.id}'),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+            ),
+            onTap: () =>
+                context.push('${AppRoutes.incidents}?loanable_id=${v.id}'),
           ),
         ),
         const SizedBox(height: 16),
@@ -302,8 +193,7 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () =>
-                    context.push(AppRoutes.fleetPreviewPath(v.id)),
+                onPressed: () => context.push(AppRoutes.fleetPreviewPath(v.id)),
                 icon: const Icon(Icons.visibility_outlined, size: 18),
                 label: const Text('Aperçu'),
               ),
@@ -311,8 +201,7 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () =>
-                    context.push(AppRoutes.fleetEditPath(v.id)),
+                onPressed: () => context.push(AppRoutes.fleetEditPath(v.id)),
                 icon: const Icon(Icons.edit_outlined, size: 18),
                 label: const Text('Modifier'),
               ),
@@ -334,22 +223,15 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
               foregroundColor: Colors.white,
             ),
           ),
-        ] else if (!v.isSuspended) ...[
-          OutlinedButton.icon(
-            onPressed: () => _openSuspensionDialog(context, ref, v),
-            icon: const Icon(Icons.pause_circle_outline, color: AppColors.warning),
-            label: const Text(
-              'Suspendre les nouvelles réservations',
-              style: TextStyle(color: AppColors.warning),
-            ),
-          ),
         ],
         const SizedBox(height: 20),
 
         // Information Section
         Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -378,47 +260,6 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMetricTile({
-    required String title,
-    required String value,
-    required String subtitle,
-    required bool highlight,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: highlight
-            ? AppColors.primary.withValues(alpha: 0.08)
-            : AppColors.card,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: highlight ? AppColors.primary : AppColors.border,
-        ),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: highlight ? AppColors.primary : AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
     );
   }
 
@@ -454,23 +295,6 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildStatusPill(FleetVehicle v) {
-    if (v.isSuspended) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: AppColors.warning.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Text(
-          'SUSPENDU',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: AppColors.warning,
-          ),
-        ),
-      );
-    }
     if (v.published) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -505,29 +329,15 @@ class OwnerVehicleDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openSuspensionDialog(
-    BuildContext context,
-    WidgetRef ref,
-    FleetVehicle v,
-  ) async {
-    await VehicleSuspensionDialog.show(
-      context,
-      vehicle: v,
-      onConfirm: (reason, preserve) async {
-        await ref
-            .read(ownerFleetControllerProvider.notifier)
-            .suspendVehicle(v.id, reason: reason, preserveFuture: preserve);
-      },
-    );
-  }
-
   Future<void> _publishVehicle(
     BuildContext context,
     WidgetRef ref,
     FleetVehicle v,
   ) async {
     try {
-      await ref.read(ownerFleetControllerProvider.notifier).publishVehicle(v.id);
+      await ref
+          .read(ownerFleetControllerProvider.notifier)
+          .publishVehicle(v.id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Véhicule publié avec succès.')),

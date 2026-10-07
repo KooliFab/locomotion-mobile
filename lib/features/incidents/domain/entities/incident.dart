@@ -82,7 +82,11 @@ class Incident {
     return text;
   }
 
-  bool canResolve(int currentUserId, {bool isOwner = false, bool isAdmin = false}) {
+  bool canResolve(
+    int currentUserId, {
+    bool isOwner = false,
+    bool isAdmin = false,
+  }) {
     if (canResolveServer != null) return canResolveServer!;
     if (isOwner || isAdmin) return true;
     if (vehicleOwnerIds.contains(currentUserId)) return true;
@@ -90,12 +94,26 @@ class Incident {
     return false;
   }
 
-  bool canAddNote(int currentUserId, {bool isOwner = false, bool isAdmin = false}) {
-    if (canAddNoteServer != null) return canAddNoteServer!;
-    if (isOwner || isAdmin) return true;
-    if (vehicleOwnerIds.contains(currentUserId)) return true;
-    if (assigneeId != null && assigneeId == currentUserId) return true;
-    if (reportedByUserId != null && reportedByUserId == currentUserId) return true;
+  bool canAddNote(
+    int currentUserId, {
+    bool isOwner = false,
+    bool isAdmin = false,
+  }) {
+    if (canAddNoteServer != null) {
+      return canAddNoteServer!;
+    }
+    if (isOwner || isAdmin) {
+      return true;
+    }
+    if (vehicleOwnerIds.contains(currentUserId)) {
+      return true;
+    }
+    if (assigneeId != null && assigneeId == currentUserId) {
+      return true;
+    }
+    if (reportedByUserId != null && reportedByUserId == currentUserId) {
+      return true;
+    }
     return false;
   }
 
@@ -112,7 +130,8 @@ class Incident {
       if (roles is List) {
         for (final r in roles) {
           if (r is Map) {
-            final uid = r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
+            final uid =
+                r['user_id'] ?? (r['user'] is Map ? r['user']['id'] : null);
             final role = r['role']?.toString();
             if (uid is int &&
                 (role == 'owner' || role == 'coowner' || role == 'manager')) {
@@ -170,7 +189,7 @@ class Incident {
           .toList();
     }
 
-    // 6. Photo IDs & URLs extraction from images and comments
+    // 6. Photos, when the server returns an `images` relation
     final comments = json['comments_on_incident'] as String?;
     final photoImageIds = <int>[];
     final photoUrls = <String>[];
@@ -187,21 +206,6 @@ class Incident {
               photoUrls.add('/api/v1/images/${img.id}');
             }
           } catch (_) {}
-        }
-      }
-    }
-
-    if (comments != null) {
-      // Format: image_id#123 or image#123 or /api/v1/images/123
-      final idRegex = RegExp(r'image(?:_id)?#?(\d+)|/api/v1/images/(\d+)', caseSensitive: false);
-      for (final match in idRegex.allMatches(comments)) {
-        final idStr = match.group(1) ?? match.group(2);
-        if (idStr != null) {
-          final idVal = int.tryParse(idStr);
-          if (idVal != null && !photoImageIds.contains(idVal)) {
-            photoImageIds.add(idVal);
-            photoUrls.add('/api/v1/images/$idVal');
-          }
         }
       }
     }

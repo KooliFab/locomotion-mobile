@@ -19,9 +19,9 @@ class IncidentCategoryPicker extends StatelessWidget {
       children: [
         Text(
           'Motif du signalement',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         ...IncidentCategory.values.map((category) {
@@ -39,16 +39,23 @@ class IncidentCategoryPicker extends StatelessWidget {
                       : Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                    color: isSelected
+                        ? AppColors.primary
+                        : Colors.grey.shade300,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     Icon(
                       category.icon,
-                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -60,7 +67,8 @@ class IncidentCategoryPicker extends StatelessWidget {
                             children: [
                               Text(
                                 category.label,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: isSelected
                                           ? AppColors.primary
@@ -75,7 +83,9 @@ class IncidentCategoryPicker extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.danger.withValues(alpha: 0.1),
+                                    color: AppColors.danger.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Text(
@@ -92,7 +102,8 @@ class IncidentCategoryPicker extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             category.description,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
                                 ),
@@ -105,7 +116,9 @@ class IncidentCategoryPicker extends StatelessWidget {
                       isSelected
                           ? Icons.radio_button_checked
                           : Icons.radio_button_unchecked,
-                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
                       size: 22,
                     ),
                   ],

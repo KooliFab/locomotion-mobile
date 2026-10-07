@@ -49,7 +49,6 @@ class ApiEndpoints {
 
   // Incidents
   static const String incidents = '/incidents';
-  static String incidentDetail(int id) => '/incidents/$id';
   static String incidentComplete(int id) => '/incidents/$id/complete';
   static String incidentReopen(int id) => '/incidents/$id/reopen';
   static String incidentNotes(int id) => '/incidents/$id/note';

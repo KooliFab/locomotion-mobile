@@ -124,7 +124,7 @@ final class OwnerFleetControllerProvider
 }
 
 String _$ownerFleetControllerHash() =>
-    r'437d5f01ee6e92e31b77d859b62e368dd759e5fd';
+    r'bf5bc86e049fd5dde4e6952ad6552a01394ae5d6';
 
 abstract class _$OwnerFleetController
     extends $AsyncNotifier<List<FleetVehicle>> {
@@ -146,8 +146,12 @@ abstract class _$OwnerFleetController
   }
 }
 
+/// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
+
 @ProviderFor(fleetVehicleDetail)
 final fleetVehicleDetailProvider = FleetVehicleDetailFamily._();
+
+/// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
 
 final class FleetVehicleDetailProvider
     extends
@@ -157,6 +161,7 @@ final class FleetVehicleDetailProvider
           FutureOr<FleetVehicle?>
         >
     with $FutureModifier<FleetVehicle?>, $FutureProvider<FleetVehicle?> {
+  /// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
   FleetVehicleDetailProvider._({
     required FleetVehicleDetailFamily super.from,
     required int super.argument,
@@ -202,7 +207,9 @@ final class FleetVehicleDetailProvider
 }
 
 String _$fleetVehicleDetailHash() =>
-    r'8fff6329d9e71ad9917e9de300f5f05bce1f94c6';
+    r'9020d087fb4a731082c58d49214e752c1deb4885';
+
+/// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
 
 final class FleetVehicleDetailFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<FleetVehicle?>, int> {
@@ -214,6 +221,8 @@ final class FleetVehicleDetailFamily extends $Family
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
+
+  /// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
 
   FleetVehicleDetailProvider call(int id) =>
       FleetVehicleDetailProvider._(argument: id, from: this);

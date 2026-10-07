@@ -76,45 +76,17 @@ class OwnerFleetController extends _$OwnerFleetController {
     await refreshFleet();
   }
 
-  Future<Map<String, dynamic>> suspendVehicle(
-    int id, {
-    String? reason,
-    bool preserveFuture = true,
-  }) async {
-    final repo = ref.read(fleetRepositoryProvider);
-    final response = await repo.suspendVehicle(
-      id,
-      reason: reason,
-      preserveFuture: preserveFuture,
-    );
-
-    _invalidateRelatedCaches(id);
-    await refreshFleet();
-    return response;
-  }
-
-  Future<FleetVehicle> unsuspendVehicle(int id) async {
-    final repo = ref.read(fleetRepositoryProvider);
-    final vehicle = await repo.unsuspendVehicle(id);
-
-    _invalidateRelatedCaches(id);
-    await refreshFleet();
-    return vehicle;
-  }
-
   void _invalidateRelatedCaches(int vehicleId) {
+    ref.invalidate(fleetVehicleDetailProvider(vehicleId));
     ref.invalidate(loanablesListControllerProvider);
     ref.invalidate(loanableDetailProvider(vehicleId));
     ref.invalidate(loanableAvailabilityPeriodProvider(vehicleId));
   }
 }
 
+/// Full vehicle resource: the fleet list (`for=profile`) only carries a summary.
 @riverpod
 Future<FleetVehicle?> fleetVehicleDetail(Ref ref, int id) async {
-  final fleet = await ref.watch(ownerFleetControllerProvider.future);
-  try {
-    return fleet.firstWhere((v) => v.id == id);
-  } catch (_) {
-    return null;
-  }
+  final repo = ref.watch(fleetRepositoryProvider);
+  return repo.getVehicle(id);
 }

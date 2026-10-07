@@ -14,10 +14,6 @@ class MockFleetRepository implements FleetRepository {
       type: 'bike',
       sharingMode: 'on_demand',
       published: true,
-      isSuspended: false,
-      activeLoansCount: 1,
-      confirmedFutureLoansCount: 2,
-      futureLoansCount: 2,
       locationDescription: 'Devant la cour',
     ),
     const FleetVehicle(
@@ -26,11 +22,6 @@ class MockFleetRepository implements FleetRepository {
       type: 'car',
       sharingMode: 'hybrid',
       published: true,
-      isSuspended: true,
-      suspensionReason: 'Changement de freins',
-      activeLoansCount: 0,
-      confirmedFutureLoansCount: 1,
-      futureLoansCount: 1,
       locationDescription: 'Allée privée',
     ),
     const FleetVehicle(
@@ -39,23 +30,23 @@ class MockFleetRepository implements FleetRepository {
       type: 'trailer',
       sharingMode: 'self_service',
       published: false,
-      isSuspended: false,
-      activeLoansCount: 0,
-      confirmedFutureLoansCount: 0,
-      futureLoansCount: 0,
     ),
   ];
 
-  int suspendCallCount = 0;
-  int unsuspendCallCount = 0;
   int publishCallCount = 0;
 
   @override
   Future<List<FleetVehicle>> getOwnerFleet() async => List.of(fleet);
 
   @override
-  Future<FleetVehicle> createVehicle(Map<String, dynamic> data,
-      {String? idempotencyKey}) async {
+  Future<FleetVehicle> getVehicle(int id) async =>
+      fleet.firstWhere((v) => v.id == id);
+
+  @override
+  Future<FleetVehicle> createVehicle(
+    Map<String, dynamic> data, {
+    String? idempotencyKey,
+  }) async {
     final newVehicle = FleetVehicle(
       id: fleet.length + 1,
       name: data['name'] ?? 'Nouveau véhicule',
@@ -67,8 +58,11 @@ class MockFleetRepository implements FleetRepository {
   }
 
   @override
-  Future<FleetVehicle> updateVehicle(int id, Map<String, dynamic> data,
-      {String? lockVersion}) async {
+  Future<FleetVehicle> updateVehicle(
+    int id,
+    Map<String, dynamic> data, {
+    String? lockVersion,
+  }) async {
     final index = fleet.indexWhere((v) => v.id == id);
     if (index >= 0) {
       fleet[index] = fleet[index].copyWith(
@@ -87,34 +81,6 @@ class MockFleetRepository implements FleetRepository {
       fleet[index] = fleet[index].copyWith(published: true);
     }
   }
-
-  @override
-  Future<Map<String, dynamic>> suspendVehicle(int id,
-      {String? reason, bool preserveFuture = true}) async {
-    suspendCallCount++;
-    final index = fleet.indexWhere((v) => v.id == id);
-    if (index >= 0) {
-      fleet[index] = fleet[index].copyWith(
-        isSuspended: true,
-        suspensionReason: reason,
-      );
-    }
-    return {'message': 'Véhicule suspendu'};
-  }
-
-  @override
-  Future<FleetVehicle> unsuspendVehicle(int id) async {
-    unsuspendCallCount++;
-    final index = fleet.indexWhere((v) => v.id == id);
-    if (index >= 0) {
-      fleet[index] = fleet[index].copyWith(
-        isSuspended: false,
-        suspensionReason: null,
-      );
-      return fleet[index];
-    }
-    throw Exception('Not found');
-  }
 }
 
 void main() {
@@ -126,50 +92,33 @@ void main() {
 
   Widget buildTestWidget() {
     return ProviderScope(
-      overrides: [
-        fleetRepositoryProvider.overrideWithValue(mockRepo),
-      ],
-      child: const MaterialApp(
-        home: OwnerFleetScreen(),
-      ),
+      overrides: [fleetRepositoryProvider.overrideWithValue(mockRepo)],
+      child: const MaterialApp(home: OwnerFleetScreen()),
     );
   }
 
-  testWidgets('OwnerFleetScreen renders all vehicles with status badges and metrics',
-      (tester) async {
+  testWidgets('OwnerFleetScreen renders all vehicles with status badges', (
+    tester,
+  ) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
-    // Verify all vehicle names are present
     expect(find.text('Vélo de Ville Rosemont'), findsOneWidget);
     expect(find.text('Toyota Prius Partagée'), findsOneWidget);
     expect(find.text('Remorque Enfants'), findsOneWidget);
 
-    // Verify status badges
-    expect(find.text('Publié'), findsOneWidget);
-    expect(find.text('Suspendu'), findsOneWidget);
+    expect(find.text('Publié'), findsNWidgets(2));
     expect(find.text('Brouillon'), findsOneWidget);
-
-    // Verify loan activity metrics
-    expect(find.text('1 en cours'), findsOneWidget);
-    expect(find.text('2 réservés'), findsOneWidget);
+    // Suspension is not part of the web reference API
+    expect(find.textContaining('Suspendu'), findsNothing);
   });
 
   testWidgets('Filter chips toggle filtered lists properly', (tester) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
-    // Filter by Suspendus
-    final suspendedChip = find.text('Suspendus (1)');
-    expect(suspendedChip, findsOneWidget);
-    await tester.tap(suspendedChip);
-    await tester.pumpAndSettle();
+    expect(find.text('Publiés (2)'), findsOneWidget);
 
-    expect(find.text('Toyota Prius Partagée'), findsOneWidget);
-    expect(find.text('Vélo de Ville Rosemont'), findsNothing);
-    expect(find.text('Remorque Enfants'), findsNothing);
-
-    // Filter by Brouillons
     final draftChip = find.text('Brouillons (1)');
     await tester.tap(draftChip);
     await tester.pumpAndSettle();
@@ -178,33 +127,20 @@ void main() {
     expect(find.text('Toyota Prius Partagée'), findsNothing);
   });
 
-  testWidgets('Suspension dialog displays active loan counts and triggers suspension',
-      (tester) async {
+  testWidgets('Draft vehicle menu offers publish but no suspension', (
+    tester,
+  ) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
-    // Open popup menu for the first vehicle (Vélo de Ville Rosemont)
+    await tester.tap(find.text('Brouillons (1)'));
+    await tester.pumpAndSettle();
+
     final moreButtons = find.byIcon(Icons.more_vert_rounded);
     await tester.tap(moreButtons.first);
     await tester.pumpAndSettle();
 
-    // Tap "Suspendre"
-    final suspendMenuOption = find.text('Suspendre');
-    expect(suspendMenuOption, findsOneWidget);
-    await tester.tap(suspendMenuOption);
-    await tester.pumpAndSettle();
-
-    // Suspension dialog should be visible
-    expect(find.text('Suspendre le véhicule'), findsOneWidget);
-    expect(find.textContaining('Prêts en cours'), findsOneWidget);
-    expect(find.textContaining('Aucune annulation automatique'), findsOneWidget);
-
-    // Tap "Confirmer la suspension"
-    final confirmBtn = find.byKey(const Key('confirm_suspend_button'));
-    expect(confirmBtn, findsOneWidget);
-    await tester.tap(confirmBtn);
-    await tester.pumpAndSettle();
-
-    expect(mockRepo.suspendCallCount, 1);
+    expect(find.text('Publier'), findsOneWidget);
+    expect(find.text('Suspendre'), findsNothing);
   });
 }

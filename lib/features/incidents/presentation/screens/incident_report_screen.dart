@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../../core/router/routes.dart';
-import '../../../../core/services/inspection_photo_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../controllers/incident_report_controller.dart';
 import '../widgets/emergency_disclaimer_card.dart';
@@ -29,7 +26,8 @@ class IncidentReportScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<IncidentReportScreen> createState() => _IncidentReportScreenState();
+  ConsumerState<IncidentReportScreen> createState() =>
+      _IncidentReportScreenState();
 }
 
 class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
@@ -54,63 +52,6 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final photoService = ref.read(inspectionPhotoServiceProvider);
-    final result = await photoService.capturePhoto(source: source);
-    if (!mounted) return;
-
-    if (result is PhotoCaptureSuccess) {
-      await ref
-          .read(incidentReportControllerProvider.notifier)
-          .attachPhoto(result.file.path);
-    } else if (result is PhotoCaptureFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-    } else if (result is PhotoCapturePermissionDenied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-    }
-  }
-
-  void _showPhotoOptions() {
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Prendre une photo'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choisir dans la galerie'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _handleSubmit() async {
@@ -172,9 +113,7 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
     final notifier = ref.read(incidentReportControllerProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Signaler un incident'),
-      ),
+      appBar: AppBar(title: const Text('Signaler un incident')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -191,7 +130,10 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.directions_car_outlined, color: AppColors.primary),
+                  const Icon(
+                    Icons.directions_car_outlined,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -205,7 +147,10 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                         if (widget.loanId != null)
                           Text(
                             'Réservation #${widget.loanId}',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                       ],
                     ),
@@ -234,9 +179,9 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
             // Description field
             Text(
               'Description de l\'incident *',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
             TextField(
@@ -245,9 +190,13 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
               maxLines: 4,
               enabled: !state.isSubmitting,
               decoration: InputDecoration(
-                hintText: 'Décrivez précisément ce qui s\'est passé, les dégâts ou le retard estimé...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                helperText: '${state.description.trim().length} / 10 caractères minimum',
+                hintText:
+                    'Décrivez précisément ce qui s\'est passé, les dégâts ou le retard estimé...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                helperText:
+                    '${state.description.trim().length} / 10 caractères minimum',
                 helperStyle: TextStyle(
                   color: state.description.trim().length < 10
                       ? AppColors.textSecondary
@@ -264,7 +213,10 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                 color: Colors.amber.shade50,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.amber.shade200),
@@ -277,7 +229,10 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                         : (val) => notifier.setSafetyAcknowledged(val ?? false),
                     title: const Text(
                       'J\'atteste être en sécurité et que les secours ont été prévenus si la situation l\'exige.',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
@@ -287,88 +242,6 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
               ),
               const SizedBox(height: 16),
             ],
-
-            // Photos section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Photos et preuves (optionnel)',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                TextButton.icon(
-                  key: const Key('add_photo_button'),
-                  onPressed: state.isSubmitting || state.isUploadingPhoto
-                      ? null
-                      : _showPhotoOptions,
-                  icon: const Icon(Icons.add_a_photo_outlined, size: 18),
-                  label: const Text('Ajouter'),
-                ),
-              ],
-            ),
-            if (state.isUploadingPhoto)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 8),
-                    Text('Téléversement de la photo en cours...'),
-                  ],
-                ),
-              ),
-            if (state.localPhotoPaths.isNotEmpty)
-              SizedBox(
-                height: 90,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: state.localPhotoPaths.length,
-                  itemBuilder: (context, index) {
-                    final path = state.localPhotoPaths[index];
-                    return Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          margin: const EdgeInsets.only(right: 8, top: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
-                            image: DecorationImage(
-                              image: FileImage(File(path)),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: InkWell(
-                            onTap: state.isSubmitting
-                                ? null
-                                : () => notifier.removePhoto(index),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.close, size: 14, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 16),
 
             // Reconciliation / Unknown result display
             if (state.hasUnknownResult) ...[
@@ -385,7 +258,11 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800, size: 20),
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.amber.shade800,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -402,19 +279,26 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                     const SizedBox(height: 6),
                     Text(
                       'Pour éviter la création d\'un signalement en double, veuillez vérifier le statut avant de renvoyer.',
-                      style: TextStyle(color: Colors.amber.shade900, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.amber.shade900,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         key: const Key('reconcile_incident_button'),
-                        onPressed: state.isReconciling ? null : _handleReconcile,
+                        onPressed: state.isReconciling
+                            ? null
+                            : _handleReconcile,
                         icon: state.isReconciling
                             ? const SizedBox(
                                 width: 14,
                                 height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.sync, size: 16),
                         label: const Text('Vérifier et réconcilier'),
@@ -434,12 +318,19 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.danger,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         state.errorMessage!,
-                        style: const TextStyle(color: AppColors.danger, fontSize: 13),
+                        style: const TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -458,7 +349,9 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: state.isSubmitting
                     ? const SizedBox(
@@ -466,12 +359,17 @@ class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
                         'Envoyer le signalement',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
               ),
             ),

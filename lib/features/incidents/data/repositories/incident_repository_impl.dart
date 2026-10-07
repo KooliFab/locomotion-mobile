@@ -6,8 +6,9 @@ import '../../domain/entities/incident_note.dart';
 import '../../domain/repositories/incident_repository.dart';
 import '../datasources/incident_remote_data_source.dart';
 
-final incidentRemoteDataSourceProvider =
-    Provider<IncidentRemoteDataSource>((ref) {
+final incidentRemoteDataSourceProvider = Provider<IncidentRemoteDataSource>((
+  ref,
+) {
   final apiClient = ref.watch(apiClientProvider);
   return IncidentRemoteDataSourceImpl(apiClient);
 });
@@ -48,7 +49,6 @@ class IncidentRepositoryImpl implements IncidentRepository {
     int? loanId,
     required IncidentCategory category,
     required String description,
-    List<int> imageIds = const [],
     String? idempotencyKey,
   }) async {
     final json = await _remoteDataSource.createIncident(
@@ -56,7 +56,6 @@ class IncidentRepositoryImpl implements IncidentRepository {
       loanId: loanId,
       category: category,
       description: description,
-      imageIds: imageIds,
       idempotencyKey: idempotencyKey,
     );
     return Incident.fromJson(json);
@@ -81,10 +80,5 @@ class IncidentRepositoryImpl implements IncidentRepository {
   Future<Incident> reopenIncident(int incidentId) async {
     final json = await _remoteDataSource.reopenIncident(incidentId);
     return Incident.fromJson(json);
-  }
-
-  @override
-  Future<int> uploadImage(String filePath) async {
-    return _remoteDataSource.uploadImage(filePath);
   }
 }
