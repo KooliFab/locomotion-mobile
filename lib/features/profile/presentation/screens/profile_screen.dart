@@ -141,6 +141,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   balanceAsync.when(
                     data: (balance) => Text(
                       '${balance.toStringAsFixed(2)} \$',
+                      key: const Key('profile_balance_text'),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -152,9 +153,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (_, _) => const Text(
-                      '0.00 \$',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    error: (error, _) => Row(
+                      key: const Key('profile_balance_error'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Erreur',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                        IconButton(
+                          key: const Key('retry_balance_button'),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          tooltip: 'Réessayer',
+                          color: AppColors.primary,
+                          onPressed: () =>
+                              ref.invalidate(userBalanceControllerProvider),
+                        ),
+                      ],
                     ),
                   ),
                 ],
