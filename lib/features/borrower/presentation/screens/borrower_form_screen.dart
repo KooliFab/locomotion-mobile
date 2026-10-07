@@ -66,6 +66,7 @@ class _BorrowerFormScreenState extends ConsumerState<BorrowerFormScreen> {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
     );
+    if (!mounted) return;
     if (picked == null || picked.path == null) return;
 
     final localFile = _LocalFile(name: picked.name, file: File(picked.path!));
@@ -82,6 +83,7 @@ class _BorrowerFormScreenState extends ConsumerState<BorrowerFormScreen> {
   }
 
   Future<void> _uploadFile(String field, _LocalFile localFile) async {
+    if (!mounted) return;
     setState(() {
       localFile.isUploading = true;
       localFile.error = null;
@@ -93,11 +95,13 @@ class _BorrowerFormScreenState extends ConsumerState<BorrowerFormScreen> {
         field: field,
         file: localFile.file,
       );
+      if (!mounted) return;
       setState(() {
         localFile.uploaded = uploaded;
         localFile.isUploading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         localFile.isUploading = false;
         localFile.error = _friendlyError(e);
@@ -144,26 +148,26 @@ class _BorrowerFormScreenState extends ConsumerState<BorrowerFormScreen> {
 
     try {
       await ref.read(borrowerControllerProvider.notifier).submit(request);
-      if (mounted) {
-        context.go(AppRoutes.borrower);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dossier soumis avec succès !'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
+      if (!mounted) return;
+      context.go(AppRoutes.borrower);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dossier soumis avec succès !'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     } on UnauthorizedException {
-      if (mounted) {
-        ref.read(authControllerProvider.notifier).logout();
-        context.go(AppRoutes.login);
-      }
+      if (!mounted) return;
+      ref.read(authControllerProvider.notifier).logout();
+      context.go(AppRoutes.login);
     } on ForbiddenException catch (e) {
+      if (!mounted) return;
       setState(() {
         _submitError = e.message;
         _isSubmitting = false;
       });
     } on ValidationException catch (e) {
+      if (!mounted) return;
       // Preserve local form content — do NOT mark as submitted.
       final errors = <String, List<String>>{};
       if (e.errors != null) {
@@ -179,12 +183,14 @@ class _BorrowerFormScreenState extends ConsumerState<BorrowerFormScreen> {
         _isSubmitting = false;
       });
     } on NetworkException {
+      if (!mounted) return;
       // Network error: allow retry, do NOT deduce submission succeeded.
       setState(() {
         _submitError = 'Erreur réseau. Vérifiez votre connexion et réessayez.';
         _isSubmitting = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _submitError = 'Une erreur inattendue est survenue.';
         _isSubmitting = false;
