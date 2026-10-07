@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_providers.dart';
+import '../../../../core/session/session_manager.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -73,6 +74,10 @@ class AuthController extends _$AuthController {
 
       final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
       final user = await getCurrentUser();
+
+      // Reset any previously cached session data so the new user starts clean
+      resetUserSessionState(ref);
+
       Future.microtask(() {
         ref
             .read(notificationsControllerProvider.notifier)
@@ -93,9 +98,10 @@ class AuthController extends _$AuthController {
       // 2. Clear remote and local auth session
       final logoutUseCase = ref.read(logoutUseCaseProvider);
       await logoutUseCase();
-      // Invalidate borrower state so it doesn't leak across sessions.
-      // Use a delayed invalidation to avoid provider not yet mounted errors.
-      ref.invalidateSelf();
+
+      // 3. Centralized reset of all private user session scopes
+      resetUserSessionState(ref);
+
       return null;
     });
   }
