@@ -26,6 +26,8 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
   String? _error;
   String? _selectedStatus;
 
+  int _activeRequestId = 0;
+
   @override
   void initState() {
     super.initState();
@@ -34,11 +36,14 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
   }
 
   Future<void> _loadPage(int page, {bool isRefresh = false}) async {
+    final int currentRequestId = ++_activeRequestId;
+    final String? requestedStatus = _selectedStatus;
+
     if (page == 1) {
       setState(() {
         _isLoading = true;
         _error = null;
-        if (isRefresh) _loans.clear();
+        if (isRefresh || _loans.isNotEmpty) _loans.clear();
       });
     } else {
       setState(() {
@@ -53,30 +58,41 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
       final res = await repo.getLoansPage(
         page: page,
         perPage: 10,
-        status: _selectedStatus,
+        status: requestedStatus,
         borrowerUserId: currentUser?.id,
       );
 
-      if (mounted) {
-        setState(() {
-          if (page == 1) {
-            _loans.clear();
+      if (!mounted) return;
+      if (currentRequestId != _activeRequestId || requestedStatus != _selectedStatus) {
+        return;
+      }
+
+      setState(() {
+        if (page == 1) {
+          _loans.clear();
+        }
+        final existingIds = _loans.map((l) => l.id).toSet();
+        for (final loan in res.data) {
+          if (!existingIds.contains(loan.id)) {
+            _loans.add(loan);
           }
-          _loans.addAll(res.data);
-          _currentPage = res.currentPage;
-          _lastPage = res.lastPage;
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
-      }
+        }
+        _currentPage = res.currentPage;
+        _lastPage = res.lastPage;
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
+      if (!mounted) return;
+      if (currentRequestId != _activeRequestId || requestedStatus != _selectedStatus) {
+        return;
       }
+
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
     }
   }
 
@@ -298,7 +314,7 @@ class _LoansListScreenState extends ConsumerState<LoansListScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
-        if (selected) {
+        if (selected && _selectedStatus != status) {
           setState(() {
             _selectedStatus = status;
           });
