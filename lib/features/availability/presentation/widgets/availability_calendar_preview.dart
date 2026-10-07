@@ -44,7 +44,11 @@ class _AvailabilityCalendarPreviewState
     final startStr = DateFormat('yyyy-MM-dd').format(_focusedMonth);
     // Laravel uses exclusive end [start, end). To include the entire last day of the month,
     // request the 1st day of the following month:
-    final firstDayNextMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+    final firstDayNextMonth = DateTime(
+      _focusedMonth.year,
+      _focusedMonth.month + 1,
+      1,
+    );
     final endStr = DateFormat('yyyy-MM-dd').format(firstDayNextMonth);
 
     final windowAsync = ref.watch(
@@ -68,7 +72,10 @@ class _AvailabilityCalendarPreviewState
                 onPressed: _previousMonth,
               ),
               Text(
-                DateFormat('MMMM yyyy', 'fr_FR').format(_focusedMonth).toUpperCase(),
+                DateFormat(
+                  'MMMM yyyy',
+                  'fr_FR',
+                ).format(_focusedMonth).toUpperCase(),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -146,7 +153,11 @@ class _AvailabilityCalendarPreviewState
 
   Widget _buildGrid(List<LoanableAvailabilityInterval> unavailableIntervals) {
     final firstDayOfWeek = _focusedMonth.weekday; // 1 = Monday, 7 = Sunday
-    final daysInMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    final daysInMonth = DateTime(
+      _focusedMonth.year,
+      _focusedMonth.month + 1,
+      0,
+    ).day;
     final totalCells = ((daysInMonth + firstDayOfWeek - 1) / 7).ceil() * 7;
 
     return GridView.builder(
@@ -165,12 +176,20 @@ class _AvailabilityCalendarPreviewState
           return const SizedBox.shrink();
         }
 
-        final dayStart = DateTime(_focusedMonth.year, _focusedMonth.month, dayNumber, 0, 0, 0);
+        final dayStart = DateTime(
+          _focusedMonth.year,
+          _focusedMonth.month,
+          dayNumber,
+          0,
+          0,
+          0,
+        );
         final dayEnd = dayStart.add(const Duration(days: 1));
 
         // Check if the 24-hour day overlaps with any unavailable interval [interval.start, interval.end)
         final isUnavailable = unavailableIntervals.any((interval) {
-          return interval.start.isBefore(dayEnd) && interval.end.isAfter(dayStart);
+          return interval.start.isBefore(dayEnd) &&
+              interval.end.isAfter(dayStart);
         });
 
         return Container(

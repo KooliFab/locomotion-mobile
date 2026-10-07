@@ -149,8 +149,11 @@ class AvailabilityRule {
     // Intermediate days
     var cur = startDate.add(const Duration(days: 1));
     int partIndex = 1;
-    while (DateTime(cur.year, cur.month, cur.day)
-        .isBefore(DateTime(endDate.year, endDate.month, endDate.day))) {
+    while (DateTime(
+      cur.year,
+      cur.month,
+      cur.day,
+    ).isBefore(DateTime(endDate.year, endDate.month, endDate.day))) {
       final curStr = formatDate(cur);
       rules.add(
         AvailabilityRule(
@@ -221,7 +224,9 @@ class AvailabilityRule {
       return '${rawJson['group_summary']} (bloc continu)';
     }
 
-    final timeSuffix = isAllDay ? ' (toute la journée)' : ' ($startTime à $endTime)';
+    final timeSuffix = isAllDay
+        ? ' (toute la journée)'
+        : ' ($startTime à $endTime)';
 
     if (type == 'weekdays') {
       final days = scope.map(_dayCodeToFrench).join(', ');
@@ -244,9 +249,11 @@ class AvailabilityRule {
 
   factory AvailabilityRule.fromJson(Map<String, dynamic> json) {
     final type = (json['type'] as String?) ?? 'dates';
-    final isKnown = type == 'dates' || type == 'dateRange' || type == 'weekdays';
+    final isKnown =
+        type == 'dates' || type == 'dateRange' || type == 'weekdays';
 
-    final scopeList = (json['scope'] as List?)?.map((e) => e.toString()).toList() ?? [];
+    final scopeList =
+        (json['scope'] as List?)?.map((e) => e.toString()).toList() ?? [];
 
     return AvailabilityRule(
       id: json['id']?.toString() ?? _generateUuidV4(),

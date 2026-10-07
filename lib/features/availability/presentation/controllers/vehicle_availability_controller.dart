@@ -10,10 +10,11 @@ import '../../domain/repositories/availability_repository.dart';
 import '../../../fleet/presentation/controllers/fleet_controller.dart';
 import '../../../loanables/presentation/controllers/loanables_controller.dart';
 
-final availabilityRemoteDataSourceProvider = Provider<AvailabilityRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return AvailabilityRemoteDataSourceImpl(apiClient);
-});
+final availabilityRemoteDataSourceProvider =
+    Provider<AvailabilityRemoteDataSource>((ref) {
+      final apiClient = ref.watch(apiClientProvider);
+      return AvailabilityRemoteDataSourceImpl(apiClient);
+    });
 
 final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
   final ds = ref.watch(availabilityRemoteDataSourceProvider);
@@ -22,9 +23,9 @@ final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
 
 final vehicleAvailabilityConfigProvider =
     FutureProvider.family<AvailabilityConfig, int>((ref, vehicleId) async {
-  final repo = ref.watch(availabilityRepositoryProvider);
-  return repo.getAvailabilityConfig(vehicleId);
-});
+      final repo = ref.watch(availabilityRepositoryProvider);
+      return repo.getAvailabilityConfig(vehicleId);
+    });
 
 class VehicleAvailabilityState {
   final bool isSubmitting;
@@ -68,8 +69,9 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
     String? ruleToReplaceId,
     String? groupToReplaceId,
   }) async {
-    final currentConfig =
-        await ref.read(vehicleAvailabilityConfigProvider(vehicleId).future);
+    final currentConfig = await ref.read(
+      vehicleAvailabilityConfigProvider(vehicleId).future,
+    );
 
     final List<AvailabilityRule> candidateRules = [];
 
@@ -112,11 +114,16 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
   }) async {
     // Re-entrancy guard
     if (state.isSubmitting) return false;
-    state = state.copyWith(isSubmitting: true, errorMessage: null, activeConflicts: []);
+    state = state.copyWith(
+      isSubmitting: true,
+      errorMessage: null,
+      activeConflicts: [],
+    );
 
     try {
-      final currentConfig =
-          await ref.read(vehicleAvailabilityConfigProvider(vehicleId).future);
+      final currentConfig = await ref.read(
+        vehicleAvailabilityConfigProvider(vehicleId).future,
+      );
 
       final List<AvailabilityRule> updatedRules = [];
       for (final r in currentConfig.rules) {
@@ -168,10 +175,7 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
       return false;
     } on AvailabilityOptimisticLockException catch (e) {
       _invalidateRelatedProviders();
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: e.message);
       return false;
     } catch (e) {
       state = state.copyWith(
@@ -185,10 +189,10 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
   Future<bool> addRule(AvailabilityRule newRule) => saveRules([newRule]);
 
   Future<bool> updateRule(AvailabilityRule updatedRule) => saveRules(
-        [updatedRule],
-        ruleToReplaceId: updatedRule.id,
-        groupToReplaceId: updatedRule.groupId,
-      );
+    [updatedRule],
+    ruleToReplaceId: updatedRule.id,
+    groupToReplaceId: updatedRule.groupId,
+  );
 
   Future<bool> deleteRule(String ruleId, {String? groupId}) async {
     // Re-entrancy guard
@@ -196,8 +200,9 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
     state = state.copyWith(isSubmitting: true, errorMessage: null);
 
     try {
-      final currentConfig =
-          await ref.read(vehicleAvailabilityConfigProvider(vehicleId).future);
+      final currentConfig = await ref.read(
+        vehicleAvailabilityConfigProvider(vehicleId).future,
+      );
 
       final updatedRules = currentConfig.rules.where((r) {
         if (r.id == ruleId) return false;
@@ -217,12 +222,16 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
       _invalidateRelatedProviders();
       state = state.copyWith(isSubmitting: false);
       return true;
-    } on AvailabilityOptimisticLockException catch (e) {
-      _invalidateRelatedProviders();
+    } on AvailabilityConflictException catch (e) {
       state = state.copyWith(
         isSubmitting: false,
+        activeConflicts: e.conflicts,
         errorMessage: e.message,
       );
+      return false;
+    } on AvailabilityOptimisticLockException catch (e) {
+      _invalidateRelatedProviders();
+      state = state.copyWith(isSubmitting: false, errorMessage: e.message);
       return false;
     } catch (e) {
       state = state.copyWith(
@@ -245,6 +254,8 @@ class VehicleAvailabilityNotifier extends Notifier<VehicleAvailabilityState> {
 }
 
 final vehicleAvailabilityControllerProvider =
-    NotifierProvider.family<VehicleAvailabilityNotifier, VehicleAvailabilityState, int>(
-  (vehicleId) => VehicleAvailabilityNotifier(vehicleId),
-);
+    NotifierProvider.family<
+      VehicleAvailabilityNotifier,
+      VehicleAvailabilityState,
+      int
+    >((vehicleId) => VehicleAvailabilityNotifier(vehicleId));
