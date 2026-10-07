@@ -45,10 +45,42 @@ android {
         }
     }
 
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = java.util.Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+    }
+
+    signingConfigs {
+        create("release") {
+            val keyPath = System.getenv("ANDROID_KEYSTORE_PATH")
+                ?: keystoreProperties.getProperty("storeFile")
+            val keyPasswordEnv = System.getenv("ANDROID_KEY_PASSWORD")
+                ?: keystoreProperties.getProperty("keyPassword")
+            val storePasswordEnv = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                ?: keystoreProperties.getProperty("storePassword")
+            val keyAliasEnv = System.getenv("ANDROID_KEY_ALIAS")
+                ?: keystoreProperties.getProperty("keyAlias")
+
+            if (!keyPath.isNullOrEmpty() && file(keyPath).exists()) {
+                storeFile = file(keyPath)
+                storePassword = storePasswordEnv
+                keyAlias = keyAliasEnv
+                keyPassword = keyPasswordEnv
+            } else if (System.getenv("ALLOW_DEBUG_SIGNING") == "true") {
+                // Explicit opt-in only (CI smoke builds): never ship this artifact.
+                val debugConfig = getByName("debug")
+                storeFile = debugConfig.storeFile
+                storePassword = debugConfig.storePassword
+                keyAlias = debugConfig.keyAlias
+                keyPassword = debugConfig.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
@@ -61,4 +93,13 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+val hasGoogleServicesJson = file("google-services.json").exists() ||
+    file("src/dev/google-services.json").exists() ||
+    file("src/staging/google-services.json").exists() ||
+    file("src/prod/google-services.json").exists()
+
+if (hasGoogleServicesJson) {
+    apply(plugin = "com.google.gms.google-services")
 }

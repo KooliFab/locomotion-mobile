@@ -40,7 +40,13 @@ jobs:
         run: flutter test --coverage
 
       - name: Build Staging APK
-        run: flutter build apk --flavor staging --debug
+        env:
+          # Smoke build only: signed with the debug key, not distributable.
+          ALLOW_DEBUG_SIGNING: 'true'
+        run: flutter build apk --flavor staging -t lib/main_staging.dart --dart-define=APP_ENV=staging
 
       - name: Build Production APK
-        run: flutter build apk --flavor prod --debug
+        env:
+          # Smoke build only: signed with the debug key, not distributable.
+          ALLOW_DEBUG_SIGNING: 'true'
+        run: flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=APP_ENV=prod

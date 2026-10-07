@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
+import 'core/config/env.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/notifications/domain/entities/push_payload.dart';
@@ -15,6 +16,9 @@ import 'features/notifications/presentation/widgets/foreground_notification_bann
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Validate configuration for current environment
+  AppConfig.validate();
+
   // Initialise locale data for intl DateFormat
   try {
     await initializeDateFormatting('fr_CA', null);
@@ -23,9 +27,14 @@ void main() async {
     debugPrint('[intl] initializeDateFormatting failed: $e');
   }
 
-  // Initialise Firebase if available (non-fatal if missing config or in test)
+  // Initialise Firebase with explicit environment options if provided, or native files
   try {
-    await Firebase.initializeApp();
+    final options = AppConfig.firebaseOptions;
+    if (options != null) {
+      await Firebase.initializeApp(options: options);
+    } else {
+      await Firebase.initializeApp();
+    }
   } catch (e) {
     debugPrint('[Firebase] initializeApp skipped or failed: $e');
   }

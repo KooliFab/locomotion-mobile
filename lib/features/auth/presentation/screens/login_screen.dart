@@ -246,98 +246,100 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                if (AppConfig.environment == Environment.dev) ...[
+                  const SizedBox(height: 12),
 
-                // Server URL selector
-                Consumer(
-                  builder: (context, ref, child) {
-                    final currentBaseUrl = ref.watch(apiBaseUrlProvider);
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.dns_rounded,
-                                size: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'API: $currentBaseUrl',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                  // Server URL selector
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final currentBaseUrl = ref.watch(apiBaseUrlProvider);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.dns_rounded,
+                                  size: 14,
+                                  color: AppColors.textSecondary,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            children: [
-                              _buildUrlChip(
-                                ref,
-                                'Wi-Fi (192.168.0.16)',
-                                AppConfig.macLocalIpUrl,
-                                currentBaseUrl,
-                              ),
-                              _buildUrlChip(
-                                ref,
-                                'USB adb (127.0.0.1)',
-                                AppConfig.usbReverseUrl,
-                                currentBaseUrl,
-                              ),
-                              _buildUrlChip(
-                                ref,
-                                'Émulateur (10.0.2.2)',
-                                AppConfig.androidEmulatorUrl,
-                                currentBaseUrl,
-                              ),
-                              _buildUrlChip(
-                                ref,
-                                'Staging',
-                                AppConfig.stagingUrl,
-                                currentBaseUrl,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'API: $currentBaseUrl',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              children: [
+                                _buildUrlChip(
+                                  ref,
+                                  'Wi-Fi (192.168.0.16)',
+                                  AppConfig.macLocalIpUrl,
+                                  currentBaseUrl,
+                                ),
+                                _buildUrlChip(
+                                  ref,
+                                  'USB adb (127.0.0.1)',
+                                  AppConfig.usbReverseUrl,
+                                  currentBaseUrl,
+                                ),
+                                _buildUrlChip(
+                                  ref,
+                                  'Émulateur (10.0.2.2)',
+                                  AppConfig.androidEmulatorUrl,
+                                  currentBaseUrl,
+                                ),
+                                _buildUrlChip(
+                                  ref,
+                                  'Staging',
+                                  AppConfig.stagingUrl,
+                                  currentBaseUrl,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
 
-                // Temporary backend test request button
-                OutlinedButton.icon(
-                  onPressed: () => ApiTestDialog.show(context),
-                  icon: const Icon(Icons.troubleshoot_rounded, size: 18),
-                  label: const Text('Tester requête API backend'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.secondary,
-                    side: const BorderSide(
-                      color: AppColors.secondary,
-                      width: 1.2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  // Temporary backend test request button
+                  OutlinedButton.icon(
+                    onPressed: () => ApiTestDialog.show(context),
+                    icon: const Icon(Icons.troubleshoot_rounded, size: 18),
+                    label: const Text('Tester requête API backend'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.secondary,
+                      side: const BorderSide(
+                        color: AppColors.secondary,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 16),
 
                 // Register Link

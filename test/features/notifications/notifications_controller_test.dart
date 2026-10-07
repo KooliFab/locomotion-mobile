@@ -385,9 +385,7 @@ void main() {
           notificationsControllerProvider.notifier,
         );
 
-        await controller.initialize(
-          onOpenPayload: (_) {},
-        );
+        await controller.initialize(onOpenPayload: (_) {});
 
         const payload = PushPayload(
           schemaVersion: '1',

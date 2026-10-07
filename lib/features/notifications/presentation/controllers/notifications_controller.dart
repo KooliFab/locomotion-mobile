@@ -11,7 +11,8 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../loans/presentation/controllers/loans_controller.dart';
 import '../../data/datasources/push_tokens_remote_data_source.dart';
 import '../../data/repositories/push_tokens_repository_impl.dart';
-import '../../data/services/fake_push_notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../../data/services/disabled_push_notification_service.dart';
 import '../../data/services/firebase_push_notification_service.dart';
 import '../../domain/entities/push_payload.dart';
 import '../../domain/repositories/push_tokens_repository.dart';
@@ -22,12 +23,17 @@ part 'notifications_controller.g.dart';
 @Riverpod(keepAlive: true)
 PushNotificationService pushNotificationService(Ref ref) {
   try {
-    return FirebasePushNotificationService();
-  } catch (e) {
-    debugPrint(
-      '[PushNotification] Firebase unavailable, fallback to FakePushNotificationService: $e',
+    if (Firebase.apps.isNotEmpty) {
+      return FirebasePushNotificationService();
+    }
+    return DisabledPushNotificationService(
+      reason: 'Aucune instance Firebase native initialisée.',
     );
-    return FakePushNotificationService();
+  } catch (e) {
+    debugPrint('[PushNotification] Firebase indisponible: $e');
+    return DisabledPushNotificationService(
+      reason: 'Erreur d\'initialisation Firebase: $e',
+    );
   }
 }
 
