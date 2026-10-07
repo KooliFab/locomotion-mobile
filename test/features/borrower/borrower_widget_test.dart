@@ -76,15 +76,23 @@ class _FakeFilePickerPlatform extends FilePickerPlatform
 class _FakeBorrowerRepository implements BorrowerRepository {
   final Exception? uploadError;
   final Exception? submitError;
+  final Completer<UploadedFileRef>? uploadCompleter;
   final List<BorrowerSubmissionRequest> submittedRequests = [];
 
-  _FakeBorrowerRepository({this.uploadError, this.submitError});
+  _FakeBorrowerRepository({
+    this.uploadError,
+    this.submitError,
+    this.uploadCompleter,
+  });
 
   @override
   Future<UploadedFileRef> uploadFile({
     required String field,
     required File file,
   }) async {
+    if (uploadCompleter != null) {
+      return uploadCompleter!.future;
+    }
     if (uploadError != null) throw uploadError!;
     return UploadedFileRef(
       id: field == 'gaa' ? 101 : 102,
@@ -523,6 +531,128 @@ void main() {
           find.widgetWithText(ElevatedButton, 'Soumettre le dossier'),
         );
         expect(submitButton.onPressed, isNull);
+      },
+    );
+
+    testWidgets(
+      'R24: navigating away while file upload is in flight completes gracefully without setState lifecycle errors',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final fakePicker = _FakeFilePickerPlatform(
+          fileToReturn: FakePlatformFile(
+            name: 'permis.pdf',
+            path: dummyFile.path,
+          ),
+        );
+        FilePickerPlatform.instance = fakePicker;
+
+        final completer = Completer<UploadedFileRef>();
+        final fakeRepo = _FakeBorrowerRepository(
+          uploadCompleter: completer,
+        );
+
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            child: const BorrowerFormScreen(),
+            borrowerRepo: fakeRepo,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Start file pick and upload
+        await tester.tap(
+          find.widgetWithText(OutlinedButton, 'Ajouter un fichier GAA'),
+        );
+        await tester.pump(); // initiates _pickFile and starts _uploadFile
+
+        // Verify file was added locally and is uploading
+        expect(find.text('permis.pdf'), findsOneWidget);
+
+        // User navigates away / unmounts the form screen before upload completes
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            child: const Scaffold(body: Text('Different Screen')),
+            borrowerRepo: fakeRepo,
+          ),
+        );
+        await tester.pump();
+
+        // Now future completes after the screen is unmounted
+        completer.complete(
+          const UploadedFileRef(
+            id: 101,
+            field: 'gaa',
+            originalFilename: 'permis.pdf',
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify no exception was thrown and we are on the new screen
+        expect(find.text('Different Screen'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'R24: navigating away while file upload fails completes gracefully without setState lifecycle errors',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final fakePicker = _FakeFilePickerPlatform(
+          fileToReturn: FakePlatformFile(
+            name: 'permis.pdf',
+            path: dummyFile.path,
+          ),
+        );
+        FilePickerPlatform.instance = fakePicker;
+
+        final completer = Completer<UploadedFileRef>();
+        final fakeRepo = _FakeBorrowerRepository(
+          uploadCompleter: completer,
+        );
+
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            child: const BorrowerFormScreen(),
+            borrowerRepo: fakeRepo,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Start file pick and upload
+        await tester.tap(
+          find.widgetWithText(OutlinedButton, 'Ajouter un fichier GAA'),
+        );
+        await tester.pump();
+
+        // Unmount
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            child: const Scaffold(body: Text('Different Screen')),
+            borrowerRepo: fakeRepo,
+          ),
+        );
+        await tester.pump();
+
+        // Future completes with an error while unmounted
+        completer.completeError(
+          const NetworkException(message: 'Upload failed after unmount'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Different Screen'), findsOneWidget);
+        expect(tester.takeException(), isNull);
       },
     );
   });
