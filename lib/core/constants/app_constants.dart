@@ -77,4 +77,6 @@ class StorageKeys {
       'locomotion_departure_draft_${userId}_$loanId';
   static String returnDraft(int userId, int loanId) =>
       'locomotion_return_draft_${userId}_$loanId';
+  static String pendingPhotoCapture(int userId) =>
+      'locomotion_pending_photo_capture_$userId';
 }

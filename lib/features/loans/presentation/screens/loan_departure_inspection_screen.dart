@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/services/inspection_photo_service.dart';
+import '../../../../core/services/photo_capture_coordinator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/entities/departure_draft.dart';
@@ -73,13 +74,18 @@ class _LoanDepartureInspectionScreenState
     // One-time initialization of the draft
     if (!_initialized) {
       _initialized = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.initialize(
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await controller.initialize(
           userId: currentUser?.id ?? 0,
           loanId: widget.loanId,
           requiresMileage: requiresMileage,
           isMotorized: isMotorized,
           initialOdometer: loan.mileageStart,
+        );
+        await _recoverLostCapture(
+          userId: currentUser?.id,
+          requiresMileage: requiresMileage,
+          controller: controller,
         );
       });
     }
@@ -586,13 +592,47 @@ class _LoanDepartureInspectionScreenState
     );
   }
 
+  /// Re-attaches a photo captured right before Android destroyed the activity.
+  Future<void> _recoverLostCapture({
+    required int? userId,
+    required bool requiresMileage,
+    required LoanDepartureController controller,
+  }) async {
+    if (userId == null || !mounted) return;
+    final recovered = await ref
+        .read(photoCaptureCoordinatorProvider)
+        .recover(
+          userId: userId,
+          loanId: widget.loanId,
+          phase: PhotoCapturePhase.departure,
+        );
+    if (recovered == null || !mounted) return;
+
+    final file = recovered.file;
+    if (file != null) {
+      await controller.attachAndUploadPhoto(
+        field: recovered.context.field,
+        file: file,
+        requiresMileage: recovered.context.requiresMileage,
+      );
+    } else if (recovered.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(recovered.errorMessage!),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
   Future<void> _pickPhoto(
     String field,
     bool isMotorized,
     bool requiresMileage,
     LoanDepartureController controller,
   ) async {
-    final photoService = ref.read(inspectionPhotoServiceProvider);
+    final coordinator = ref.read(photoCaptureCoordinatorProvider);
+    final userId = ref.read(authControllerProvider).value?.id;
 
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -616,7 +656,21 @@ class _LoanDepartureInspectionScreenState
 
     if (source == null) return;
 
-    final result = await photoService.capturePhoto(source: source);
+    final result = userId == null
+        ? await ref
+              .read(inspectionPhotoServiceProvider)
+              .capturePhoto(source: source)
+        : await coordinator.capture(
+            context: PendingPhotoCapture(
+              userId: userId,
+              loanId: widget.loanId,
+              phase: PhotoCapturePhase.departure,
+              field: field,
+              requiresMileage: requiresMileage,
+              startedAt: DateTime.now(),
+            ),
+            source: source,
+          );
     if (!mounted) return;
 
     switch (result) {
