@@ -1,20 +1,18 @@
+import '../entities/invoice_summary.dart';
 import '../entities/loan.dart';
-import '../entities/payment_intent_response.dart';
 import '../entities/payment_method_model.dart';
 
 abstract class LoanPaymentRepository {
-  Future<PaymentIntentResponse> createPaymentIntent({
+  Future<InvoiceSummary?> estimateBorrowerInvoice({
     required int loanId,
-    int? platformTipCents,
-    bool useBalance = true,
+    required double platformTip,
   });
 
-  Future<Loan> prepay({
-    required int loanId,
-    int? platformTipCents,
-    String? contributionPaymentIntentId,
-    String? depositPaymentIntentId,
-  });
+  Future<double> addToBalance({required double amount, int? paymentMethodId});
+
+  Future<Loan> prepay({required int loanId, required double platformTip});
+
+  Future<Loan> pay({required int loanId, required double platformTip});
 
   Future<List<PaymentMethodModel>> getPaymentMethods();
 

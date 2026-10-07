@@ -51,6 +51,8 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   actualDistance: (json['actual_distance'] as num?)?.toInt(),
   mileageStart: (json['mileage_start'] as num?)?.toInt(),
   mileageEnd: (json['mileage_end'] as num?)?.toInt(),
+  requiresMileage: json['requires_mileage'] as bool?,
+  requiresDetailedMileage: json['requires_detailed_mileage'] as bool?,
   alternativeTo: json['alternative_to'] as String?,
   alternativeToOther: json['alternative_to_other'] as String?,
   comment: json['comment'] as String?,
@@ -62,24 +64,23 @@ _Loan _$LoanFromJson(Map<String, dynamic> json) => _Loan(
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
-  depositStatus: json['deposit_status'] as String?,
-  depositAuthorizedCents: (json['deposit_authorized_cents'] as num?)?.toInt(),
-  depositExpiresAt: json['deposit_expires_at'] == null
-      ? null
-      : DateTime.parse(json['deposit_expires_at'] as String),
-  departureInspectionCompleted:
-      json['departure_inspection_completed'] as bool? ?? false,
-  returnInspectionCompleted:
-      json['return_inspection_completed'] as bool? ?? false,
-  paidAt: json['paid_at'] == null
-      ? null
-      : DateTime.parse(json['paid_at'] as String),
-  depositReleasedAt: json['deposit_released_at'] == null
-      ? null
-      : DateTime.parse(json['deposit_released_at'] as String),
   extensionDurationInMinutes: (json['extension_duration_in_minutes'] as num?)
       ?.toInt(),
-  inspections: json['inspections'] as Map<String, dynamic>?,
+  platformTip: (json['platform_tip'] as num?)?.toDouble(),
+  desiredContribution: (json['desired_contribution'] as num?)?.toDouble(),
+  borrowerMayContribute: json['borrower_may_contribute'] as bool? ?? false,
+  borrowerMustPayCompensation:
+      json['borrower_must_pay_compensation'] as bool? ?? false,
+  borrowerMustPayInsurance:
+      json['borrower_must_pay_insurance'] as bool? ?? false,
+  applicableAmountTypes:
+      json['applicable_amount_types'] as Map<String, dynamic>?,
+  canAddExpenses: json['can_add_expenses'] as bool? ?? false,
+  expensesAmount: (json['expenses_amount'] as num?)?.toDouble(),
+  mileageStartImage: json['mileage_start_image'] as Map<String, dynamic>?,
+  mileageEndImage: json['mileage_end_image'] as Map<String, dynamic>?,
+  expenseImage: json['expense_image'] as Map<String, dynamic>?,
+  borrowerInvoiceJson: json['borrower_invoice'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
@@ -113,18 +114,24 @@ Map<String, dynamic> _$LoanToJson(_Loan instance) => <String, dynamic>{
   'actual_distance': instance.actualDistance,
   'mileage_start': instance.mileageStart,
   'mileage_end': instance.mileageEnd,
+  'requires_mileage': instance.requiresMileage,
+  'requires_detailed_mileage': instance.requiresDetailedMileage,
   'alternative_to': instance.alternativeTo,
   'alternative_to_other': instance.alternativeToOther,
   'comment': instance.comment,
   'comments': instance.comments,
   'created_at': instance.createdAt?.toIso8601String(),
-  'deposit_status': instance.depositStatus,
-  'deposit_authorized_cents': instance.depositAuthorizedCents,
-  'deposit_expires_at': instance.depositExpiresAt?.toIso8601String(),
-  'departure_inspection_completed': instance.departureInspectionCompleted,
-  'return_inspection_completed': instance.returnInspectionCompleted,
-  'paid_at': instance.paidAt?.toIso8601String(),
-  'deposit_released_at': instance.depositReleasedAt?.toIso8601String(),
   'extension_duration_in_minutes': instance.extensionDurationInMinutes,
-  'inspections': instance.inspections,
+  'platform_tip': instance.platformTip,
+  'desired_contribution': instance.desiredContribution,
+  'borrower_may_contribute': instance.borrowerMayContribute,
+  'borrower_must_pay_compensation': instance.borrowerMustPayCompensation,
+  'borrower_must_pay_insurance': instance.borrowerMustPayInsurance,
+  'applicable_amount_types': instance.applicableAmountTypes,
+  'can_add_expenses': instance.canAddExpenses,
+  'expenses_amount': instance.expensesAmount,
+  'mileage_start_image': instance.mileageStartImage,
+  'mileage_end_image': instance.mileageEndImage,
+  'expense_image': instance.expenseImage,
+  'borrower_invoice': instance.borrowerInvoiceJson,
 };

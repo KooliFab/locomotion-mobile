@@ -8,10 +8,10 @@ import '../../../../core/widgets/async_value_widget.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_status.dart';
-import '../controllers/loan_settle_controller.dart';
+import '../controllers/loan_payment_controller.dart';
 import '../controllers/loans_controller.dart';
 import '../widgets/loan_comments_section.dart';
-import '../widgets/loan_prepayment_modal.dart';
+import '../widgets/loan_payment_sheet.dart';
 import '../widgets/loan_status_helper.dart';
 import '../widgets/loan_timeline_widget.dart';
 import '../widgets/loan_extension_bottom_sheet.dart';
@@ -33,10 +33,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
   bool _isCommenting = false;
   bool _isDeciding = false;
   bool _isValidating = false;
-  bool _isSettling = false;
+  bool _isEndingEarly = false;
   bool _isDecidingExtension = false;
   String? _screenError;
-
 
   Future<void> _handleOwnerDecision(Loan loan, OwnerDecisionType type) async {
     setState(() {
@@ -431,328 +430,62 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
     }
   }
 
-  Future<bool?> _showFinancialBreakdownDialog(BuildContext context, Loan loan) {
-    final distanceKm = loan.actualDistance ??
-        (loan.mileageEnd != null && loan.mileageStart != null
-            ? (loan.mileageEnd! - loan.mileageStart!).clamp(0, 999999)
-            : (loan.estimatedDistance ?? 0));
-
-    final effectiveDuration = loan.actualReturnAt != null
-        ? loan.actualReturnAt!.difference(loan.departureAt)
-        : Duration(minutes: loan.durationInMinutes);
-    final durationHours = (effectiveDuration.inMinutes / 60.0).toStringAsFixed(1);
-
-    final finalTotal = loan.borrowerTotal != null ? loan.borrowerTotal!.abs() : 0.0;
-    final isPrepaid = loan.prepaidAt != null;
-
-    // Breakdown subtotal and provincial/federal taxes (Quebec TPS 5% + TVQ 9.975%)
-    final subtotal = finalTotal > 0 ? (finalTotal / 1.14975) : 0.0;
-    final tps = subtotal * 0.05;
-    final tvq = subtotal * 0.09975;
-
-    // Prepayment & balance reconciliation
-    final prepaidAmount = isPrepaid ? finalTotal : 0.0;
-    final balanceDue = (finalTotal - prepaidAmount).clamp(0.0, 999999.0);
-    final refund = (prepaidAmount - finalTotal).clamp(0.0, 999999.0);
-
-    final depositDollars = loan.depositAuthorizedDollars ?? 250.00;
-
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Règlement final',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Récapitulatif financier',
-                    style: TextStyle(fontSize: 13, color: Colors.blueGrey),
-                  ),
-                ],
-              ),
-            ),
-          ],
+  Future<void> _handlePayment(Loan loan, LoanPaymentAction action) async {
+    final done = await LoanPaymentSheet.show(context, loan, action);
+    if (done != true || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          action == LoanPaymentAction.prepay
+              ? 'Réservation prépayée.'
+              : 'Paiement effectué, emprunt clôturé.',
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Vérifiez le relevé d\'utilisation réel avant de confirmer la clôture et la libération de la caution.',
-                style: TextStyle(fontSize: 13, color: Colors.blueGrey),
-              ),
-              const SizedBox(height: 16),
-
-              // Utilization details
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    _buildBreakdownRow('Distance réelle parcourue', '$distanceKm km'),
-                    const SizedBox(height: 6),
-                    _buildBreakdownRow('Durée d\'utilisation réelle', '$durationHours h'),
-                    if (loan.mileageStart != null && loan.mileageEnd != null) ...[
-                      const SizedBox(height: 6),
-                      _buildBreakdownRow('Compteur (départ / retour)', '${loan.mileageStart} / ${loan.mileageEnd} km'),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Financial breakdown (Subtotal, TPS, TVQ, Total)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    _buildBreakdownRow('Contribution d\'utilisation (HT)', '${subtotal.toStringAsFixed(2)} \$'),
-                    const SizedBox(height: 4),
-                    _buildBreakdownRow('TPS (5 %)', '${tps.toStringAsFixed(2)} \$'),
-                    const SizedBox(height: 4),
-                    _buildBreakdownRow('TVQ (9,975 %)', '${tvq.toStringAsFixed(2)} \$'),
-                    const Divider(height: 14),
-                    _buildBreakdownRow(
-                      'Total réel du prêt',
-                      '${finalTotal.toStringAsFixed(2)} \$',
-                      isBold: true,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Reconciliation card
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isPrepaid ? Colors.blue.shade50 : Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isPrepaid ? Colors.blue.shade200 : Colors.amber.shade300,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          isPrepaid ? Icons.check_circle_outline : Icons.info_outline,
-                          size: 18,
-                          color: isPrepaid ? Colors.blue.shade800 : Colors.amber.shade900,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isPrepaid ? 'Prépaiement Stripe réconcilié' : 'Règlement final direct',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: isPrepaid ? Colors.blue.shade900 : Colors.amber.shade900,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (isPrepaid) ...[
-                      _buildBreakdownRow('Montant déjà prépayé', '${prepaidAmount.toStringAsFixed(2)} \$'),
-                      const SizedBox(height: 4),
-                      if (balanceDue > 0)
-                        _buildBreakdownRow(
-                          'Reliquat à régler',
-                          '${balanceDue.toStringAsFixed(2)} \$',
-                          isBold: true,
-                          highlightColor: AppColors.danger,
-                        )
-                      else if (refund > 0)
-                        _buildBreakdownRow(
-                          'Trop-perçu à créditer',
-                          '${refund.toStringAsFixed(2)} \$',
-                          isBold: true,
-                          highlightColor: AppColors.success,
-                        )
-                      else
-                        _buildBreakdownRow('Reliquat / Solde dû', '0,00 \$', isBold: true),
-                    ] else ...[
-                      _buildBreakdownRow(
-                        'Montant à débiter du solde',
-                        '${finalTotal.toStringAsFixed(2)} \$',
-                        isBold: true,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Caution / Deposit release guarantee
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.shield_outlined, color: Colors.green.shade800, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Caution bancaire Stripe',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: Colors.green,
-                            ),
-                          ),
-                          Text(
-                            'Libération intégrale de l\'empreinte (${depositDollars.toStringAsFixed(0)} \$ CAD)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green.shade900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            key: const Key('confirm_settle_button'),
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Confirmer & Clôturer'),
-          ),
-        ],
+        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  Widget _buildBreakdownRow(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? highlightColor,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: isBold ? Colors.black87 : Colors.blueGrey.shade700,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+  Future<void> _handleEndEarly(Loan loan) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Terminer l\'emprunt ?'),
+        content: const Text(
+          'Le véhicule a été rendu avant l\'heure prévue ? L\'emprunt passera à l\'étape de saisie et de validation des informations.',
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            color: highlightColor ?? (isBold ? Colors.black87 : Colors.blueGrey.shade900),
-            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annuler'),
           ),
-        ),
-      ],
+          TextButton(
+            key: const Key('confirm_end_early_button'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Terminer'),
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<void> _handleSettleLoan(Loan loan) async {
-    final confirmed = await _showFinancialBreakdownDialog(context, loan);
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     setState(() {
-      _isSettling = true;
+      _isEndingEarly = true;
       _screenError = null;
     });
-
     try {
-      final success = await ref
-          .read(loanSettleControllerProvider.notifier)
-          .settleLoan(loanId: loan.id, releaseDeposit: true);
-      if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Prêt clôturé et caution libérée avec succès.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } else {
-        final settleState = ref.read(loanSettleControllerProvider);
-        final errorMsg = settleState is LoanSettleError
-            ? settleState.message
-            : 'Échec du règlement final.';
-        setState(() {
-          _screenError = errorMsg;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+      await ref
+          .read(loanActionsControllerProvider.notifier)
+          .endEarly(loan.id, loanableId: loan.loanableId);
     } catch (e) {
       if (mounted) {
         final msg = e is AppException ? e.message : e.toString();
-        setState(() {
-          _screenError = msg;
-        });
+        setState(() => _screenError = msg);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSettling = false;
-        });
-      }
+      if (mounted) setState(() => _isEndingEarly = false);
     }
   }
 
@@ -862,21 +595,15 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           final canOwnerCancel = loan.canOwnerCancel(currentUser?.id);
           final canBorrowerCancel = loan.canBorrowerCancel(currentUser?.id);
           final canBorrowerPrepay = loan.canBorrowerPrepay(currentUser?.id);
-          final canTakeOver = loan.canTakeOver(currentUser?.id);
-          final canReturnVehicle = loan.canReturnVehicle(currentUser?.id);
+          final canBorrowerPay = loan.canBorrowerPay(currentUser?.id);
+          final canEditReturnInfo = loan.canEditReturnInfo(currentUser?.id);
+          final canEndEarly = loan.canEndEarly(currentUser?.id);
           final canValidateReturn = loan.canValidateReturn(currentUser?.id);
-          final canSettleAndClose = loan.canSettleAndClose(currentUser?.id);
           final canRequestExtension = loan.canRequestExtension(currentUser?.id);
           final canAcceptExtension = loan.canAcceptExtension(currentUser?.id);
           final canRejectExtension = loan.canRejectExtension(currentUser?.id);
           final canCancelExtension = loan.canCancelExtension(currentUser?.id);
           final hasPendingExtension = loan.hasPendingExtension;
-          final isTakeOverUpcoming = !canTakeOver &&
-              !loan.departureInspectionCompleted &&
-              status == LoanStatus.confirmed &&
-              (isOwner ||
-                  currentUser?.id == loan.borrowerUserId ||
-                  loan.borrowerUserId == null);
           final canCancel = canBorrowerCancel || canOwnerCancel;
           final canUpdateDates = loan.canBorrowerUpdateDates(currentUser?.id);
           final canComment =
@@ -968,7 +695,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               color: Colors.grey.shade600,
                             ),
                           ),
-                          if (hasPendingExtension && loan.extendedReturnAt != null) ...[
+                          if (hasPendingExtension &&
+                              loan.extendedReturnAt != null) ...[
                             const SizedBox(height: 6),
                             Container(
                               key: const Key('slot_pending_extension_badge'),
@@ -979,7 +707,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.orange.shade50,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.orange.shade200),
+                                border: Border.all(
+                                  color: Colors.orange.shade200,
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -1140,61 +870,16 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     ),
                   ],
 
-                  // Caution active banner
-                  if (loan.hasAuthorizedDeposit) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.verified_user_outlined,
-                            color: Colors.blue.shade700,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Caution autorisée : ${loan.depositAuthorizedDollars != null ? '${loan.depositAuthorizedDollars!.toStringAsFixed(2)} \$' : '250,00 \$'} CAD',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: Colors.blue.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'Empreinte bancaire Stripe retenue sans encaissement direct.',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // Borrower Prepayment Action (Prépayer & bloquer la caution)
+                  // Borrower prepayment (PUT /loans/{id}/prepay, as on the web)
                   if (canBorrowerPrepay) ...[
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       key: const Key('action_prepay_button'),
-                      onPressed: () => LoanPrepaymentModal.show(context, loan),
+                      onPressed: () =>
+                          _handlePayment(loan, LoanPaymentAction.prepay),
                       icon: const Icon(Icons.payment_outlined, size: 20),
                       label: const Text(
-                        'Prépayer & bloquer la caution',
+                        'Prépayer',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -1208,19 +893,16 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     ),
                   ],
 
-                  // Departure Take-Over Action (Prendre en charge le véhicule)
-                  if (canTakeOver) ...[
+                  // Mileage / expenses (PUT /loans/{id}/factors)
+                  if (canEditReturnInfo) ...[
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
-                      key: const Key('action_take_over_button'),
+                      key: const Key('action_return_info_button'),
                       onPressed: () =>
-                          context.push(AppRoutes.loanDeparturePath(loan.id)),
-                      icon: const Icon(
-                        Icons.directions_car_filled_outlined,
-                        size: 20,
-                      ),
+                          context.push(AppRoutes.loanFactorsPath(loan.id)),
+                      icon: const Icon(Icons.speed_outlined, size: 20),
                       label: const Text(
-                        'Prendre en charge le véhicule',
+                        'Saisir le kilométrage et les dépenses',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -1234,97 +916,35 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     ),
                   ],
 
-                  // Departure window upcoming notice
-                  if (isTakeOverUpcoming) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      key: const Key('take_over_window_upcoming_card'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Text(
-                              'La prise en charge sera disponible 1 heure avant le départ.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.blueGrey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // Certified Departure Inspection Badge
-                  if (loan.departureInspectionCompleted) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      key: const Key('departure_inspection_completed_badge'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.verified_rounded,
-                            color: Colors.green.shade700,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Text(
-                              'État des lieux de départ certifié',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // Return Vehicle Action (Restituer le véhicule)
-                  if (canReturnVehicle) ...[
+                  // Early return (PUT /loans/{id}/return)
+                  if (canEndEarly) ...[
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
-                      key: const Key('action_return_vehicle_button'),
-                      onPressed: () =>
-                          context.push(AppRoutes.loanReturnPath(loan.id)),
+                      key: const Key('action_end_early_button'),
+                      onPressed: _isEndingEarly
+                          ? null
+                          : () => _handleEndEarly(loan),
                       icon: const Icon(
                         Icons.assignment_turned_in_outlined,
                         size: 20,
                       ),
-                      label: const Text(
-                        'Restituer le véhicule',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      label: _isEndingEarly
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Text(
+                              "Terminer l'emprunt maintenant",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.secondary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -1335,7 +955,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                   ],
 
                   // Owner Pending Extension Decision Card
-                  if (hasPendingExtension && (canAcceptExtension || canRejectExtension)) ...[
+                  if (hasPendingExtension &&
+                      (canAcceptExtension || canRejectExtension)) ...[
                     const SizedBox(height: 12),
                     Container(
                       key: const Key('owner_pending_extension_card'),
@@ -1370,7 +991,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                           const SizedBox(height: 8),
                           Text(
                             'L\'emprunteur demande une prolongation de +${loan.pendingExtensionAdditionalMinutes ?? ''} min (nouveau retour prévu à ${loan.extendedReturnAt != null ? LoanDateFormatter.formatInVehicleZone(loan.extendedReturnAt, vehicleTimezone: loan.loanable?.timezone) : ''}).',
-                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -1378,7 +1002,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               if (canAcceptExtension)
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    key: const Key('action_accept_extension_button'),
+                                    key: const Key(
+                                      'action_accept_extension_button',
+                                    ),
                                     onPressed: _isDecidingExtension
                                         ? null
                                         : () => _handleAcceptExtension(loan),
@@ -1396,7 +1022,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.success,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1408,7 +1036,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               if (canRejectExtension)
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    key: const Key('action_reject_extension_button'),
+                                    key: const Key(
+                                      'action_reject_extension_button',
+                                    ),
                                     onPressed: _isDecidingExtension
                                         ? null
                                         : () => _handleRejectExtension(loan),
@@ -1416,8 +1046,12 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                     label: const Text('Refuser'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppColors.danger,
-                                      side: const BorderSide(color: AppColors.danger),
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      side: const BorderSide(
+                                        color: AppColors.danger,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1467,7 +1101,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                           const SizedBox(height: 8),
                           Text(
                             'Votre demande de prolongation de +${loan.pendingExtensionAdditionalMinutes ?? ''} min (jusqu\'à ${loan.extendedReturnAt != null ? LoanDateFormatter.formatInVehicleZone(loan.extendedReturnAt, vehicleTimezone: loan.loanable?.timezone) : ''}) est en attente de réponse du propriétaire.',
-                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           OutlinedButton.icon(
@@ -1476,7 +1113,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                 ? null
                                 : () => _handleCancelExtension(loan),
                             icon: const Icon(Icons.cancel_outlined, size: 16),
-                            label: const Text('Annuler la demande de prolongation'),
+                            label: const Text(
+                              'Annuler la demande de prolongation',
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.danger,
                               side: const BorderSide(color: AppColors.danger),
@@ -1516,43 +1155,6 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     ),
                   ],
 
-                  // Certified Return Inspection Badge
-                  if (loan.returnInspectionCompleted) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      key: const Key('return_inspection_completed_badge'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.verified_rounded,
-                            color: Colors.green.shade700,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Text(
-                              'État des lieux de retour certifié',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
                   // Contradictory Validation Card
                   if (canValidateReturn) ...[
                     const SizedBox(height: 12),
@@ -1577,7 +1179,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                               const SizedBox(width: 8),
                               const Expanded(
                                 child: Text(
-                                  'Validation contradictoire requise',
+                                  'Validation des informations requise',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -1588,12 +1190,17 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                           ),
                           const SizedBox(height: 6),
                           const Text(
-                            'Le véhicule a été restitué. Confirmez la conformité des relevés pour valider le retour.',
-                            style: TextStyle(fontSize: 13, color: Colors.black87),
+                            'Vérifiez le kilométrage et les dépenses saisis, puis validez les informations de l\'emprunt.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           ElevatedButton(
-                            key: const Key('action_owner_validate_return_button'),
+                            key: const Key(
+                              'action_owner_validate_return_button',
+                            ),
                             onPressed: _isValidating
                                 ? null
                                 : () => _handleValidateReturn(loan),
@@ -1607,42 +1214,30 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
-                                : const Text('Valider le retour'),
+                                : const Text('Valider les informations'),
                           ),
                         ],
                       ),
                     ),
                   ],
 
-                  // Settlement & Closing Action (Régler & clôturer le prêt)
-                  if (canSettleAndClose) ...[
+                  // Final payment (PUT /loans/{id}/pay, as on the web)
+                  if (canBorrowerPay) ...[
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
-                      key: const Key('action_settle_loan_button'),
-                      onPressed:
-                          _isSettling ? null : () => _handleSettleLoan(loan),
-                      icon: const Icon(
-                        Icons.lock_outline_rounded,
-                        size: 20,
+                      key: const Key('action_pay_button'),
+                      onPressed: () =>
+                          _handlePayment(loan, LoanPaymentAction.pay),
+                      icon: const Icon(Icons.lock_outline_rounded, size: 20),
+                      label: const Text(
+                        'Payer et clôturer',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      label: _isSettling
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text(
-                              'Régler & clôturer le prêt',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,
@@ -1650,43 +1245,6 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                    ),
-                  ],
-
-                  // Finalized Paid & Settled Badge
-                  if (loan.paidAt != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      key: const Key('loan_settled_badge'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.teal.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.teal.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle_rounded,
-                            color: Colors.teal.shade700,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Text(
-                              'Règlement finalisé et caution libérée',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],

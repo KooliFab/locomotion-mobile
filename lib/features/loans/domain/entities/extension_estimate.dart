@@ -15,7 +15,9 @@ class ExtensionBlockingLoan {
     final borrowerUser = json['borrower_user'] as Map<String, dynamic>?;
     DateTime? dep;
     if (json['departure_at'] != null) {
-      dep = DateTime.tryParse(json['departure_at'].toString().replaceAll(' ', 'T'));
+      dep = DateTime.tryParse(
+        json['departure_at'].toString().replaceAll(' ', 'T'),
+      );
     }
     return ExtensionBlockingLoan(
       id: json['id'] as int? ?? 0,
@@ -32,9 +34,6 @@ class ExtensionEstimate {
   final double? desiredContribution;
   final double? borrowerTotal;
   final double? ownerTotal;
-  final bool depositExpiresBeforeReturn;
-  final String? depositWarning;
-  final DateTime? depositExpiresAt;
 
   const ExtensionEstimate({
     required this.available,
@@ -42,9 +41,6 @@ class ExtensionEstimate {
     this.desiredContribution,
     this.borrowerTotal,
     this.ownerTotal,
-    this.depositExpiresBeforeReturn = false,
-    this.depositWarning,
-    this.depositExpiresAt,
   });
 
   factory ExtensionEstimate.fromJson(Map<String, dynamic> json) {
@@ -75,20 +71,12 @@ class ExtensionEstimate {
       }
     }
 
-    DateTime? depExp;
-    if (json['deposit_expires_at'] != null) {
-      depExp = DateTime.tryParse(json['deposit_expires_at'].toString().replaceAll(' ', 'T'));
-    }
-
     return ExtensionEstimate(
       available: json['available'] as bool? ?? false,
       blockingLoan: blocking,
       desiredContribution: (json['desired_contribution'] as num?)?.toDouble(),
       borrowerTotal: bTotal,
       ownerTotal: oTotal,
-      depositExpiresBeforeReturn: json['deposit_expires_before_return'] as bool? ?? false,
-      depositWarning: json['deposit_warning'] as String?,
-      depositExpiresAt: depExp,
     );
   }
 }

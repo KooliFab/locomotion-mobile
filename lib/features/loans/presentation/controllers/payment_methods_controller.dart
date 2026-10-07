@@ -3,8 +3,7 @@ import '../../domain/entities/payment_method_model.dart';
 import '../../domain/repositories/loan_payment_repository.dart';
 import '../../data/repositories/loan_payment_repository_impl.dart';
 
-class PaymentMethodsController
-    extends AsyncNotifier<List<PaymentMethodModel>> {
+class PaymentMethodsController extends AsyncNotifier<List<PaymentMethodModel>> {
   late final LoanPaymentRepository _repository;
 
   @override
@@ -30,7 +29,9 @@ class PaymentMethodsController
   }
 }
 
-final paymentMethodsControllerProvider = AsyncNotifierProvider<
-    PaymentMethodsController, List<PaymentMethodModel>>(() {
-  return PaymentMethodsController();
-});
+final paymentMethodsControllerProvider =
+    AsyncNotifierProvider<PaymentMethodsController, List<PaymentMethodModel>>(
+      () {
+        return PaymentMethodsController();
+      },
+    );

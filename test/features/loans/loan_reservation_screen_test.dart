@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
 import 'package:mobile/core/error/exceptions.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
 import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
@@ -51,6 +54,16 @@ class _FakeLoanablesRepo implements LoanablesRepository {
 }
 
 class _FakeLoansRepo implements LoansRepository {
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
   LoanCreationRequest? capturedRequest;
   Loan? responseToReturn;
   Exception? errorToThrow;
@@ -116,8 +129,9 @@ class _FakeLoansRepo implements LoansRepository {
 
   @override
   Future<ExtensionEstimate> getExtensionEstimate(
-          int id, int durationInMinutes) async =>
-      throw UnimplementedError();
+    int id,
+    int durationInMinutes,
+  ) async => throw UnimplementedError();
 }
 
 class _FakeAuthController extends AuthController {

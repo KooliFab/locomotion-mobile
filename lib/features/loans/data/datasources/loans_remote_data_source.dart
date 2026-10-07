@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/extension_estimate.dart';
@@ -5,6 +9,7 @@ import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_comment.dart';
 import '../../domain/entities/loan_creation_request.dart';
 import '../../domain/entities/loan_dates_update_request.dart';
+import '../../domain/entities/loan_factors_update.dart';
 import '../../domain/entities/loan_pagination.dart';
 import '../../domain/entities/loans_dashboard.dart';
 
@@ -30,6 +35,11 @@ abstract class LoansRemoteDataSource {
   Future<Loan> rejectExtension(int id);
   Future<Loan> cancelExtension(int id);
   Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes);
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update);
+  Future<Loan> endLoanEarly(int id);
+
+  /// Uploads a picture (`POST /images`) and returns the server image resource.
+  Future<Map<String, dynamic>> uploadImage(File file, String field);
 }
 
 class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
@@ -354,5 +364,57 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
       );
     }
     return ExtensionEstimate.fromJson(data);
+  }
+
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) async {
+    final response = await _apiClient.put(
+      ApiEndpoints.loanFactors(id),
+      data: update.toJson(),
+    );
+    return _parseLoan(
+      response.data,
+      'la mise à jour des informations du prêt #$id',
+    );
+  }
+
+  @override
+  Future<Loan> endLoanEarly(int id) async {
+    final response = await _apiClient.put(ApiEndpoints.loanEarlyReturn(id));
+    return _parseLoan(response.data, 'la fin anticipée du prêt #$id');
+  }
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) async {
+    final filename = file.path.split('/').last;
+    final formData = FormData.fromMap({
+      'field': field,
+      field: await MultipartFile.fromFile(file.path, filename: filename),
+    });
+    final response = await _apiClient.post(
+      ApiEndpoints.images,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final inner = data['data'] is Map<String, dynamic>
+          ? data['data'] as Map<String, dynamic>
+          : data;
+      if (inner['id'] != null) return inner;
+    }
+    throw const FormatException(
+      'Format de réponse invalide lors du téléversement de la photo',
+    );
+  }
+
+  Loan _parseLoan(dynamic data, String context) {
+    if (data is! Map<String, dynamic>) {
+      throw FormatException('Format de réponse invalide pour $context');
+    }
+    final item = data['data'] is Map<String, dynamic>
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    return Loan.fromJson(item);
   }
 }

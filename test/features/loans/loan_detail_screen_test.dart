@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
 import 'package:mobile/core/error/exceptions.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
 import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
@@ -24,6 +27,16 @@ void _ensureTimezones() {
 }
 
 class _MockLoansRepo implements LoansRepository {
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
   Loan? loanDetailToReturn;
   Exception? errorToThrow;
   int cancelCalls = 0;
@@ -136,9 +149,8 @@ class _MockLoansRepo implements LoansRepository {
     requestExtensionCalls++;
     lastExtensionDuration = extensionDurationInMinutes;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: extensionDurationInMinutes,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: extensionDurationInMinutes);
   }
 
   @override
@@ -157,24 +169,23 @@ class _MockLoansRepo implements LoansRepository {
   Future<Loan> rejectExtension(int id) async {
     rejectExtensionCalls++;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: null,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: null);
   }
 
   @override
   Future<Loan> cancelExtension(int id) async {
     cancelExtensionCalls++;
     if (errorToThrow != null) throw errorToThrow!;
-    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson)).copyWith(
-      extensionDurationInMinutes: null,
-    );
+    return (loanDetailToReturn ?? Loan.fromJson(laravelLoanDetailJson))
+        .copyWith(extensionDurationInMinutes: null);
   }
 
   @override
   Future<ExtensionEstimate> getExtensionEstimate(
-          int id, int durationInMinutes) async =>
-      const ExtensionEstimate(available: true);
+    int id,
+    int durationInMinutes,
+  ) async => const ExtensionEstimate(available: true);
 }
 
 class _TestAuthController extends AuthController {
@@ -353,7 +364,9 @@ void main() {
           statusCode: 403,
         );
 
-        await tester.ensureVisible(find.byKey(const Key('action_cancel_button')));
+        await tester.ensureVisible(
+          find.byKey(const Key('action_cancel_button')),
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('action_cancel_button')));
         await tester.pumpAndSettle();

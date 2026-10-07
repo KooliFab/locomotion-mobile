@@ -1,286 +1,251 @@
+import 'dart:math' as math;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/services/stripe_payment_service.dart';
+
+import '../../../../core/error/exceptions.dart';
+import '../../../profile/presentation/controllers/profile_controller.dart';
+import '../../data/repositories/loan_payment_repository_impl.dart';
+import '../../domain/entities/invoice_summary.dart';
 import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_status.dart';
-import '../../domain/entities/payment_intent_response.dart';
+import '../../domain/entities/payment_method_model.dart';
 import '../../domain/repositories/loan_payment_repository.dart';
 import '../../domain/repositories/loans_repository.dart';
-import '../../data/repositories/loan_payment_repository_impl.dart';
 import 'loans_controller.dart';
 
-sealed class LoanPaymentState {
-  const LoanPaymentState();
+/// `prepay` for an accepted loan, `pay` for a validated loan (web LoanPaymentBox).
+enum LoanPaymentAction { prepay, pay }
+
+class LoanPaymentState {
+  final bool loading;
+  final double platformTip;
+  final InvoiceSummary? invoice;
+  final bool estimating;
+  final double? balance;
+  final List<PaymentMethodModel> paymentMethods;
+  final int? selectedPaymentMethodId;
+  final bool submitting;
+  final String? error;
+  final Loan? completedLoan;
+
+  const LoanPaymentState({
+    this.loading = true,
+    this.platformTip = 0,
+    this.invoice,
+    this.estimating = false,
+    this.balance,
+    this.paymentMethods = const [],
+    this.selectedPaymentMethodId,
+    this.submitting = false,
+    this.error,
+    this.completedLoan,
+  });
+
+  /// Amount owed for the current contribution, as computed by the server.
+  double get amountDue => invoice?.amountDue ?? 0;
+
+  /// Amount to add to the balance before the server accepts the payment.
+  double get missingAmount {
+    final missing = amountDue - (balance ?? 0);
+    return missing > 0 ? _roundUpToCent(missing) : 0;
+  }
+
+  bool get needsTopUp => missingAmount > 0;
+
+  bool get isDone => completedLoan != null;
+
+  LoanPaymentState copyWith({
+    bool? loading,
+    double? platformTip,
+    InvoiceSummary? invoice,
+    bool clearInvoice = false,
+    bool? estimating,
+    double? balance,
+    List<PaymentMethodModel>? paymentMethods,
+    int? selectedPaymentMethodId,
+    bool? submitting,
+    String? error,
+    bool clearError = false,
+    Loan? completedLoan,
+  }) {
+    return LoanPaymentState(
+      loading: loading ?? this.loading,
+      platformTip: platformTip ?? this.platformTip,
+      invoice: clearInvoice ? null : (invoice ?? this.invoice),
+      estimating: estimating ?? this.estimating,
+      balance: balance ?? this.balance,
+      paymentMethods: paymentMethods ?? this.paymentMethods,
+      selectedPaymentMethodId:
+          selectedPaymentMethodId ?? this.selectedPaymentMethodId,
+      submitting: submitting ?? this.submitting,
+      error: clearError ? null : (error ?? this.error),
+      completedLoan: completedLoan ?? this.completedLoan,
+    );
+  }
 }
 
-class LoanPaymentInitial extends LoanPaymentState {
-  const LoanPaymentInitial();
-}
+double _roundUpToCent(double value) => (value * 100).ceil() / 100;
 
-class LoanPaymentLoadingBreakdown extends LoanPaymentState {
-  const LoanPaymentLoadingBreakdown();
-}
-
-class LoanPaymentBreakdownReady extends LoanPaymentState {
-  final PaymentIntentResponse intentResponse;
-  const LoanPaymentBreakdownReady(this.intentResponse);
-}
-
-class LoanPaymentProcessing extends LoanPaymentState {
-  final String message;
-  const LoanPaymentProcessing({this.message = 'Traitement en cours...'});
-}
-
-class LoanPaymentSuccess extends LoanPaymentState {
-  final Loan loan;
-  const LoanPaymentSuccess(this.loan);
-}
-
-class LoanPaymentCanceled extends LoanPaymentState {
-  const LoanPaymentCanceled();
-}
-
-class LoanPaymentError extends LoanPaymentState {
-  final String message;
-  const LoanPaymentError(this.message);
+/// Initial contribution, following the web payment box.
+double initialPlatformTip(Loan loan) {
+  if (loan.isExemptFromContributions) return 0;
+  final tip = loan.platformTip;
+  if (tip != null && tip > 0) return tip;
+  return loan.desiredContribution ?? 0;
 }
 
 class LoanPaymentController extends Notifier<LoanPaymentState> {
-  late final LoanPaymentRepository _repository;
-  late final LoansRepository _loansRepository;
-  late final StripePaymentService _stripeService;
+  LoanPaymentController(this.loanId);
 
-  final Map<int, String> _paidContributionIntentIds = {};
+  final int loanId;
+
+  late LoanPaymentRepository _repository;
+  late LoansRepository _loansRepository;
+  int _estimateRequestId = 0;
 
   @override
   LoanPaymentState build() {
     _repository = ref.watch(loanPaymentRepositoryProvider);
     _loansRepository = ref.watch(loansRepositoryProvider);
-    _stripeService = ref.watch(stripePaymentServiceProvider);
-    return const LoanPaymentInitial();
+    return const LoanPaymentState();
   }
 
-  Future<PaymentIntentResponse?> fetchBreakdown(
-    int loanId, {
-    int? platformTipCents,
-    bool useBalance = true,
-  }) async {
-    state = const LoanPaymentLoadingBreakdown();
+  /// Loads balance, saved cards and the invoice for the initial contribution.
+  Future<void> load(Loan loan) async {
+    final tip = initialPlatformTip(loan);
+    state = LoanPaymentState(loading: true, platformTip: tip);
     try {
-      final response = await _repository.createPaymentIntent(
-        loanId: loanId,
-        platformTipCents: platformTipCents,
-        useBalance: useBalance,
+      final results = await Future.wait([
+        ref.read(userBalanceControllerProvider.future),
+        _repository.getPaymentMethods(),
+      ]);
+      final methods = results[1] as List<PaymentMethodModel>;
+      final defaultMethod = methods.where((m) => m.isDefault).firstOrNull;
+      state = state.copyWith(
+        loading: false,
+        balance: results[0] as double,
+        paymentMethods: methods,
+        selectedPaymentMethodId: (defaultMethod ?? methods.firstOrNull)?.id,
+        invoice: loan.borrowerInvoice,
       );
-      state = LoanPaymentBreakdownReady(response);
-      return response;
+      await _estimate(tip);
     } catch (e) {
-      state = LoanPaymentError(
-        'Erreur lors du calcul financier : ${e.toString()}',
-      );
-      return null;
+      state = state.copyWith(loading: false, error: _messageOf(e));
     }
   }
 
-  /// Relit l'état de l'emprunt auprès du serveur pour déterminer
-  /// s'il est déjà confirmé (ex: suite à un timeout réseau après validation Stripe).
-  Future<bool> checkServerStatus(int loanId) async {
-    try {
-      final refreshedLoan = await _loansRepository.getLoanDetail(loanId);
-      if (refreshedLoan.prepaidAt != null ||
-          refreshedLoan.parsedStatus == LoanStatus.confirmed ||
-          refreshedLoan.parsedStatus == LoanStatus.ongoing) {
-        invalidateLoanViews(ref, loanId: loanId);
-        state = LoanPaymentSuccess(refreshedLoan);
-        return true;
-      }
-      return false;
-    } catch (_) {
-      return false;
-    }
+  Future<void> setPlatformTip(double tip) async {
+    final normalized = math.max(0.0, (tip * 100).roundToDouble() / 100);
+    if (normalized == state.platformTip && state.invoice != null) return;
+    state = state.copyWith(platformTip: normalized, clearError: true);
+    await _estimate(normalized);
   }
 
-  Future<bool> confirmPayment({
-    required int loanId,
-    required PaymentIntentResponse intentResponse,
-    int? platformTipCents,
-  }) async {
-    // Aligner de manière déterministe sur le pourboire calculé dans le breakdown
-    final effectiveTipCents =
-        intentResponse.financialBreakdown.platformTipCents;
+  void selectPaymentMethod(int id) {
+    state = state.copyWith(selectedPaymentMethodId: id);
+  }
 
-    // Cas 1 : Aucun flux Stripe requis (solde 100% suffisant et aucune caution)
-    if (!intentResponse.requiresStripeAction) {
-      state = const LoanPaymentProcessing(
-        message: 'Confirmation immédiate avec votre solde...',
-      );
-      try {
-        final confirmedLoan = await _repository.prepay(
-          loanId: loanId,
-          platformTipCents: effectiveTipCents,
-        );
-        invalidateLoanViews(ref, loanId: loanId);
-        state = LoanPaymentSuccess(confirmedLoan);
-        return true;
-      } catch (e) {
-        final recovered = await checkServerStatus(loanId);
-        if (recovered) return true;
-
-        state = LoanPaymentError(
-          'Erreur lors de la confirmation : ${e.toString()}',
-        );
-        return false;
-      }
-    }
-
-    // Cas 2 : Flux Stripe (contribution et/ou caution)
-    final stripeData = intentResponse.stripe;
-    if (stripeData == null) {
-      state = const LoanPaymentError('Données de session Stripe absentes.');
-      return false;
-    }
-
-    final contributionSecret =
-        stripeData.contributionPaymentIntentClientSecret;
-    final depositSecret = stripeData.depositPaymentIntentClientSecret;
-
-    final hasContribution =
-        contributionSecret != null && contributionSecret.isNotEmpty;
-    final hasDeposit = depositSecret != null && depositSecret.isNotEmpty;
-
-    if (!hasContribution && !hasDeposit) {
-      state = const LoanPaymentError(
-        'Secret de paiement Stripe manquant pour initialiser la transaction.',
-      );
-      return false;
-    }
-
-    // Étape 1 : Présentation de la feuille de paiement pour la contribution si pas déjà payée
-    final alreadyPaidContributionId = _paidContributionIntentIds[loanId];
-    final bool shouldChargeContribution =
-        hasContribution && alreadyPaidContributionId == null;
-
-    if (shouldChargeContribution) {
-      state = const LoanPaymentProcessing(
-        message: 'Règlement de la contribution...',
-      );
-
-      try {
-        await _stripeService.initPaymentSheet(
-          paymentIntentClientSecret: contributionSecret,
-          customerId: stripeData.customerId,
-          customerEphemeralKeySecret: stripeData.ephemeralKeySecret,
-        );
-
-        final sheetResponse = await _stripeService.presentPaymentSheet();
-
-        if (sheetResponse.isCanceled) {
-          state = const LoanPaymentCanceled();
-          return false;
-        }
-
-        if (sheetResponse.isFailed) {
-          state = LoanPaymentError(
-            sheetResponse.errorMessage ??
-                'Le paiement de la contribution a été refusé.',
-          );
-          return false;
-        }
-
-        final extractedId = _extractPaymentIntentId(contributionSecret);
-        if (extractedId != null) {
-          _paidContributionIntentIds[loanId] = extractedId;
-        }
-      } catch (e) {
-        state = LoanPaymentError('Erreur Stripe : ${e.toString()}');
-        return false;
-      }
-    }
-
-    // Étape 2 : Présentation de la feuille de caution si requise
-    if (hasDeposit) {
-      state = const LoanPaymentProcessing(
-        message: 'Autorisation de l\'empreinte de caution (250 \$)...',
-      );
-
-      try {
-        await _stripeService.initPaymentSheet(
-          paymentIntentClientSecret: depositSecret,
-          customerId: stripeData.customerId,
-          customerEphemeralKeySecret: stripeData.ephemeralKeySecret,
-        );
-
-        final sheetResponse = await _stripeService.presentPaymentSheet();
-
-        if (sheetResponse.isCanceled) {
-          state = const LoanPaymentCanceled();
-          return false;
-        }
-
-        if (sheetResponse.isFailed) {
-          state = LoanPaymentError(
-            sheetResponse.errorMessage ??
-                'L\'autorisation de la caution a été refusée.',
-          );
-          return false;
-        }
-      } catch (e) {
-        state = LoanPaymentError('Erreur Stripe : ${e.toString()}');
-        return false;
-      }
-    }
-
-    // Étape 3 : Finalisation auprès de l'API avec les identifiants dûment confirmés
-    state = const LoanPaymentProcessing(
-      message: 'Validation du prépaiement et de la caution...',
-    );
-
-    final contributionId = alreadyPaidContributionId ??
-        (hasContribution ? _extractPaymentIntentId(contributionSecret) : null);
-    final depositId = hasDeposit
-        ? _extractPaymentIntentId(depositSecret)
-        : null;
-
+  Future<void> _estimate(double tip) async {
+    final requestId = ++_estimateRequestId;
+    state = state.copyWith(estimating: true);
     try {
-      final confirmedLoan = await _repository.prepay(
+      final invoice = await _repository.estimateBorrowerInvoice(
         loanId: loanId,
-        platformTipCents: effectiveTipCents,
-        contributionPaymentIntentId: contributionId,
-        depositPaymentIntentId: depositId,
+        platformTip: tip,
       );
+      if (requestId != _estimateRequestId) return;
+      state = invoice == null
+          ? state.copyWith(estimating: false, clearInvoice: true)
+          : state.copyWith(estimating: false, invoice: invoice);
+    } catch (e) {
+      if (requestId != _estimateRequestId) return;
+      state = state.copyWith(estimating: false, error: _messageOf(e));
+    }
+  }
 
-      _paidContributionIntentIds.remove(loanId);
-      invalidateLoanViews(ref, loanId: loanId);
-      state = LoanPaymentSuccess(confirmedLoan);
+  /// Tops up the balance when needed, then prepays or pays the loan.
+  ///
+  /// The top-up is a separate server operation: if it succeeds but the loan
+  /// action fails, the balance already covers the amount and a retry does not
+  /// charge the card again.
+  Future<bool> submit({
+    required LoanPaymentAction action,
+    double? topUpAmount,
+  }) async {
+    if (state.submitting || state.estimating) return false;
+    state = state.copyWith(submitting: true, clearError: true);
+
+    try {
+      if (state.needsTopUp) {
+        final amount = topUpAmount ?? state.missingAmount;
+        if (amount < state.missingAmount) {
+          throw ValidationException(
+            message:
+                'Le montant ajouté doit être d\'au moins ${state.missingAmount.toStringAsFixed(2)} \$.',
+          );
+        }
+        if (state.selectedPaymentMethodId == null) {
+          throw const ValidationException(
+            message:
+                'Aucune carte enregistrée. Ajoutez une carte depuis le site web LocoMotion.',
+          );
+        }
+        final newBalance = await _repository.addToBalance(
+          amount: amount,
+          paymentMethodId: state.selectedPaymentMethodId,
+        );
+        ref.invalidate(userBalanceControllerProvider);
+        state = state.copyWith(balance: newBalance);
+      }
+
+      final loan = action == LoanPaymentAction.prepay
+          ? await _repository.prepay(
+              loanId: loanId,
+              platformTip: state.platformTip,
+            )
+          : await _repository.pay(
+              loanId: loanId,
+              platformTip: state.platformTip,
+            );
+      _onCompleted(loan);
       return true;
     } catch (e) {
-      // Tolérance aux pannes : en cas d'erreur de communication ou timeout,
-      // on relit l'emprunt pour vérifier si le serveur l'a déjà confirmé
-      final recovered = await checkServerStatus(loanId);
+      // The server may have applied the action before the error reached us.
+      final recovered = await _reloadIfApplied(action);
       if (recovered) return true;
-
-      try {
-        invalidateLoanViews(ref, loanId: loanId);
-      } catch (_) {}
-
-      state = LoanPaymentError(
-        'Une erreur est survenue lors de la confirmation : ${e.toString()}',
-      );
+      state = state.copyWith(submitting: false, error: _messageOf(e));
       return false;
     }
   }
 
-  void reset() {
-    state = const LoanPaymentInitial();
+  Future<bool> _reloadIfApplied(LoanPaymentAction action) async {
+    try {
+      final loan = await _loansRepository.getLoanDetail(loanId);
+      final applied = action == LoanPaymentAction.prepay
+          ? loan.parsedStatus != LoanStatus.accepted &&
+                loan.parsedStatus != LoanStatus.requested
+          : loan.parsedStatus == LoanStatus.completed;
+      if (applied) {
+        _onCompleted(loan);
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
-  String? _extractPaymentIntentId(String? clientSecret) {
-    if (clientSecret == null || clientSecret.isEmpty) return null;
-    final parts = clientSecret.split('_secret_');
-    return parts.first;
+  void _onCompleted(Loan loan) {
+    invalidateLoanViews(ref, loanId: loanId, loanableId: loan.loanableId);
+    ref.invalidate(userBalanceControllerProvider);
+    state = state.copyWith(submitting: false, completedLoan: loan);
+  }
+
+  String _messageOf(Object e) {
+    if (e is AppException) return e.message;
+    return e.toString().replaceFirst('Exception: ', '');
   }
 }
 
-final loanPaymentControllerProvider =
-    NotifierProvider<LoanPaymentController, LoanPaymentState>(() {
-  return LoanPaymentController();
-});
+final loanPaymentControllerProvider = NotifierProvider.autoDispose
+    .family<LoanPaymentController, LoanPaymentState, int>(
+      LoanPaymentController.new,
+    );

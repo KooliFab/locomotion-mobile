@@ -12,10 +12,7 @@ import '../controllers/loans_controller.dart';
 class LoanExtensionBottomSheet extends ConsumerStatefulWidget {
   final Loan loan;
 
-  const LoanExtensionBottomSheet({
-    super.key,
-    required this.loan,
-  });
+  const LoanExtensionBottomSheet({super.key, required this.loan});
 
   static Future<bool?> show(BuildContext context, Loan loan) {
     return showModalBottomSheet<bool>(
@@ -48,7 +45,8 @@ class _LoanExtensionBottomSheetState
     _fetchEstimate();
   }
 
-  int get _newTotalDuration => widget.loan.durationInMinutes + _additionalMinutes;
+  int get _newTotalDuration =>
+      widget.loan.durationInMinutes + _additionalMinutes;
 
   DateTime get _newReturnAt =>
       widget.loan.departureAt.add(Duration(minutes: _newTotalDuration));
@@ -70,8 +68,9 @@ class _LoanExtensionBottomSheetState
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
     final day = dt.day;
-    final month =
-        dt.month <= 12 ? VehicleLocalDates.shortMonths[dt.month - 1] : '';
+    final month = dt.month <= 12
+        ? VehicleLocalDates.shortMonths[dt.month - 1]
+        : '';
     return '$day $month à ${h}h$m';
   }
 
@@ -116,7 +115,9 @@ class _LoanExtensionBottomSheetState
     });
 
     try {
-      await ref.read(loanActionsControllerProvider.notifier).requestExtension(
+      await ref
+          .read(loanActionsControllerProvider.notifier)
+          .requestExtension(
             loanId: widget.loan.id,
             extensionDurationInMinutes: _newTotalDuration,
             loanableId: widget.loan.loanableId,
@@ -138,7 +139,8 @@ class _LoanExtensionBottomSheetState
   Widget build(BuildContext context) {
     final loan = widget.loan;
     final tzName = loan.loanable?.timezone;
-    final currentReturnAt = loan.actualReturnAt ??
+    final currentReturnAt =
+        loan.actualReturnAt ??
         loan.departureAt.add(Duration(minutes: loan.durationInMinutes));
 
     const quickOptions = [
@@ -150,7 +152,8 @@ class _LoanExtensionBottomSheetState
       (1440, '+1 jour', Key('chip_extension_1440')),
     ];
 
-    final hasValidEstimate = _estimate != null &&
+    final hasValidEstimate =
+        _estimate != null &&
         _estimateDuration == _newTotalDuration &&
         _estimateError == null;
     final isAvailable = hasValidEstimate && _estimate!.available;
@@ -309,7 +312,9 @@ class _LoanExtensionBottomSheetState
                   selectedColor: AppColors.primary,
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : AppColors.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 );
               }).toList(),
@@ -322,7 +327,9 @@ class _LoanExtensionBottomSheetState
               decoration: BoxDecoration(
                 color: AppColors.lightTint.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 children: [
@@ -416,7 +423,9 @@ class _LoanExtensionBottomSheetState
                   decoration: BoxDecoration(
                     color: AppColors.successBg,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -441,15 +450,18 @@ class _LoanExtensionBottomSheetState
                             if (_estimate!.borrowerTotal != null) ...[
                               Builder(
                                 builder: (ctx) {
-                                  final currentTotal = widget.loan.borrowerTotal;
+                                  final currentTotal =
+                                      widget.loan.borrowerTotal;
                                   final newTotal = _estimate!.borrowerTotal!;
                                   final surcharge = currentTotal != null
                                       ? (newTotal - currentTotal)
                                       : null;
                                   return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      if (surcharge != null && surcharge > 0) ...[
+                                      if (surcharge != null &&
+                                          surcharge > 0) ...[
                                         const SizedBox(height: 2),
                                         Text(
                                           'Supplément prolongation : +${surcharge.toStringAsFixed(2)} \$ CAD',
@@ -465,7 +477,9 @@ class _LoanExtensionBottomSheetState
                                         'Nouveau total estimé : ${newTotal.toStringAsFixed(2)} \$ (taxes incluses)',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: (surcharge != null && surcharge > 0)
+                                          color:
+                                              (surcharge != null &&
+                                                  surcharge > 0)
                                               ? AppColors.textSecondary
                                               : AppColors.textPrimary,
                                         ),
@@ -487,7 +501,9 @@ class _LoanExtensionBottomSheetState
                   decoration: BoxDecoration(
                     color: AppColors.dangerBg,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,7 +532,10 @@ class _LoanExtensionBottomSheetState
                         const SizedBox(height: 6),
                         Text(
                           'Une réservation suivante commence à ${_formatTimeInZone(_estimate!.blockingLoan!.departureAt ?? _newReturnAt, tzName)}.',
-                          style: const TextStyle(fontSize: 12, color: Colors.black87),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
                         ),
                         if (_estimate!.blockingLoan!.borrowerPhone != null) ...[
                           const SizedBox(height: 4),
@@ -530,59 +549,6 @@ class _LoanExtensionBottomSheetState
                           ),
                         ],
                       ],
-                    ],
-                  ),
-                ),
-              ],
-              if ((_estimate?.depositExpiresBeforeReturn ?? false) ||
-                  (widget.loan.depositExpiresAt != null &&
-                      _newReturnAt.isAfter(widget.loan.depositExpiresAt!))) ...[
-                const SizedBox(height: 10),
-                Container(
-                  key: const Key('deposit_expiration_warning_banner'),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.warningBg,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.warning.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        color: AppColors.warning,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Attention : expiration de caution',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _estimate?.depositWarning ??
-                                  ((_estimate?.depositExpiresAt ?? widget.loan.depositExpiresAt) != null
-                                      ? 'La nouvelle date de retour (${_formatTimeInZone(_newReturnAt, tzName)}) dépasse la validité de votre caution (prévue jusqu\'au ${_formatTimeInZone((_estimate?.depositExpiresAt ?? widget.loan.depositExpiresAt)!, tzName)}).'
-                                      : 'La nouvelle date de retour dépasse la durée de validité de votre caution.'),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),

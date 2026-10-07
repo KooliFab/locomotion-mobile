@@ -13,8 +13,7 @@ import '../../features/loanables/presentation/screens/loanable_detail_screen.dar
 import '../../features/loanables/presentation/controllers/loanables_controller.dart';
 import '../../features/loanables/domain/entities/loanable.dart';
 import '../../features/loans/domain/entities/loan.dart';
-import '../../features/loans/presentation/screens/loan_departure_inspection_screen.dart';
-import '../../features/loans/presentation/screens/loan_return_inspection_screen.dart';
+import '../../features/loans/presentation/screens/loan_factors_screen.dart';
 import '../../features/loans/presentation/screens/loan_detail_screen.dart';
 import '../../features/loans/presentation/screens/loan_reservation_screen.dart';
 import '../../features/loans/presentation/screens/loan_success_screen.dart';
@@ -197,41 +196,18 @@ GoRouter appRouter(Ref ref) {
             },
           ),
           GoRoute(
-            path: AppRoutes.loanDeparture,
+            path: AppRoutes.loanFactors,
             builder: (context, state) {
               final id = int.tryParse(state.pathParameters['id'] ?? '');
               if (id == null || id <= 0) {
                 return Scaffold(
-                  appBar: AppBar(title: const Text('Prise en charge')),
+                  appBar: AppBar(title: const Text('Informations de retour')),
                   body: const Center(
                     child: Text('Identifiant de réservation invalide.'),
                   ),
                 );
               }
-              final extra = state.extra;
-              return LoanDepartureInspectionScreen(
-                loanId: id,
-                initialLoan: extra is Loan ? extra : null,
-              );
-            },
-          ),
-          GoRoute(
-            path: AppRoutes.loanReturn,
-            builder: (context, state) {
-              final id = int.tryParse(state.pathParameters['id'] ?? '');
-              if (id == null || id <= 0) {
-                return Scaffold(
-                  appBar: AppBar(title: const Text('Restitution')),
-                  body: const Center(
-                    child: Text('Identifiant de réservation invalide.'),
-                  ),
-                );
-              }
-              final extra = state.extra;
-              return LoanReturnInspectionScreen(
-                loanId: id,
-                initialLoan: extra is Loan ? extra : null,
-              );
+              return LoanFactorsScreen(loanId: id);
             },
           ),
           GoRoute(
@@ -289,17 +265,30 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: AppRoutes.incidents,
             builder: (context, state) {
-              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
-              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '');
-              return IncidentsListScreen(loanId: loanId, loanableId: loanableId);
+              final loanId = int.tryParse(
+                state.uri.queryParameters['loan_id'] ?? '',
+              );
+              final loanableId = int.tryParse(
+                state.uri.queryParameters['loanable_id'] ?? '',
+              );
+              return IncidentsListScreen(
+                loanId: loanId,
+                loanableId: loanableId,
+              );
             },
           ),
           GoRoute(
             path: AppRoutes.incidentReport,
             builder: (context, state) {
-              final loanableId = int.tryParse(state.uri.queryParameters['loanable_id'] ?? '') ?? 0;
+              final loanableId =
+                  int.tryParse(
+                    state.uri.queryParameters['loanable_id'] ?? '',
+                  ) ??
+                  0;
               final vehicleName = state.uri.queryParameters['vehicle_name'];
-              final loanId = int.tryParse(state.uri.queryParameters['loan_id'] ?? '');
+              final loanId = int.tryParse(
+                state.uri.queryParameters['loan_id'] ?? '',
+              );
               final ownerName = state.uri.queryParameters['owner_name'];
               final ownerPhone = state.uri.queryParameters['owner_phone'];
               final ownerEmail = state.uri.queryParameters['owner_email'];
@@ -319,7 +308,9 @@ GoRouter appRouter(Ref ref) {
               final id = int.tryParse(state.pathParameters['id'] ?? '');
               if (id == null || id <= 0) {
                 return const Scaffold(
-                  body: Center(child: Text('Identifiant d\'incident invalide.')),
+                  body: Center(
+                    child: Text('Identifiant d\'incident invalide.'),
+                  ),
                 );
               }
               return IncidentDetailScreen(incidentId: id);

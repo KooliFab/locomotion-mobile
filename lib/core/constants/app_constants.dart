@@ -21,19 +21,14 @@ class ApiEndpoints {
   static const String loans = '/loans';
   static const String loansDashboard = '/loans/dashboard';
   static String loanDetail(int id) => '/loans/$id';
+  static String loanEstimate(int id) => '/loans/$id/estimate';
+  static String loanFactors(int id) => '/loans/$id/factors';
+  static String loanEarlyReturn(int id) => '/loans/$id/return';
 
   // Images
   static const String images = '/images';
   static String image(int id, {String? size}) =>
       '/images/$id${size != null ? '?size=$size' : ''}';
-
-  // Inspections
-  static String loanDepartureInspection(int loanId) =>
-      '/loans/$loanId/inspections/departure';
-  static String loanReturnInspection(int loanId) =>
-      '/loans/$loanId/inspections/return';
-  static String loanInspections(int loanId) =>
-      '/loans/$loanId/inspections';
 
   // Communities
   static const String communities = '/communities';
@@ -47,9 +42,8 @@ class ApiEndpoints {
   // Payments & Invoices
   static const String paymentMethods = '/payment_methods';
   static String paymentMethodDetail(int id) => '/payment_methods/$id';
-  static String loanPaymentIntent(int loanId) => '/loans/$loanId/payment-intent';
   static String loanPrepay(int loanId) => '/loans/$loanId/prepay';
-  static String loanSettle(int loanId) => '/loans/$loanId/settle';
+  static String loanPay(int loanId) => '/loans/$loanId/pay';
   static const String invoices = '/invoices';
   static const String pricings = '/pricings';
 
@@ -73,8 +67,6 @@ class StorageKeys {
   static const String tokenExpiresAt = 'locomotion_token_expires_at';
   static const String cachedUser = 'locomotion_cached_user';
   static const String activeCommunityId = 'locomotion_active_community_id';
-  static String departureDraft(int userId, int loanId) =>
-      'locomotion_departure_draft_${userId}_$loanId';
-  static String returnDraft(int userId, int loanId) =>
-      'locomotion_return_draft_${userId}_$loanId';
+  static String pendingPhotoCapture(int userId) =>
+      'locomotion_pending_photo_capture_$userId';
 }

@@ -1,22 +1,26 @@
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../profile/presentation/controllers/profile_controller.dart';
+import '../../domain/entities/invoice_summary.dart';
 import '../../domain/entities/loan.dart';
-import '../../domain/entities/payment_intent_response.dart';
 import '../../domain/entities/payment_method_model.dart';
 
+/// Payment calls reused from the web app: balance top-up with a saved card,
+/// then `/prepay` (accepted loan) or `/pay` (validated loan).
 abstract class LoanPaymentRemoteDataSource {
-  Future<PaymentIntentResponse> createPaymentIntent({
+  /// Borrower invoice recomputed by the server for a given contribution.
+  Future<InvoiceSummary?> estimateBorrowerInvoice({
     required int loanId,
-    int? platformTipCents,
-    bool useBalance = true,
+    required double platformTip,
   });
 
-  Future<Loan> prepay({
-    required int loanId,
-    int? platformTipCents,
-    String? contributionPaymentIntentId,
-    String? depositPaymentIntentId,
-  });
+  /// Charges a saved card and credits the balance (`PUT /auth/user/balance`).
+  /// Stripe fees are added by the server. Returns the new balance.
+  Future<double> addToBalance({required double amount, int? paymentMethodId});
+
+  Future<Loan> prepay({required int loanId, required double platformTip});
+
+  Future<Loan> pay({required int loanId, required double platformTip});
 
   Future<List<PaymentMethodModel>> getPaymentMethods();
 
@@ -29,71 +33,59 @@ class LoanPaymentRemoteDataSourceImpl implements LoanPaymentRemoteDataSource {
   const LoanPaymentRemoteDataSourceImpl(this._apiClient);
 
   @override
-  Future<PaymentIntentResponse> createPaymentIntent({
+  Future<InvoiceSummary?> estimateBorrowerInvoice({
     required int loanId,
-    int? platformTipCents,
-    bool useBalance = true,
+    required double platformTip,
   }) async {
-    final payload = <String, dynamic>{
-      'use_balance_if_available': useBalance,
-    };
-    if (platformTipCents != null) {
-      payload['platform_tip_cents'] = platformTipCents;
-    }
-
-    final response = await _apiClient.post(
-      ApiEndpoints.loanPaymentIntent(loanId),
-      data: payload,
+    final response = await _apiClient.get(
+      ApiEndpoints.loanEstimate(loanId),
+      queryParameters: {'platform_tip': platformTip},
     );
-
     final data = response.data;
-    if (data is Map<String, dynamic>) {
-      final inner = data['data'] is Map<String, dynamic>
-          ? data['data'] as Map<String, dynamic>
-          : data;
-      return PaymentIntentResponse.fromJson(inner);
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Format de réponse invalide pour l\'estimation du prêt #$loanId',
+      );
     }
-    throw const FormatException(
-      'Format de réponse invalide pour l\'initialisation du paiement Stripe',
-    );
+    // The server omits the invoice when it has no non-zero item.
+    return InvoiceSummary.tryParse(data['borrower_invoice']);
   }
 
   @override
-  Future<Loan> prepay({
-    required int loanId,
-    int? platformTipCents,
-    String? contributionPaymentIntentId,
-    String? depositPaymentIntentId,
+  Future<double> addToBalance({
+    required double amount,
+    int? paymentMethodId,
   }) async {
-    final payload = <String, dynamic>{};
-    if (platformTipCents != null) {
-      payload['platform_tip_cents'] = platformTipCents;
-    }
-    if (contributionPaymentIntentId != null) {
-      payload['stripe_contribution_payment_intent_id'] =
-          contributionPaymentIntentId;
-    }
-    if (depositPaymentIntentId != null) {
-      payload['stripe_deposit_payment_intent_id'] = depositPaymentIntentId;
-    }
-
     final response = await _apiClient.put(
-      ApiEndpoints.loanPrepay(loanId),
-      data: payload,
+      ApiEndpoints.userBalance,
+      data: {'amount': amount, 'payment_method_id': ?paymentMethodId},
     );
+    return UserBalanceController.parseBalance(response.data);
+  }
 
+  @override
+  Future<Loan> prepay({required int loanId, required double platformTip}) {
+    return _putLoanAction(ApiEndpoints.loanPrepay(loanId), platformTip);
+  }
+
+  @override
+  Future<Loan> pay({required int loanId, required double platformTip}) {
+    return _putLoanAction(ApiEndpoints.loanPay(loanId), platformTip);
+  }
+
+  Future<Loan> _putLoanAction(String endpoint, double platformTip) async {
+    final response = await _apiClient.put(
+      endpoint,
+      data: {'platform_tip': platformTip},
+    );
     final data = response.data;
     if (data is Map<String, dynamic>) {
       final item = data['data'] is Map<String, dynamic>
           ? data['data'] as Map<String, dynamic>
-          : (data['loan'] is Map<String, dynamic>
-              ? data['loan'] as Map<String, dynamic>
-              : data);
+          : data;
       return Loan.fromJson(item);
     }
-    throw const FormatException(
-      'Format de réponse invalide pour la confirmation du prépaiement',
-    );
+    throw const FormatException('Format de réponse invalide pour le paiement');
   }
 
   @override

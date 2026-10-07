@@ -12,8 +12,7 @@ class AppRoutes {
   static const String loanReservation = '/loanables/:id/reserve';
   static const String loanSuccess = '/loans/:id/success';
   static const String loanDetail = '/loans/:id';
-  static const String loanDeparture = '/loans/:id/departure';
-  static const String loanReturn = '/loans/:id/return';
+  static const String loanFactors = '/loans/:id/factors';
   static const String loansList = '/loans/all';
   static const String fleet = '/fleet';
   static const String fleetCreate = '/fleet/new';
@@ -29,8 +28,7 @@ class AppRoutes {
   static String loanReservationPath(int id) => '/loanables/$id/reserve';
   static String loanSuccessPath(int id) => '/loans/$id/success';
   static String loanDetailPath(int id) => '/loans/$id';
-  static String loanDeparturePath(int id) => '/loans/$id/departure';
-  static String loanReturnPath(int id) => '/loans/$id/return';
+  static String loanFactorsPath(int id) => '/loans/$id/factors';
   static String loansListPath({String? status}) =>
       status != null ? '/loans/all?status=$status' : '/loans/all';
   static String fleetDetailPath(int id) => '/fleet/$id';
@@ -46,9 +44,7 @@ class AppRoutes {
     String? ownerPhone,
     String? ownerEmail,
   }) {
-    final query = <String, String>{
-      'loanable_id': loanableId.toString(),
-    };
+    final query = <String, String>{'loanable_id': loanableId.toString()};
     if (vehicleName != null) query['vehicle_name'] = vehicleName;
     if (loanId != null) query['loan_id'] = loanId.toString();
     if (ownerName != null) query['owner_name'] = ownerName;
@@ -69,13 +65,12 @@ class Routes {
     String? ownerName,
     String? ownerPhone,
     String? ownerEmail,
-  }) =>
-      AppRoutes.incidentReportPath(
-        loanableId: loanableId,
-        vehicleName: vehicleName,
-        loanId: loanId,
-        ownerName: ownerName,
-        ownerPhone: ownerPhone,
-        ownerEmail: ownerEmail,
-      );
+  }) => AppRoutes.incidentReportPath(
+    loanableId: loanableId,
+    vehicleName: vehicleName,
+    loanId: loanId,
+    ownerName: ownerName,
+    ownerPhone: ownerPhone,
+    ownerEmail: ownerEmail,
+  );
 }

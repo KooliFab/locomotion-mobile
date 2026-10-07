@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import '../entities/extension_estimate.dart';
 import '../entities/loan.dart';
 import '../entities/loan_comment.dart';
 import '../entities/loan_creation_request.dart';
 import '../entities/loan_dates_update_request.dart';
+import '../entities/loan_factors_update.dart';
 import '../entities/loan_pagination.dart';
 import '../entities/loans_dashboard.dart';
 
@@ -28,4 +31,7 @@ abstract class LoansRepository {
   Future<Loan> rejectExtension(int id);
   Future<Loan> cancelExtension(int id);
   Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes);
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update);
+  Future<Loan> endLoanEarly(int id);
+  Future<Map<String, dynamic>> uploadImage(File file, String field);
 }

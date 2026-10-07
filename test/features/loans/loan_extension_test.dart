@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
 import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable.dart';
@@ -18,6 +21,16 @@ import 'package:mobile/features/loans/presentation/screens/loan_detail_screen.da
 import 'package:mobile/features/loans/presentation/widgets/loan_extension_bottom_sheet.dart';
 
 class _FakeExtensionLoansRepo implements LoansRepository {
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
   Loan loan;
   ExtensionEstimate estimateToReturn;
   int getEstimateCalls = 0;
@@ -86,16 +99,19 @@ class _FakeExtensionLoansRepo implements LoansRepository {
   }
 
   @override
-  Future<Loan> acceptLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> acceptLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
-  Future<LoanComment> addComment(int id, String text) => throw UnimplementedError();
+  Future<LoanComment> addComment(int id, String text) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> cancelLoan(int id) => throw UnimplementedError();
 
   @override
-  Future<Loan> createLoan(LoanCreationRequest request) => throw UnimplementedError();
+  Future<Loan> createLoan(LoanCreationRequest request) =>
+      throw UnimplementedError();
 
   @override
   Future<LoansDashboard> getDashboard() => throw UnimplementedError();
@@ -109,11 +125,11 @@ class _FakeExtensionLoansRepo implements LoansRepository {
     int perPage = 10,
     String? status,
     int? borrowerUserId,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
-  Future<Loan> rejectLoan(int id, {String? comment}) => throw UnimplementedError();
+  Future<Loan> rejectLoan(int id, {String? comment}) =>
+      throw UnimplementedError();
 
   @override
   Future<Loan> updateLoanDates(int id, LoanDatesUpdateRequest request) =>
@@ -127,7 +143,10 @@ class _FakeFailingEstimateLoansRepo extends _FakeExtensionLoansRepo {
   _FakeFailingEstimateLoansRepo({required super.loan});
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) async {
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) async {
     throw Exception('Erreur réseau lors du calcul');
   }
 }
@@ -188,7 +207,9 @@ void main() {
       expect(baseOngoingLoan.canRequestExtension(999), isFalse);
 
       // Pending extension already present -> cannot request again
-      final pendingLoan = baseOngoingLoan.copyWith(extensionDurationInMinutes: 90);
+      final pendingLoan = baseOngoingLoan.copyWith(
+        extensionDurationInMinutes: 90,
+      );
       expect(pendingLoan.canRequestExtension(10), isFalse);
 
       // Completed loan -> cannot request
@@ -197,7 +218,9 @@ void main() {
     });
 
     test('owner accept/reject extension permissions', () {
-      final pendingLoan = baseOngoingLoan.copyWith(extensionDurationInMinutes: 90);
+      final pendingLoan = baseOngoingLoan.copyWith(
+        extensionDurationInMinutes: 90,
+      );
 
       // Owner can accept and reject
       expect(pendingLoan.canAcceptExtension(20), isTrue);
@@ -209,7 +232,9 @@ void main() {
     });
 
     test('borrower cancel extension permissions', () {
-      final pendingLoan = baseOngoingLoan.copyWith(extensionDurationInMinutes: 90);
+      final pendingLoan = baseOngoingLoan.copyWith(
+        extensionDurationInMinutes: 90,
+      );
 
       // Borrower can cancel
       expect(pendingLoan.canCancelExtension(10), isTrue);
@@ -242,14 +267,14 @@ void main() {
   });
 
   group('LoanExtensionBottomSheet Widget Tests', () {
-    testWidgets('renders chips, fetches estimate, and submits extension', (tester) async {
+    testWidgets('renders chips, fetches estimate, and submits extension', (
+      tester,
+    ) async {
       final fakeRepo = _FakeExtensionLoansRepo(loan: baseOngoingLoan);
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: [loansRepositoryProvider.overrideWithValue(fakeRepo)],
           child: MaterialApp(
             home: Scaffold(
               body: LoanExtensionBottomSheet(loan: baseOngoingLoan),
@@ -292,7 +317,9 @@ void main() {
       expect(fakeRepo.lastRequestDuration, 120);
     });
 
-    testWidgets('shows conflict warning and disables submit when unavailable', (tester) async {
+    testWidgets('shows conflict warning and disables submit when unavailable', (
+      tester,
+    ) async {
       final fakeRepo = _FakeExtensionLoansRepo(
         loan: baseOngoingLoan,
         estimateToReturn: const ExtensionEstimate(
@@ -307,9 +334,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: [loansRepositoryProvider.overrideWithValue(fakeRepo)],
           child: MaterialApp(
             home: Scaffold(
               body: LoanExtensionBottomSheet(loan: baseOngoingLoan),
@@ -323,7 +348,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Conflict warning should be visible
-      expect(find.textContaining('Véhicule non disponible sur ce créneau'), findsOneWidget);
+      expect(
+        find.textContaining('Véhicule non disponible sur ce créneau'),
+        findsOneWidget,
+      );
       expect(find.textContaining('Luc Tremblay'), findsOneWidget);
       expect(find.textContaining('514-555-1234'), findsOneWidget);
 
@@ -334,11 +362,8 @@ void main() {
       expect(elevatedBtn.onPressed, isNull);
     });
 
-    testWidgets('shows surcharge and deposit expiration warning banner', (tester) async {
-      final loanWithTotal = baseOngoingLoan.copyWith(
-        borrowerTotal: 20.00,
-        depositExpiresAt: sampleDeparture.add(const Duration(hours: 1)),
-      );
+    testWidgets('shows surcharge without any deposit banner', (tester) async {
+      final loanWithTotal = baseOngoingLoan.copyWith(borrowerTotal: 20.00);
 
       final fakeRepo = _FakeExtensionLoansRepo(
         loan: loanWithTotal,
@@ -346,20 +371,14 @@ void main() {
           available: true,
           desiredContribution: 5.50,
           borrowerTotal: 25.50,
-          depositExpiresBeforeReturn: true,
-          depositWarning: 'La caution expire avant la fin de la réservation.',
         ),
       );
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: [loansRepositoryProvider.overrideWithValue(fakeRepo)],
           child: MaterialApp(
-            home: Scaffold(
-              body: LoanExtensionBottomSheet(loan: loanWithTotal),
-            ),
+            home: Scaffold(body: LoanExtensionBottomSheet(loan: loanWithTotal)),
           ),
         ),
       );
@@ -369,12 +388,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should display the surcharge (+5.50 $)
-      expect(find.textContaining('Supplément prolongation : +5.50 \$ CAD'), findsOneWidget);
-      expect(find.textContaining('Nouveau total estimé : 25.50 \$'), findsOneWidget);
+      expect(
+        find.textContaining('Supplément prolongation : +5.50 \$ CAD'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Nouveau total estimé : 25.50 \$'),
+        findsOneWidget,
+      );
 
-      // Should display the deposit expiration warning banner
-      expect(find.byKey(const Key('deposit_expiration_warning_banner')), findsOneWidget);
-      expect(find.textContaining('Attention : expiration de caution'), findsOneWidget);
+      // No security deposit exists in the reference API
+      expect(find.textContaining('caution'), findsNothing);
     });
 
     testWidgets('failed estimate disables confirmation button', (tester) async {
@@ -382,9 +406,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(fakeRepo),
-          ],
+          overrides: [loansRepositoryProvider.overrideWithValue(fakeRepo)],
           child: MaterialApp(
             home: Scaffold(
               body: LoanExtensionBottomSheet(loan: baseOngoingLoan),
@@ -406,23 +428,30 @@ void main() {
   });
 
   group('LoanDetailScreen Extension Integration Tests', () {
-    testWidgets('borrower sees request extension button on ongoing loan', (tester) async {
+    testWidgets('borrower sees request extension button on ongoing loan', (
+      tester,
+    ) async {
       final fakeRepo = _FakeExtensionLoansRepo(loan: baseOngoingLoan);
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             loansRepositoryProvider.overrideWithValue(fakeRepo),
-            loanDetailProvider(101).overrideWith((ref) async => baseOngoingLoan),
+            loanDetailProvider(
+              101,
+            ).overrideWith((ref) async => baseOngoingLoan),
             authControllerProvider.overrideWith(
               () => _TestAuthController(
-                const User(id: 10, email: 'alice@example.com', firstName: 'Alice', lastName: 'Borrow'),
+                const User(
+                  id: 10,
+                  email: 'alice@example.com',
+                  firstName: 'Alice',
+                  lastName: 'Borrow',
+                ),
               ),
             ),
           ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 101),
-          ),
+          child: const MaterialApp(home: LoanDetailScreen(loanId: 101)),
         ),
       );
 
@@ -433,7 +462,9 @@ void main() {
       expect(reqBtn, findsOneWidget);
     });
 
-    testWidgets('borrower sees pending card and cancels extension', (tester) async {
+    testWidgets('borrower sees pending card and cancels extension', (
+      tester,
+    ) async {
       final pendingLoan = baseOngoingLoan.copyWith(
         extensionDurationInMinutes: 120,
       );
@@ -446,13 +477,16 @@ void main() {
             loanDetailProvider(101).overrideWith((ref) async => pendingLoan),
             authControllerProvider.overrideWith(
               () => _TestAuthController(
-                const User(id: 10, email: 'alice@example.com', firstName: 'Alice', lastName: 'Borrow'),
+                const User(
+                  id: 10,
+                  email: 'alice@example.com',
+                  firstName: 'Alice',
+                  lastName: 'Borrow',
+                ),
               ),
             ),
           ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 101),
-          ),
+          child: const MaterialApp(home: LoanDetailScreen(loanId: 101)),
         ),
       );
 
@@ -461,7 +495,10 @@ void main() {
       // Borrower pending card visible
       final cancelBtn = find.byKey(const Key('action_cancel_extension_button'));
       await tester.ensureVisible(cancelBtn);
-      expect(find.byKey(const Key('borrower_pending_extension_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('borrower_pending_extension_card')),
+        findsOneWidget,
+      );
       expect(cancelBtn, findsOneWidget);
 
       // Tap cancel button
@@ -469,7 +506,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Confirm dialog appeared
-      final confirmBtn = find.byKey(const Key('confirm_cancel_extension_dialog_button'));
+      final confirmBtn = find.byKey(
+        const Key('confirm_cancel_extension_dialog_button'),
+      );
       expect(confirmBtn, findsOneWidget);
       await tester.tap(confirmBtn);
       await tester.pumpAndSettle();
@@ -477,7 +516,9 @@ void main() {
       expect(fakeRepo.cancelCalls, 1);
     });
 
-    testWidgets('owner sees pending card, can accept or reject extension', (tester) async {
+    testWidgets('owner sees pending card, can accept or reject extension', (
+      tester,
+    ) async {
       final pendingLoan = baseOngoingLoan.copyWith(
         extensionDurationInMinutes: 120,
       );
@@ -490,13 +531,16 @@ void main() {
             loanDetailProvider(101).overrideWith((ref) async => pendingLoan),
             authControllerProvider.overrideWith(
               () => _TestAuthController(
-                const User(id: 20, email: 'owner@example.com', firstName: 'Marc', lastName: 'Owner'),
+                const User(
+                  id: 20,
+                  email: 'owner@example.com',
+                  firstName: 'Marc',
+                  lastName: 'Owner',
+                ),
               ),
             ),
           ],
-          child: const MaterialApp(
-            home: LoanDetailScreen(loanId: 101),
-          ),
+          child: const MaterialApp(home: LoanDetailScreen(loanId: 101)),
         ),
       );
 
@@ -505,9 +549,15 @@ void main() {
       // Owner pending card visible
       final acceptBtn = find.byKey(const Key('action_accept_extension_button'));
       await tester.ensureVisible(acceptBtn);
-      expect(find.byKey(const Key('owner_pending_extension_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('owner_pending_extension_card')),
+        findsOneWidget,
+      );
       expect(acceptBtn, findsOneWidget);
-      expect(find.byKey(const Key('action_reject_extension_button')), findsOneWidget);
+      expect(
+        find.byKey(const Key('action_reject_extension_button')),
+        findsOneWidget,
+      );
 
       // Tap accept
       await tester.tap(acceptBtn);

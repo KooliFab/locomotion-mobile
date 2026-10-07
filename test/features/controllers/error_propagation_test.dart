@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
 import 'package:mobile/core/error/exceptions.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable.dart';
 import 'package:mobile/features/loanables/domain/entities/loanable_availability.dart';
@@ -53,6 +56,16 @@ class FailingLoanablesRepository implements LoanablesRepository {
 
 class FailingLoansRepository implements LoansRepository {
   @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
+  @override
   Future<LoansDashboard> getDashboard() async {
     throw const ServerException(message: 'Erreur dashboard', statusCode: 500);
   }
@@ -99,7 +112,10 @@ class FailingLoansRepository implements LoansRepository {
 
   @override
   Future<Loan> validateLoan(int id) async {
-    throw const ServerException(message: 'Erreur validate loan', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur validate loan',
+      statusCode: 500,
+    );
   }
 
   @override
@@ -117,27 +133,45 @@ class FailingLoansRepository implements LoansRepository {
 
   @override
   Future<Loan> requestExtension(int id, int extensionDurationInMinutes) async {
-    throw const ServerException(message: 'Erreur request extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur request extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> acceptExtension(int id) async {
-    throw const ServerException(message: 'Erreur accept extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur accept extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> rejectExtension(int id) async {
-    throw const ServerException(message: 'Erreur reject extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur reject extension',
+      statusCode: 500,
+    );
   }
 
   @override
   Future<Loan> cancelExtension(int id) async {
-    throw const ServerException(message: 'Erreur cancel extension', statusCode: 500);
+    throw const ServerException(
+      message: 'Erreur cancel extension',
+      statusCode: 500,
+    );
   }
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) async {
-    throw const ServerException(message: 'Erreur extension estimate', statusCode: 500);
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) async {
+    throw const ServerException(
+      message: 'Erreur extension estimate',
+      statusCode: 500,
+    );
   }
 }
 

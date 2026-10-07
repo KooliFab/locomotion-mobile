@@ -85,6 +85,9 @@ Future<Loan> loanDetail(Ref ref, int id) async {
 @riverpod
 Future<List<Loan>> cancelledOrRejectedLoans(Ref ref) async {
   final user = ref.watch(authControllerProvider).value;
+  if (user == null) {
+    return const [];
+  }
   final repository = ref.watch(loansRepositoryProvider);
 
   // Status enum filter with comma separation as supported by WebQueryBuilder
@@ -92,7 +95,7 @@ Future<List<Loan>> cancelledOrRejectedLoans(Ref ref) async {
     page: 1,
     perPage: 20,
     status: 'canceled,rejected',
-    borrowerUserId: user?.id,
+    borrowerUserId: user.id,
   );
   return page.data;
 }
@@ -234,6 +237,27 @@ class LoanActionsController extends _$LoanActionsController {
     }
   }
 
+  /// Ends an ongoing loan now (`PUT /loans/{id}/return`).
+  Future<Loan?> endEarly(int loanId, {int? loanableId}) async {
+    state = const AsyncLoading();
+    Loan? result;
+    try {
+      final repo = ref.read(loansRepositoryProvider);
+      result = await repo.endLoanEarly(loanId);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    } finally {
+      invalidateLoanViews(
+        ref,
+        loanId: loanId,
+        loanableId: loanableId ?? result?.loanableId,
+      );
+    }
+  }
+
   Future<Loan?> requestExtension({
     required int loanId,
     required int extensionDurationInMinutes,
@@ -318,4 +342,3 @@ class LoanActionsController extends _$LoanActionsController {
     }
   }
 }
-

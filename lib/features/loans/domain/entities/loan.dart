@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../loanables/domain/entities/loanable.dart';
+import 'invoice_summary.dart';
 import 'loan_comment.dart';
 import 'loan_status.dart';
 
@@ -59,25 +60,37 @@ abstract class Loan with _$Loan {
     @JsonKey(name: 'actual_distance') int? actualDistance,
     @JsonKey(name: 'mileage_start') int? mileageStart,
     @JsonKey(name: 'mileage_end') int? mileageEnd,
+    @JsonKey(name: 'requires_mileage') bool? requiresMileage,
+    @JsonKey(name: 'requires_detailed_mileage') bool? requiresDetailedMileage,
     @JsonKey(name: 'alternative_to') String? alternativeTo,
     @JsonKey(name: 'alternative_to_other') String? alternativeToOther,
     String? comment,
     @Default([]) List<LoanComment> comments,
     @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'deposit_status') String? depositStatus,
-    @JsonKey(name: 'deposit_authorized_cents') int? depositAuthorizedCents,
-    @JsonKey(name: 'deposit_expires_at') DateTime? depositExpiresAt,
-    @JsonKey(name: 'departure_inspection_completed')
-    @Default(false)
-    bool departureInspectionCompleted,
-    @JsonKey(name: 'return_inspection_completed')
-    @Default(false)
-    bool returnInspectionCompleted,
-    @JsonKey(name: 'paid_at') DateTime? paidAt,
-    @JsonKey(name: 'deposit_released_at') DateTime? depositReleasedAt,
     @JsonKey(name: 'extension_duration_in_minutes')
     int? extensionDurationInMinutes,
-    Map<String, dynamic>? inspections,
+    // Payment and return information, as exposed by Laravel LoanResource.
+    @JsonKey(name: 'platform_tip') double? platformTip,
+    @JsonKey(name: 'desired_contribution') double? desiredContribution,
+    @JsonKey(name: 'borrower_may_contribute')
+    @Default(false)
+    bool borrowerMayContribute,
+    @JsonKey(name: 'borrower_must_pay_compensation')
+    @Default(false)
+    bool borrowerMustPayCompensation,
+    @JsonKey(name: 'borrower_must_pay_insurance')
+    @Default(false)
+    bool borrowerMustPayInsurance,
+    @JsonKey(name: 'applicable_amount_types')
+    Map<String, dynamic>? applicableAmountTypes,
+    @JsonKey(name: 'can_add_expenses') @Default(false) bool canAddExpenses,
+    @JsonKey(name: 'expenses_amount') double? expensesAmount,
+    @JsonKey(name: 'mileage_start_image')
+    Map<String, dynamic>? mileageStartImage,
+    @JsonKey(name: 'mileage_end_image') Map<String, dynamic>? mileageEndImage,
+    @JsonKey(name: 'expense_image') Map<String, dynamic>? expenseImage,
+    @JsonKey(name: 'borrower_invoice')
+    Map<String, dynamic>? borrowerInvoiceJson,
   }) = _Loan;
 
   LoanStatus get parsedStatus => LoanStatus.fromString(status);
@@ -91,17 +104,16 @@ abstract class Loan with _$Loan {
       : null;
 
   /// Whether an extension can be requested:
-  /// Must be ongoing or confirmed (or ended without return inspection completed),
-  /// user must be participant, and there must not already be an extension pending.
+  /// Must be confirmed or ongoing, user must be participant,
+  /// and there must not already be an extension pending.
   bool canRequestExtension(int? currentUserId) {
     if (hasPendingExtension) return false;
     final s = parsedStatus;
-    if (s != LoanStatus.ongoing &&
-        s != LoanStatus.confirmed &&
-        !(s == LoanStatus.ended && !returnInspectionCompleted)) {
+    if (s != LoanStatus.ongoing && s != LoanStatus.confirmed) {
       return false;
     }
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     final isOwner = isUserOwner(currentUserId);
@@ -123,7 +135,8 @@ abstract class Loan with _$Loan {
   /// Whether a pending extension can be cancelled by the borrower
   bool canCancelExtension(int? currentUserId) {
     if (!hasPendingExtension) return false;
-    final isBorrower = borrowerUserId == null ||
+    final isBorrower =
+        borrowerUserId == null ||
         currentUserId == null ||
         borrowerUserId == currentUserId;
     return isBorrower;
@@ -136,101 +149,80 @@ abstract class Loan with _$Loan {
   String get displayLoanableName =>
       loanableName ?? loanable?.name ?? 'Véhicule #$loanableId';
 
-  bool get isMotorized =>
-      loanable?.type == 'car' || loanable?.type == 'car_trailer';
+  InvoiceSummary? get borrowerInvoice =>
+      InvoiceSummary.tryParse(borrowerInvoiceJson);
 
-  bool get hasAuthorizedDeposit => depositStatus == 'authorized';
-  bool get isDepositReleased =>
-      depositStatus == 'released' || depositReleasedAt != null;
-  double? get depositAuthorizedDollars =>
-      depositAuthorizedCents != null ? depositAuthorizedCents! / 100.0 : null;
+  /// Amount currently owed by the borrower, as computed by the server.
+  double get borrowerAmountDue => borrowerInvoice?.amountDue ?? 0;
 
-  /// Borrower can prepay when accepted and not yet prepaid
+  /// Contributions do not apply to this loan (`applicable_amount_types`).
+  bool get isExemptFromContributions =>
+      applicableAmountTypes?['contributions'] == 'not_applicable';
+
+  bool get needsDetailedMileage => requiresDetailedMileage ?? false;
+
+  bool get isMileageFilled => mileageStart != null && mileageEnd != null;
+
+  /// Same rule as the web factors box: detailed mileage is still missing.
+  bool get needsMoreInformation => needsDetailedMileage && !isMileageFilled;
+
+  bool _isBorrower(int? currentUserId) =>
+      borrowerUserId == null ||
+      currentUserId == null ||
+      borrowerUserId == currentUserId;
+
+  bool _isParticipant(int? currentUserId) =>
+      _isBorrower(currentUserId) || isUserOwner(currentUserId);
+
+  /// Borrower prepays when the loan is accepted (`PUT /loans/{id}/prepay`).
   bool canBorrowerPrepay(int? currentUserId) {
     if (borrowerUserId != null &&
         currentUserId != null &&
         borrowerUserId != currentUserId) {
       return false;
     }
-    return parsedStatus == LoanStatus.accepted && prepaidAt == null;
+    return parsedStatus == LoanStatus.accepted;
   }
 
-  /// Whether the vehicle can be returned (return inspection) by borrower or owner.
-  bool canReturnVehicle(int? currentUserId) {
-    if (returnInspectionCompleted) return false;
-
-    final isBorrower = borrowerUserId == null ||
-        currentUserId == null ||
-        borrowerUserId == currentUserId;
-    final isOwner = isUserOwner(currentUserId);
-    if (!isBorrower && !isOwner) return false;
-
-    return parsedStatus == LoanStatus.ongoing || parsedStatus == LoanStatus.ended;
+  /// Borrower pays once the loan is validated (`PUT /loans/{id}/pay`).
+  bool canBorrowerPay(int? currentUserId) {
+    if (borrowerUserId != null &&
+        currentUserId != null &&
+        borrowerUserId != currentUserId) {
+      return false;
+    }
+    return parsedStatus == LoanStatus.validated;
   }
 
-  /// Whether the loan can be settled and closed by borrower or owner.
-  bool canSettleAndClose(int? currentUserId) {
-    if (paidAt != null || parsedStatus == LoanStatus.completed) return false;
-
-    final isBorrower = borrowerUserId == null ||
-        currentUserId == null ||
-        borrowerUserId == currentUserId;
-    final isOwner = isUserOwner(currentUserId);
-    if (!isBorrower && !isOwner) return false;
-
-    return parsedStatus == LoanStatus.ended ||
-        parsedStatus == LoanStatus.validated;
+  /// Mileage, expenses and their pictures (`PUT /loans/{id}/factors`).
+  /// Matches the web return form, shown for ongoing, ended and validated loans.
+  bool canEditReturnInfo(int? currentUserId) {
+    final s = parsedStatus;
+    if (s != LoanStatus.ongoing &&
+        s != LoanStatus.ended &&
+        s != LoanStatus.validated) {
+      return false;
+    }
+    return _isParticipant(currentUserId);
   }
 
-  /// Whether current user can perform final validation on returned loan.
+  /// Ends an ongoing loan before its planned return (`PUT /loans/{id}/return`).
+  bool canEndEarly(int? currentUserId) {
+    if (parsedStatus != LoanStatus.ongoing) return false;
+    return _isParticipant(currentUserId);
+  }
+
+  /// Whether current user can validate the information of an ended loan.
   bool canValidateReturn(int? currentUserId) {
     if (parsedStatus != LoanStatus.ended) return false;
+    if (!needsValidation || needsMoreInformation) return false;
 
     final isOwner = isUserOwner(currentUserId);
     if (isOwner && ownerValidatedAt == null) return true;
 
-    final isBorrower = borrowerUserId == null ||
-        currentUserId == null ||
-        borrowerUserId == currentUserId;
-    if (isBorrower && borrowerValidatedAt == null) return true;
+    if (_isBorrower(currentUserId) && borrowerValidatedAt == null) return true;
 
     return false;
-  }
-
-  /// Whether the vehicle can be taken over (departure inspection) by the borrower or owner.
-  /// Allowed starting 1 hour before departure_at when the loan is confirmed,
-  /// or when already ongoing if departure inspection is not yet completed.
-  bool canTakeOver(int? currentUserId, {DateTime? now}) {
-    if (departureInspectionCompleted) return false;
-
-    final isBorrower = borrowerUserId == null ||
-        currentUserId == null ||
-        borrowerUserId == currentUserId;
-    final isOwner = isUserOwner(currentUserId);
-    if (!isBorrower && !isOwner) return false;
-
-    if (parsedStatus == LoanStatus.ongoing) return true;
-
-    if (parsedStatus == LoanStatus.confirmed) {
-      final currentTime = now ?? DateTime.now();
-      final earliestTakeOverTime =
-          departureAt.subtract(const Duration(hours: 1));
-      return currentTime.isAfter(earliestTakeOverTime) ||
-          currentTime.isAtSameMomentAs(earliestTakeOverTime);
-    }
-
-    return false;
-  }
-
-  /// Earliest moment at which departure inspection can start (1 hour before departure).
-  DateTime get earliestDepartureInspectionAt =>
-      departureAt.subtract(const Duration(hours: 1));
-
-  /// Checks if current time is within the allowed departure inspection window.
-  bool isWithinTakeOverWindow([DateTime? now]) {
-    final currentTime = now ?? DateTime.now();
-    return currentTime.isAfter(earliestDepartureInspectionAt) ||
-        currentTime.isAtSameMomentAs(earliestDepartureInspectionAt);
   }
 
   /// Determines if the current user has owner access to this loan.

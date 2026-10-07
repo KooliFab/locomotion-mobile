@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import '../../domain/entities/extension_estimate.dart';
 import '../../domain/entities/loan.dart';
 import '../../domain/entities/loan_comment.dart';
 import '../../domain/entities/loan_creation_request.dart';
 import '../../domain/entities/loan_dates_update_request.dart';
+import '../../domain/entities/loan_factors_update.dart';
 import '../../domain/entities/loan_pagination.dart';
 import '../../domain/entities/loans_dashboard.dart';
 import '../../domain/repositories/loans_repository.dart';
@@ -99,7 +102,25 @@ class LoansRepositoryImpl implements LoansRepository {
   }
 
   @override
-  Future<ExtensionEstimate> getExtensionEstimate(int id, int durationInMinutes) {
+  Future<ExtensionEstimate> getExtensionEstimate(
+    int id,
+    int durationInMinutes,
+  ) {
     return _remoteDataSource.getExtensionEstimate(id, durationInMinutes);
+  }
+
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) {
+    return _remoteDataSource.updateFactors(id, update);
+  }
+
+  @override
+  Future<Loan> endLoanEarly(int id) {
+    return _remoteDataSource.endLoanEarly(id);
+  }
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) {
+    return _remoteDataSource.uploadImage(file, field);
   }
 }

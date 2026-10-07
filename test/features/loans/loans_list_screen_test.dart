@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
 import 'package:mobile/features/auth/domain/entities/user.dart';
 import 'package:mobile/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mobile/features/loans/domain/entities/extension_estimate.dart';
@@ -16,7 +19,18 @@ import 'package:mobile/features/loans/presentation/controllers/loans_controller.
 import 'package:mobile/features/loans/presentation/screens/loans_list_screen.dart';
 import '../../fixtures/loans_fixtures.dart';
 
-class _ControllableMockLoansRepo implements LoansRepository {  final List<Completer<LoanPagination>> completers = [];
+class _ControllableMockLoansRepo implements LoansRepository {
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
+  final List<Completer<LoanPagination>> completers = [];
   final List<Map<String, dynamic>> requests = [];
 
   @override
@@ -78,7 +92,18 @@ class _ControllableMockLoansRepo implements LoansRepository {  final List<Comple
   ) => throw UnimplementedError();
 }
 
-class _MockLoansRepo implements LoansRepository {  final Map<int, LoanPagination> pages;
+class _MockLoansRepo implements LoansRepository {
+  @override
+  Future<Loan> updateFactors(int id, LoanFactorsUpdate update) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Loan> endLoanEarly(int id) => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> uploadImage(File file, String field) =>
+      throw UnimplementedError();
+  final Map<int, LoanPagination> pages;
   final List<Map<String, dynamic>> requestedPages = [];
 
   _MockLoansRepo({required this.pages});
