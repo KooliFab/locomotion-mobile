@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 /// Helpers to work with vehicle-local (naive) datetime strings returned by
@@ -98,7 +99,7 @@ class VehicleLocalDates {
     if (ianaZone != null && ianaZone.isNotEmpty) {
       try {
         final location = tz.getLocation(ianaZone);
-        final now = tz.TZDateTime.now(location);
+        final now = tz.TZDateTime.from(clock.now(), location);
         return '${now.year.toString().padLeft(4, '0')}-'
             '${now.month.toString().padLeft(2, '0')}-'
             '${now.day.toString().padLeft(2, '0')}';
@@ -106,7 +107,7 @@ class VehicleLocalDates {
         // Unknown timezone: fall through to device local
       }
     }
-    return formatYmd(DateTime.now());
+    return formatYmd(clock.now());
   }
 
   /// Splits [interval] into one fragment per calendar day it spans, using the

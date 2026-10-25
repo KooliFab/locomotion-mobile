@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -82,27 +83,27 @@ class _AvailabilityRuleFormSheetState
 
       if (_isRecurring) {
         _isMultiDay = false;
-        _startDate = DateTime.now();
-        _endDate = DateTime.now();
+        _startDate = clock.now();
+        _endDate = clock.now();
         _selectedDays = Set<String>.from(rule.scope);
       } else {
         _selectedDays = {'SA', 'SU'};
         if (rule.type == 'dateRange' && rule.scope.length >= 2) {
           _isMultiDay = true;
-          _startDate = DateTime.tryParse(rule.scope.first) ?? DateTime.now();
-          _endDate = DateTime.tryParse(rule.scope.last) ?? DateTime.now();
+          _startDate = DateTime.tryParse(rule.scope.first) ?? clock.now();
+          _endDate = DateTime.tryParse(rule.scope.last) ?? clock.now();
         } else {
           _isMultiDay = false;
           _startDate = rule.scope.isNotEmpty
-              ? DateTime.tryParse(rule.scope.first) ?? DateTime.now()
-              : DateTime.now();
+              ? DateTime.tryParse(rule.scope.first) ?? clock.now()
+              : clock.now();
           _endDate = _startDate;
         }
       }
     } else {
       _isRecurring = false;
       _isMultiDay = false;
-      _startDate = DateTime.now().add(const Duration(days: 1));
+      _startDate = clock.now().add(const Duration(days: 1));
       _endDate = _startDate;
       _selectedDays = {'SA', 'SU'};
       _isAllDay = true;
@@ -398,10 +399,10 @@ class _AvailabilityRuleFormSheetState
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: _startDate,
-                            firstDate: DateTime.now().subtract(
+                            firstDate: clock.now().subtract(
                               const Duration(days: 1),
                             ),
-                            lastDate: DateTime.now().add(
+                            lastDate: clock.now().add(
                               const Duration(days: 365),
                             ),
                           );
@@ -431,7 +432,7 @@ class _AvailabilityRuleFormSheetState
                                   ? _startDate
                                   : _endDate,
                               firstDate: _startDate,
-                              lastDate: DateTime.now().add(
+                              lastDate: clock.now().add(
                                 const Duration(days: 365),
                               ),
                             );

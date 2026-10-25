@@ -2,6 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/features/loans/domain/entities/loan_draft.dart';
 import 'package:mobile/features/loans/domain/entities/transport_alternative.dart';
 
+import '../../helpers/fixed_clock.dart';
+
+/// Every case here validates the schedule against `clock.now()`.
+void _test(String description, void Function() body) =>
+    test(description, () => atFixtureNow(body));
+
 void main() {
   group('LoanDraft Validation & Domain Tests', () {
     const baseDraft = LoanDraft(
@@ -17,7 +23,7 @@ void main() {
       alternativeTo: TransportAlternative.publicTransit,
     );
 
-    test(
+    _test(
       'valid draft produces correct departureAtString and has no errors',
       () {
         expect(baseDraft.isValid, isTrue);
@@ -28,19 +34,19 @@ void main() {
       },
     );
 
-    test('schedule validation detects missing departure date', () {
+    _test('schedule validation detects missing departure date', () {
       final draft = baseDraft.copyWith(departureDate: null);
       expect(draft.isValid, isFalse);
       expect(draft.scheduleValidationError, contains('date de départ'));
     });
 
-    test('schedule validation detects missing departure time', () {
+    _test('schedule validation detects missing departure time', () {
       final draft = baseDraft.copyWith(departureTime: null);
       expect(draft.isValid, isFalse);
       expect(draft.scheduleValidationError, contains('heure de départ'));
     });
 
-    test(
+    _test(
       'schedule validation rejects departure date in the past for vehicle timezone',
       () {
         final draft = baseDraft.copyWith(
@@ -55,19 +61,19 @@ void main() {
       },
     );
 
-    test('schedule validation enforces min loan duration bound', () {
+    _test('schedule validation enforces min loan duration bound', () {
       final draft = baseDraft.copyWith(durationInMinutes: 30); // min is 60
       expect(draft.isValid, isFalse);
       expect(draft.scheduleValidationError, contains('durée minimale'));
     });
 
-    test('schedule validation enforces max loan duration bound', () {
+    _test('schedule validation enforces max loan duration bound', () {
       final draft = baseDraft.copyWith(durationInMinutes: 600); // max is 480
       expect(draft.isValid, isFalse);
       expect(draft.scheduleValidationError, contains('durée maximale'));
     });
 
-    test('trip details validation requires positive estimated distance', () {
+    _test('trip details validation requires positive estimated distance', () {
       final draftZero = baseDraft.copyWith(estimatedDistance: 0);
       expect(draftZero.isValid, isFalse);
       expect(
@@ -83,7 +89,7 @@ void main() {
       );
     });
 
-    test('trip details validation requires transport alternative', () {
+    _test('trip details validation requires transport alternative', () {
       final draft = baseDraft.copyWith(alternativeTo: null);
       expect(draft.isValid, isFalse);
       expect(
@@ -92,7 +98,7 @@ void main() {
       );
     });
 
-    test(
+    _test(
       'trip details validation requires alternativeToOther when other is selected',
       () {
         final draftWithoutOther = baseDraft.copyWith(
@@ -119,7 +125,7 @@ void main() {
       },
     );
 
-    test('all transport alternatives parse properly from value', () {
+    _test('all transport alternatives parse properly from value', () {
       for (final alt in TransportAlternative.values) {
         final parsed = TransportAlternative.fromValue(alt.value);
         expect(parsed, alt);

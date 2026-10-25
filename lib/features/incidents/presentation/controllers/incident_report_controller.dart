@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../loans/presentation/controllers/loans_controller.dart';
@@ -69,7 +70,7 @@ class IncidentReportState {
 }
 
 String _generateIdempotencyKey() {
-  final now = DateTime.now().microsecondsSinceEpoch;
+  final now = clock.now().microsecondsSinceEpoch;
   final rand = Random().nextInt(1000000);
   return 'inc_${now}_$rand';
 }

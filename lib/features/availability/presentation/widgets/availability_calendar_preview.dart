@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +24,7 @@ class _AvailabilityCalendarPreviewState
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = clock.now();
     _focusedMonth = DateTime(now.year, now.month, 1);
   }
 

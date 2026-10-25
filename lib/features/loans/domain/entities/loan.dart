@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../loanables/domain/entities/loanable.dart';
 import 'invoice_summary.dart';
@@ -377,7 +378,7 @@ abstract class Loan with _$Loan {
     }
     if (s == LoanStatus.ongoing) {
       // Must not be ongoing with cost after departure
-      if (!isFree && DateTime.now().toUtc().isAfter(departureAt.toUtc())) {
+      if (!isFree && clock.now().toUtc().isAfter(departureAt.toUtc())) {
         return false;
       }
     }

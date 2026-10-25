@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_providers.dart';
+import '../../../../core/session/session_expiry.dart';
 import '../../../../core/session/session_manager.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
@@ -52,6 +53,8 @@ GetCurrentUserUseCase getCurrentUserUseCase(Ref ref) {
 class AuthController extends _$AuthController {
   @override
   FutureOr<User?> build() async {
+    ref.listen(sessionExpiryProvider, (_, _) => _onSessionExpired());
+
     final authRepo = ref.watch(authRepositoryProvider);
     final isAuth = await authRepo.isAuthenticated();
     if (!isAuth) return null;
@@ -76,7 +79,7 @@ class AuthController extends _$AuthController {
       final user = await getCurrentUser();
 
       // Reset any previously cached session data so the new user starts clean
-      resetUserSessionState(ref);
+      resetUserSessionState(ref.invalidate);
 
       Future.microtask(() {
         ref
@@ -85,6 +88,14 @@ class AuthController extends _$AuthController {
       });
       return user;
     });
+  }
+
+  /// The network layer already cleared the tokens (refresh rejected): drop
+  /// the cached user so the router returns to login, and purge private data.
+  void _onSessionExpired() {
+    if (state.value == null) return;
+    resetUserSessionState(ref.invalidate);
+    state = const AsyncData(null);
   }
 
   Future<void> logout() async {
@@ -100,7 +111,7 @@ class AuthController extends _$AuthController {
       await logoutUseCase();
 
       // 3. Centralized reset of all private user session scopes
-      resetUserSessionState(ref);
+      resetUserSessionState(ref.invalidate);
 
       return null;
     });

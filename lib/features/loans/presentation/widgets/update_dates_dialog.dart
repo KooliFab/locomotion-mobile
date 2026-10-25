@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -159,8 +160,8 @@ class _UpdateDatesDialogState extends State<UpdateDatesDialog> {
                   ? null
                   : () async {
                       final initial =
-                          DateTime.tryParse(_departureDate) ?? DateTime.now();
-                      final now = DateTime.now();
+                          DateTime.tryParse(_departureDate) ?? clock.now();
+                      final now = clock.now();
                       final candidateFirst = now.subtract(
                         const Duration(days: 30),
                       );

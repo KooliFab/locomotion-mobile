@@ -16,22 +16,17 @@ class AppConfig {
   static Environment? _manualEnvironment;
 
   /// Active environment, resolved from explicit setter or compile-time `APP_ENV`
-  static Environment get environment {
-    if (_manualEnvironment != null) {
-      return _manualEnvironment!;
-    }
-    switch (_rawEnv.toLowerCase()) {
-      case 'staging':
-        return Environment.staging;
-      case 'prod':
-      case 'production':
-        return Environment.prod;
-      case 'dev':
-      case 'development':
-      default:
-        return Environment.dev;
-    }
-  }
+  static Environment get environment =>
+      _manualEnvironment ?? _compileTimeEnvironment ?? Environment.dev;
+
+  /// Environment named by `APP_ENV`, or null when it is absent or unknown.
+  static Environment? get _compileTimeEnvironment =>
+      switch (_rawEnv.toLowerCase()) {
+        'staging' => Environment.staging,
+        'prod' || 'production' => Environment.prod,
+        'dev' || 'development' => Environment.dev,
+        _ => null,
+      };
 
   /// Sets the environment programmatically (used by entrypoints & tests)
   static void setEnvironment(Environment env) {
@@ -130,7 +125,24 @@ class AppConfig {
 
   /// Validates the configuration for the active environment.
   /// Throws a [StateError] if any requirement is violated.
-  static void validate() {
+  ///
+  /// A release build must name its environment: falling back to dev there
+  /// would ship an app pointing at a developer machine over plain HTTP.
+  static void validate({bool isReleaseBuild = kReleaseMode}) {
+    if (_manualEnvironment == null) {
+      if (_rawEnv.isNotEmpty && _compileTimeEnvironment == null) {
+        throw StateError(
+          'Unknown APP_ENV "$_rawEnv". Use dev, staging or prod.',
+        );
+      }
+      if (isReleaseBuild && _compileTimeEnvironment == null) {
+        throw StateError(
+          'A release build must select its environment: build from '
+          'lib/main_<env>.dart or pass --dart-define=APP_ENV=<env>.',
+        );
+      }
+    }
+
     final activeBaseUrl = baseUrl;
 
     if (environment == Environment.prod) {
@@ -143,29 +155,7 @@ class AppConfig {
 
       // 2. Production API must not point to localhost or private local IP ranges
       final uri = Uri.tryParse(activeBaseUrl);
-      if (uri == null ||
-          uri.host.isEmpty ||
-          uri.host == 'localhost' ||
-          uri.host == '127.0.0.1' ||
-          uri.host == '10.0.2.2' ||
-          uri.host.startsWith('192.168.') ||
-          uri.host.startsWith('10.') ||
-          uri.host.startsWith('172.16.') ||
-          uri.host.startsWith('172.17.') ||
-          uri.host.startsWith('172.18.') ||
-          uri.host.startsWith('172.19.') ||
-          uri.host.startsWith('172.20.') ||
-          uri.host.startsWith('172.21.') ||
-          uri.host.startsWith('172.22.') ||
-          uri.host.startsWith('172.23.') ||
-          uri.host.startsWith('172.24.') ||
-          uri.host.startsWith('172.25.') ||
-          uri.host.startsWith('172.26.') ||
-          uri.host.startsWith('172.27.') ||
-          uri.host.startsWith('172.28.') ||
-          uri.host.startsWith('172.29.') ||
-          uri.host.startsWith('172.30.') ||
-          uri.host.startsWith('172.31.')) {
+      if (uri == null || isLocalOrPrivateHost(uri.host)) {
         throw StateError(
           'Production API URL must not use localhost or private local IP. Current: $activeBaseUrl',
         );
@@ -181,6 +171,36 @@ class AppConfig {
         throw StateError('API base URL cannot be empty.');
       }
     }
+  }
+
+  /// Whether [host] is loopback, link-local or in a private range: a
+  /// developer machine or emulator rather than a public API server.
+  @visibleForTesting
+  static bool isLocalOrPrivateHost(String host) {
+    final h = host.toLowerCase();
+    if (h.isEmpty || h == 'localhost' || h.endsWith('.local')) return true;
+
+    final octets = h.split('.').map(int.tryParse).toList();
+    if (octets.length == 4 &&
+        octets.every((o) => o != null && o >= 0 && o <= 255)) {
+      final a = octets[0]!;
+      final b = octets[1]!;
+      return a == 0 ||
+          a == 10 ||
+          a == 127 ||
+          (a == 169 && b == 254) ||
+          (a == 172 && b >= 16 && b <= 31) ||
+          (a == 192 && b == 168);
+    }
+
+    // IPv6 (Uri.host drops the brackets): loopback, unique local, link-local.
+    if (h.contains(':')) {
+      return h == '::1' ||
+          h.startsWith('fc') ||
+          h.startsWith('fd') ||
+          h.startsWith('fe80');
+    }
+    return false;
   }
 
   /// Resets state overrides (useful in testing)

@@ -24,6 +24,9 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          # Pinned so a new stable release cannot turn main red on its own.
+          # Bump it deliberately, together with the local toolchain.
+          flutter-version: '3.44.0'
           channel: 'stable'
           cache: true
 

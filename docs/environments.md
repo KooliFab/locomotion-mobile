@@ -18,9 +18,13 @@ Ce guide détaille la gestion multi-environnement de l'application LocoMotion (F
 
 À l'initialisation de l'application (dans `main()`), `AppConfig.validate()` est systématiquement exécuté pour interdire tout déploiement non sécurisé :
 
+0. **Choix de l'environnement** :
+   - Une build **release** doit choisir son environnement : point d'entrée `lib/main_<env>.dart` ou `--dart-define=APP_ENV=<env>`. Sans cela, `lib/main.dart` refuse de démarrer au lieu de retomber sur dev.
+   - Une valeur `APP_ENV` inconnue (faute de frappe) est refusée.
+
 1. **En production (`Environment.prod`)** :
    - L'URL de l'API **doit obligatoirement commencer par `https://`** (HTTP strictement interdit).
-   - L'URL **ne doit pas pointer vers localhost ou une plage IP privée** (`127.0.0.1`, `10.0.2.2`, `192.168.*`, `10.*`, `172.16-31.*`).
+   - L'URL **ne doit pas pointer vers localhost ou une plage IP privée** : `localhost`, `*.local`, `127.*`, `10.*` (dont `10.0.2.2`), `172.16-31.*`, `192.168.*`, `169.254.*`, et en IPv6 `::1`, `fc00::/7`, `fe80::`.
    - La clé publiable Stripe ne doit **pas être vide ni correspondre à la clé de démo** (`pk_test_locomotion_demo`).
    - La clé Stripe **doit obligatoirement être une clé de production** commençant par `pk_live_`.
 

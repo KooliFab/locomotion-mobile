@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/features/loans/domain/entities/loan_factors_update.dart';
+import 'package:mobile/core/session/session_expiry.dart';
 import 'package:mobile/core/session/session_manager.dart';
 import 'package:mobile/core/storage/storage_providers.dart';
 import 'package:mobile/features/auth/domain/entities/auth_tokens.dart';
@@ -530,7 +531,7 @@ void main() {
         expect(container.read(ownerFleetControllerProvider).hasValue, isTrue);
 
         // Call central reset helper
-        resetUserSessionState(container);
+        resetUserSessionState(container.invalidate);
 
         // Providers are invalidated
         // Upon next read after logout, they return empty unauthenticated states
@@ -539,6 +540,32 @@ void main() {
 
         final fleet = await container.read(ownerFleetControllerProvider.future);
         expect(fleet, isEmpty);
+      },
+    );
+
+    test(
+      'Session ended by the network layer signs the user out and clears private data',
+      () async {
+        final authController = container.read(authControllerProvider.notifier);
+        await authController.login(
+          email: 'user_a@example.com',
+          password: 'passwordA',
+        );
+        final fleetA = await container.read(
+          ownerFleetControllerProvider.future,
+        );
+        expect(fleetA, isNotEmpty);
+
+        // The interceptor has already purged the tokens when it signals.
+        fakeAuthRepo.currentUser = null;
+        container.read(sessionExpiryProvider.notifier).signal();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(container.read(authControllerProvider).value, isNull);
+        final fleetAfter = await container.read(
+          ownerFleetControllerProvider.future,
+        );
+        expect(fleetAfter, isEmpty);
       },
     );
   });

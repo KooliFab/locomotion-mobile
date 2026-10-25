@@ -19,6 +19,7 @@ import 'package:mobile/features/loans/domain/repositories/loans_repository.dart'
 import 'package:mobile/features/loans/presentation/controllers/loans_controller.dart';
 import 'package:mobile/features/loans/presentation/screens/loan_detail_screen.dart';
 import '../../fixtures/loans_fixtures.dart';
+import '../../helpers/fixed_clock.dart';
 
 void _ensureTimezones() {
   try {
@@ -449,80 +450,86 @@ void main() {
       },
     );
 
-    testWidgets('opens UpdateDatesDialog and updates dates', (tester) async {
-      final mockRepo = _MockLoansRepo();
-      mockRepo.loanDetailToReturn = Loan.fromJson(laravelLoanDetailJson);
+    // The dialog refuses departures before `clock.now()`; the fixture loan
+    // departs on 2026-10-15.
+    testWidgets('opens UpdateDatesDialog and updates dates', (tester) {
+      return atFixtureNow(() async {
+        final mockRepo = _MockLoansRepo();
+        mockRepo.loanDetailToReturn = Loan.fromJson(laravelLoanDetailJson);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(mockRepo),
-            authControllerProvider.overrideWith(
-              () => _TestAuthController(testBorrowerUser),
-            ),
-          ],
-          child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
-        ),
-      );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              loansRepositoryProvider.overrideWithValue(mockRepo),
+              authControllerProvider.overrideWith(
+                () => _TestAuthController(testBorrowerUser),
+              ),
+            ],
+            child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      final updateBtn = find.byKey(const Key('action_update_dates_button'));
-      expect(updateBtn, findsOneWidget);
+        final updateBtn = find.byKey(const Key('action_update_dates_button'));
+        expect(updateBtn, findsOneWidget);
 
-      await tester.tap(updateBtn);
-      await tester.pumpAndSettle();
+        await tester.tap(updateBtn);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Modifier les dates'), findsOneWidget);
-      expect(
-        find.byKey(const Key('confirm_update_dates_button')),
-        findsOneWidget,
-      );
+        expect(find.text('Modifier les dates'), findsOneWidget);
+        expect(
+          find.byKey(const Key('confirm_update_dates_button')),
+          findsOneWidget,
+        );
 
-      await tester.tap(find.byKey(const Key('confirm_update_dates_button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirm_update_dates_button')));
+        await tester.pumpAndSettle();
 
-      expect(mockRepo.updateDatesCalls, 1);
+        expect(mockRepo.updateDatesCalls, 1);
+      });
     });
 
     testWidgets('displays 422 error on date conflict without altering state', (
       tester,
-    ) async {
-      final mockRepo = _MockLoansRepo();
-      mockRepo.loanDetailToReturn = Loan.fromJson(laravelLoanDetailJson);
+    ) {
+      return atFixtureNow(() async {
+        final mockRepo = _MockLoansRepo();
+        mockRepo.loanDetailToReturn = Loan.fromJson(laravelLoanDetailJson);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            loansRepositoryProvider.overrideWithValue(mockRepo),
-            authControllerProvider.overrideWith(
-              () => _TestAuthController(testBorrowerUser),
-            ),
-          ],
-          child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
-        ),
-      );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              loansRepositoryProvider.overrideWithValue(mockRepo),
+              authControllerProvider.overrideWith(
+                () => _TestAuthController(testBorrowerUser),
+              ),
+            ],
+            child: const MaterialApp(home: LoanDetailScreen(loanId: 42)),
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Configure mock to throw 422 on updateLoanDates
-      mockRepo.errorToThrow = const ValidationException(
-        message: 'Le véhicule n\'est pas disponible sur cette période.',
-        statusCode: 422,
-      );
+        // Configure mock to throw 422 on updateLoanDates
+        mockRepo.errorToThrow = const ValidationException(
+          message: 'Le véhicule n\'est pas disponible sur cette période.',
+          statusCode: 422,
+        );
 
-      await tester.tap(find.byKey(const Key('action_update_dates_button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('action_update_dates_button')));
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('confirm_update_dates_button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirm_update_dates_button')));
+        await tester.pumpAndSettle();
 
-      // Verify inline error in dialog
-      expect(
-        find.text('Le véhicule n\'est pas disponible sur cette période.'),
-        findsWidgets,
-      );
-      expect(mockRepo.updateDatesCalls, 1);
+        // Verify inline error in dialog
+        expect(
+          find.text('Le véhicule n\'est pas disponible sur cette période.'),
+          findsWidgets,
+        );
+        expect(mockRepo.updateDatesCalls, 1);
+      });
     });
 
     testWidgets(

@@ -6,6 +6,9 @@ import '../storage/secure_storage.dart';
 import 'auth_interceptor.dart';
 
 class ApiClient {
+  static const String _unexpectedErrorMessage =
+      'Une erreur inattendue est survenue.';
+
   final Dio dio;
 
   ApiClient._(this.dio);
@@ -15,6 +18,7 @@ class ApiClient {
   factory ApiClient.create({
     required SecureStorageService storageService,
     String? baseUrl,
+    void Function()? onSessionExpired,
   }) {
     final baseDio = Dio(
       BaseOptions(
@@ -41,7 +45,12 @@ class ApiClient {
     );
 
     baseDio.interceptors.add(
-      AuthInterceptor(storageService, baseDio, refreshDio: refreshDio),
+      AuthInterceptor(
+        storageService,
+        baseDio,
+        refreshDio: refreshDio,
+        onSessionExpired: onSessionExpired,
+      ),
     );
     if (kDebugMode) {
       baseDio.interceptors.add(
@@ -74,7 +83,8 @@ class ApiClient {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: e.toString());
+      // Never show raw exception text to the user; keep it for debugging.
+      throw AppException(message: _unexpectedErrorMessage, data: e);
     }
   }
 
@@ -94,7 +104,8 @@ class ApiClient {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: e.toString());
+      // Never show raw exception text to the user; keep it for debugging.
+      throw AppException(message: _unexpectedErrorMessage, data: e);
     }
   }
 
@@ -114,7 +125,8 @@ class ApiClient {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: e.toString());
+      // Never show raw exception text to the user; keep it for debugging.
+      throw AppException(message: _unexpectedErrorMessage, data: e);
     }
   }
 
@@ -134,7 +146,8 @@ class ApiClient {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: e.toString());
+      // Never show raw exception text to the user; keep it for debugging.
+      throw AppException(message: _unexpectedErrorMessage, data: e);
     }
   }
 

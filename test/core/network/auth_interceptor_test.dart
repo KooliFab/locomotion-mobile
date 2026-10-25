@@ -9,6 +9,7 @@ void main() {
   late Dio mainDio;
   late Dio refreshDio;
   late AuthInterceptor interceptor;
+  late int sessionExpiredCalls;
 
   setUp(() {
     fakeStorage = FakeSecureStorageService();
@@ -27,7 +28,13 @@ void main() {
       ),
     );
 
-    interceptor = AuthInterceptor(fakeStorage, mainDio, refreshDio: refreshDio);
+    sessionExpiredCalls = 0;
+    interceptor = AuthInterceptor(
+      fakeStorage,
+      mainDio,
+      refreshDio: refreshDio,
+      onSessionExpired: () => sessionExpiredCalls++,
+    );
     mainDio.interceptors.add(interceptor);
   });
 
@@ -73,9 +80,10 @@ void main() {
         expect(caughtError, isNotNull);
         expect(caughtError!.response?.statusCode, equals(401));
 
-        // Tokens must be purged
+        // Tokens must be purged and the app told the session is over
         expect(await fakeStorage.getAccessToken(), isNull);
         expect(await fakeStorage.getRefreshToken(), isNull);
+        expect(sessionExpiredCalls, greaterThan(0));
       },
     );
 
@@ -118,6 +126,7 @@ void main() {
         // A network failure must not log the user out
         expect(await fakeStorage.getAccessToken(), 'expired_access_token');
         expect(await fakeStorage.getRefreshToken(), 'valid_refresh_token');
+        expect(sessionExpiredCalls, 0);
       },
     );
 
@@ -171,6 +180,7 @@ void main() {
 
         // When retry fails, credentials are cleared
         expect(await fakeStorage.getAccessToken(), isNull);
+        expect(sessionExpiredCalls, greaterThan(0));
       },
     );
 
@@ -246,5 +256,52 @@ void main() {
         );
       },
     );
+
+    test(
+      '5. Unexpected storage failure during refresh: keep the session',
+      () async {
+        final flakyStorage = _UnreadableRefreshTokenStorage();
+        await flakyStorage.saveTokens(
+          accessToken: 'expired_access_token',
+          refreshToken: 'valid_refresh_token',
+        );
+        mainDio.interceptors.clear();
+        mainDio.interceptors.add(
+          AuthInterceptor(
+            flakyStorage,
+            mainDio,
+            refreshDio: refreshDio,
+            onSessionExpired: () => sessionExpiredCalls++,
+          ),
+        );
+        mainDio.httpClientAdapter = MockHttpClientAdapter((options) async {
+          return ResponseBody.fromString(
+            '{"error": "Unauthorized"}',
+            401,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
+          );
+        });
+
+        DioException? caughtError;
+        try {
+          await mainDio.get('/some/protected/resource');
+        } on DioException catch (e) {
+          caughtError = e;
+        }
+
+        expect(caughtError?.response?.statusCode, 401);
+        expect(await flakyStorage.getAccessToken(), 'expired_access_token');
+        expect(sessionExpiredCalls, 0);
+      },
+    );
   });
+}
+
+/// Simulates the iOS keychain refusing a read while the app is in background.
+class _UnreadableRefreshTokenStorage extends FakeSecureStorageService {
+  @override
+  Future<String?> getRefreshToken() async =>
+      throw StateError('keychain unavailable');
 }

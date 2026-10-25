@@ -7,25 +7,33 @@ class AuthInterceptor extends QueuedInterceptor {
   final Dio _dio;
   final Dio _refreshDio;
 
+  /// Called after this interceptor clears the tokens itself, so the app can
+  /// leave the authenticated screens instead of failing every request.
+  final void Function()? _onSessionExpired;
+
   static const String retryKey = '_auth_retry';
 
   /// Shared in-flight refresh future to coalesce concurrent 401 errors
   Future<String?>? _ongoingRefresh;
 
-  AuthInterceptor(this._storageService, this._dio, {Dio? refreshDio})
-    : _refreshDio =
-          refreshDio ??
-          Dio(
-            BaseOptions(
-              baseUrl: _dio.options.baseUrl,
-              connectTimeout: _dio.options.connectTimeout,
-              receiveTimeout: _dio.options.receiveTimeout,
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              },
-            ),
-          );
+  AuthInterceptor(
+    this._storageService,
+    this._dio, {
+    Dio? refreshDio,
+    this._onSessionExpired,
+  }) : _refreshDio =
+           refreshDio ??
+           Dio(
+             BaseOptions(
+               baseUrl: _dio.options.baseUrl,
+               connectTimeout: _dio.options.connectTimeout,
+               receiveTimeout: _dio.options.receiveTimeout,
+               headers: {
+                 'Accept': 'application/json',
+                 'Content-Type': 'application/json',
+               },
+             ),
+           );
 
   @override
   void onRequest(
@@ -72,7 +80,7 @@ class AuthInterceptor extends QueuedInterceptor {
     if (!isRefreshEligible) {
       if (statusCode == 401 && isAlreadyRetry) {
         // Retry also failed with 401: purge credentials to avoid stuck session
-        await _storageService.clearTokens();
+        await _expireSession();
       }
       return handler.next(err);
     }
@@ -105,7 +113,7 @@ class AuthInterceptor extends QueuedInterceptor {
         final response = await _retryRequest(requestOptions);
         return handler.resolve(response);
       } else {
-        await _storageService.clearTokens();
+        await _expireSession();
         return handler.next(err);
       }
     } on _RefreshUnavailable {
@@ -114,13 +122,19 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     } on DioException catch (retryErr) {
       if (retryErr.response?.statusCode == 401) {
-        await _storageService.clearTokens();
+        await _expireSession();
       }
       return handler.reject(retryErr);
     } catch (_) {
-      await _storageService.clearTokens();
+      // An unexpected failure (keychain unreadable while the app is in the
+      // background, for instance) proves nothing about the session: keep it.
       return handler.next(err);
     }
+  }
+
+  Future<void> _expireSession() async {
+    await _storageService.clearTokens();
+    _onSessionExpired?.call();
   }
 
   /// Retries the request using a clean Dio instance sharing the main adapter
@@ -155,7 +169,6 @@ class AuthInterceptor extends QueuedInterceptor {
     final currentAccessToken = await _storageService.getAccessToken();
 
     if (refreshToken == null || refreshToken.isEmpty) {
-      await _storageService.clearTokens();
       return null;
     }
 
@@ -186,13 +199,11 @@ class AuthInterceptor extends QueuedInterceptor {
         }
       }
 
-      await _storageService.clearTokens();
       return null;
     } on DioException catch (e) {
       final code = e.response?.statusCode;
       if (code != null && code >= 400 && code < 500) {
         // The server rejected the refresh token: the session is over.
-        await _storageService.clearTokens();
         return null;
       }
       throw _RefreshUnavailable(e);

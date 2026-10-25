@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -58,7 +59,7 @@ class LoanFactorsController {
         loanId: loanId,
         phase: PhotoCapturePhase.loanFactors,
         field: field,
-        startedAt: DateTime.now(),
+        startedAt: clock.now(),
       ),
       source: source,
     );

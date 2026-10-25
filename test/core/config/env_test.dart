@@ -125,6 +125,53 @@ void main() {
       AppConfig.setEnvironment(Environment.prod);
       expect(() => AppConfig.validate(), returnsNormally);
     });
+
+    test('fails in a release build that did not select an environment', () {
+      expect(
+        () => AppConfig.validate(isReleaseBuild: true),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('must select its environment'),
+          ),
+        ),
+      );
+    });
+
+    test('passes in a release build started from an env entrypoint', () {
+      AppConfig.setEnvironment(Environment.prod);
+      expect(() => AppConfig.validate(isReleaseBuild: true), returnsNormally);
+    });
+
+    test('fails in prod mode for every private or loopback host form', () {
+      AppConfig.setEnvironment(Environment.prod);
+      for (final url in [
+        'https://10.0.2.2/api/v1',
+        'https://172.20.4.1/api/v1',
+        'https://169.254.10.10/api/v1',
+        'https://[::1]:8000/api/v1',
+        'https://[fd12:3456::1]/api/v1',
+        'https://devbox.local/api/v1',
+      ]) {
+        AppConfig.baseUrl = url;
+        expect(() => AppConfig.validate(), throwsStateError, reason: url);
+      }
+    });
+  });
+
+  group('AppConfig.isLocalOrPrivateHost', () {
+    test('does not flag public hosts that merely look similar', () {
+      for (final host in [
+        'api.locomotion.app',
+        '10fastfingers.com',
+        '172.15.0.1',
+        '172.32.0.1',
+        '8.8.8.8',
+      ]) {
+        expect(AppConfig.isLocalOrPrivateHost(host), isFalse, reason: host);
+      }
+    });
   });
 
   group('Riverpod ApiBaseUrl notifier', () {

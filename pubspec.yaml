@@ -1,5 +1,5 @@
 name: mobile
-description: "A new Flutter project."
+description: "LocoMotion mobile app: vehicle sharing and loans for LocoMotion communities."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -42,6 +42,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   intl: ^0.20.3
+  clock: ^1.1.2
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   apple_maps_flutter: ^1.4.0
@@ -69,8 +70,6 @@ dev_dependencies:
   riverpod_generator: ^4.0.0+1
   freezed: ^3.2.3
   json_serializable: ^6.11.2
-  custom_lint: ^0.8.1
-  riverpod_lint: ^3.1.0
   cross_file: ^0.3.4+2
   plugin_platform_interface: ^2.1.8
 
