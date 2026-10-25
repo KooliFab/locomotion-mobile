@@ -1,7 +1,18 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Loaded outside `android {}`: with AGP 9, `java` inside that block resolves to
+// a Gradle extension, so fully qualified `java.util.*` names no longer compile.
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
 
 android {
@@ -45,42 +56,37 @@ android {
         }
     }
 
-    val keystorePropertiesFile = rootProject.file("key.properties")
-    val keystoreProperties = java.util.Properties()
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
-    }
+    val releaseKeyPath = System.getenv("ANDROID_KEYSTORE_PATH")
+        ?: keystoreProperties.getProperty("storeFile")
+    val hasReleaseKeystore = !releaseKeyPath.isNullOrEmpty() && file(releaseKeyPath).exists()
+    val allowDebugSigning = System.getenv("ALLOW_DEBUG_SIGNING") == "true"
 
     signingConfigs {
         create("release") {
-            val keyPath = System.getenv("ANDROID_KEYSTORE_PATH")
-                ?: keystoreProperties.getProperty("storeFile")
-            val keyPasswordEnv = System.getenv("ANDROID_KEY_PASSWORD")
-                ?: keystoreProperties.getProperty("keyPassword")
-            val storePasswordEnv = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                ?: keystoreProperties.getProperty("storePassword")
-            val keyAliasEnv = System.getenv("ANDROID_KEY_ALIAS")
-                ?: keystoreProperties.getProperty("keyAlias")
-
-            if (!keyPath.isNullOrEmpty() && file(keyPath).exists()) {
-                storeFile = file(keyPath)
-                storePassword = storePasswordEnv
-                keyAlias = keyAliasEnv
-                keyPassword = keyPasswordEnv
-            } else if (System.getenv("ALLOW_DEBUG_SIGNING") == "true") {
-                // Explicit opt-in only (CI smoke builds): never ship this artifact.
-                val debugConfig = getByName("debug")
-                storeFile = debugConfig.storeFile
-                storePassword = debugConfig.storePassword
-                keyAlias = debugConfig.keyAlias
-                keyPassword = debugConfig.keyPassword
+            if (hasReleaseKeystore) {
+                storeFile = file(releaseKeyPath!!)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                    ?: keystoreProperties.getProperty("storePassword")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                    ?: keystoreProperties.getProperty("keyAlias")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+                    ?: keystoreProperties.getProperty("keyPassword")
             }
+            // Without a keystore this config stays incomplete, so a release
+            // build fails on purpose instead of shipping a debug-signed app.
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (!hasReleaseKeystore && allowDebugSigning) {
+                // Explicit opt-in only (CI smoke builds): never ship this
+                // artifact. Using the `debug` config itself, not a copy of its
+                // path, lets AGP create the debug keystore on a fresh machine.
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("release")
+            }
         }
     }
 }
